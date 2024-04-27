@@ -5679,7 +5679,7 @@ void CBotSynBreakICrateTask::execute(CBot *pBot, CBotSchedule *pSchedule)
 	pBot->setMoveLookPriority(MOVELOOK_TASK);
 
 	// Attack
-	const auto currentWeapon = pBot->getCurrentWeapon();
+	const CBotWeapon* currentWeapon = pBot->getCurrentWeapon();
 
 	if (currentWeapon && currentWeapon->isGravGun())
 	{
@@ -5697,11 +5697,11 @@ void CBotSynBreakICrateTask::execute(CBot *pBot, CBotSchedule *pSchedule)
 		pBot->setMoveTo(m_vPos);
 		pBot->primaryAttack();
 
-		if(!pBot->getCurrentWeapon()->isMelee())
+		if (!currentWeapon->isMelee())
 		{
-			if(pBot->getCurrentWeapon()->getClip1(pBot) < 1)
+			if (currentWeapon->getClip1(pBot) < 1)
 			{
-				if(pBot->getCurrentWeapon()->getAmmo(pBot) < 1)
+				if (currentWeapon->getAmmo(pBot) < 1)
 				{
 					m_pWeapon = pBot->getBestWeapon(m_pCrate.get());
 				}

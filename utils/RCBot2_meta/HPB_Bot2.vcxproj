@@ -197,7 +197,7 @@
       <DisableSpecificWarnings>4005;4028;4058;4061;4062;4242;4265;4365;4464;4471;4625;4710;4820;4996;5045;5204;5219;5220;5264;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

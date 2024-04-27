@@ -1171,6 +1171,58 @@ int CBotEntProp::GetEntPropEnt(int entity, PropType proptype, char *prop, int el
 				type = PropEnt_Variant;
 			}
 			break;
+		/*case FIELD_VOID:
+			break;
+		case FIELD_FLOAT:
+			break;
+		case FIELD_STRING:
+			break;
+		case FIELD_VECTOR:
+			break;
+		case FIELD_QUATERNION:
+			break;
+		case FIELD_INTEGER:
+			break;
+		case FIELD_BOOLEAN:
+			break;
+		case FIELD_SHORT:
+			break;
+		case FIELD_CHARACTER:
+			break;
+		case FIELD_COLOR32:
+			break;
+		case FIELD_EMBEDDED:
+			break;
+		case FIELD_POSITION_VECTOR:
+			break;
+		case FIELD_TIME:
+			break;
+		case FIELD_TICK:
+			break;
+		case FIELD_MODELNAME:
+			break;
+		case FIELD_SOUNDNAME:
+			break;
+		case FIELD_INPUT:
+			break;
+		case FIELD_FUNCTION:
+			break;
+		case FIELD_VMATRIX:
+			break;
+		case FIELD_VMATRIX_WORLDSPACE:
+			break;
+		case FIELD_MATRIX3X4_WORLDSPACE:
+			break;
+		case FIELD_INTERVAL:
+			break;
+		case FIELD_MODELINDEX:
+			break;
+		case FIELD_MATERIALINDEX:
+			break;
+		case FIELD_VECTOR2D:
+			break;
+		case FIELD_TYPECOUNT:
+			break;*/
 		}
 
 		if (type == PropEnt_Unknown)

@@ -2,7 +2,15 @@ proj_c_flags = [
   '-Wall',
   '-Wno-non-virtual-dtor',
   '-Wno-overloaded-virtual',
-  '-Werror',
+  #'-Werror',
+  '-Wno-uninitialized',
+  '-Wno-unused',
+  '-Wno-switch',
+  '-Wno-format',
+  '-Wno-format-security',
+  '-Wno-unknown-attributes',
+  '-Wno-logical-op-parentheses',
+  '-Wno-return-stack-address',
 ]
 proj_c_flags_opt = [
   '-O2',
@@ -192,7 +200,15 @@ class MMSConfig(object):
         '-fPIC',
         '-fno-exceptions',
         '-fno-rtti',
+	'-mmmx',
+	'-msse',
         '-msse2',
+	'-msse3',
+	'-mssse3',
+	'-msse4',
+	'-msse4a',
+	'-msse4.1',
+	'-msse4.2',
         '-fno-strict-aliasing',
       ]
 
@@ -201,7 +217,6 @@ class MMSConfig(object):
           '-fvisibility=hidden',
           '-fvisibility-inlines-hidden',
           '-std=c++14',
-          '-w',
           '-D__linux__',
         ]
       # apple clang <-> llvm clang version correspondence is just a guess as there is no way to figure it out for real
@@ -231,13 +246,13 @@ class MMSConfig(object):
         '_WINDOWS'
       ]
       cxx.cflags += [
-        '/W3',
-		'/std:c++14',
+        '/W4',
       ]
       cxx.cxxflags += [
         '/EHsc',
         '/GR-',
         '/TP',
+	'/std:c++14',
         '/arch:SSE2',
       ]
       cxx.linkflags += [

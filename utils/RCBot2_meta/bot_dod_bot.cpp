@@ -1196,7 +1196,7 @@ void CDODBot :: modThink ()
 		{
 			if ( CClassInterface::isMachineGunDeployed(m_pCurrentWeapon) )
 				m_fDeployMachineGunTime = engine->Time();
-			else if ( hasEnemy() & (m_StatsCanUse.stats.m_iEnemiesInRange>0) )
+			else if (hasEnemy() && (m_StatsCanUse.stats.m_iEnemiesInRange>0))
 			{
 				// Not deployed machine gun and within enemies -- run for cover
 				// run for cover

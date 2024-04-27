@@ -1179,7 +1179,7 @@ void CClients :: clientDebugMsg ( int iLev, const char *szMsg, CBot *pBot )
 			continue;
 
 		if (pClient->isDebugOn(BOT_DEBUG_CHAT)) {
-			char logmsg[128] = {0};
+			char logmsg[128] = {};
 			snprintf(logmsg, sizeof logmsg,"[DEBUG %s] %s",g_szDebugTags[iLev],szMsg);
 			RCBotPluginMeta::HudTextMessage(pClient->getPlayer(), logmsg);
 		}

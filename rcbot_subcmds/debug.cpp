@@ -29,6 +29,8 @@
  *
  */
 
+#include <cmath>
+
 CBotCommandInline DebugGameEventCommand("gameevent", CMD_ACCESS_DEBUG, [](CClient *pClient, BotCommandArgs args)
 {
 	if (!args[0] || !*args[0]) {

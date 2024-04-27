@@ -108,7 +108,7 @@ public:
 
 //public: // SourceMod
 #if defined SM_EXT
-	void *OnMetamodQuery(const char* iface, int *ret);
+	void *OnMetamodQuery(const char* iface, int *ret) override;
 #endif
 
 //public:

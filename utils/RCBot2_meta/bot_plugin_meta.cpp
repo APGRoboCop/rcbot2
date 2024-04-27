@@ -531,20 +531,20 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxle
 			}
 
 			if (std::sscanf(bq_line, "%d %d", &human_count, &bot_count) == 2) {
-				if (human_count < 0 || human_count > 32) {
+				if (human_count < 0 || human_count > RCBOT_MAXPLAYERS) {
 					logger->Log(LogLevel::WARN, "Bot Quota - Invalid Human Count %d", human_count);
 					continue;
 				}
 
-				if (bot_count < 0 || bot_count > 32) {
+				if (bot_count < 0 || bot_count > RCBOT_MAXPLAYERS) {
 					logger->Log(LogLevel::WARN, "Bot Quota - Invalid Bot Count %d", bot_count);
 					continue;
 				}
 
 				m_iTargetBots[human_count] = bot_count;
 				logger->Log(LogLevel::INFO, "Bot Quota - Humans: %d, Bots: %d", human_count, bot_count);
+			}
 		}
-	}
 	}
 
 	return true;

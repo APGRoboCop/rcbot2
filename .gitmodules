@@ -1,3 +1,39 @@
+[submodule "alliedmodders/hl2sdk-bms"]
+	path = alliedmodders/hl2sdk-bms
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-css"]
+	path = alliedmodders/hl2sdk-css
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-dods"]
+	path = alliedmodders/hl2sdk-dods
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-episode1"]
+	path = alliedmodders/hl2sdk-episode1
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-hl2dm"]
+	path = alliedmodders/hl2sdk-hl2dm
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-orangebox"]
+	path = alliedmodders/hl2sdk-orangebox
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-sdk2013"]
+	path = alliedmodders/hl2sdk-sdk2013
+	url = https://github.com/alliedmodders/hl2sdk
+
+[submodule "alliedmodders/hl2sdk-tf2"]
+	path = alliedmodders/hl2sdk-tf2
+	url = https://github.com/alliedmodders/hl2sdk
+
 [submodule "alliedmodders/metamod-source"]
 	path = alliedmodders/metamod-source
 	url = https://github.com/alliedmodders/metamod-source
+
+[submodule "alliedmodders/sourcemod"]
+	path = alliedmodders/sourcemod
+	url = https://github.com/alliedmodders/sourcemod

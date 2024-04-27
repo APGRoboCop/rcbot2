@@ -86,7 +86,7 @@ void CBotConfigFile :: load ()
 
 void CBotConfigFile :: doNextCommand ()
 {
-	char cmd[64] = {0};
+	char cmd[64] = {};
 
 	if ( m_fNextCommandTime < engine->Time() && m_iCmd < m_Commands.size() )
 	{
@@ -101,7 +101,7 @@ void CBotConfigFile :: doNextCommand ()
 
 void CBotConfigFile :: executeCommands ()
 {
-	char cmd[64] = {0};
+	char cmd[64] = {};
 
 	while ( m_iCmd < m_Commands.size() )
 	{
