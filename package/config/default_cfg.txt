@@ -76,9 +76,6 @@ rcbot_max_cc_time 240
 # Bots use voice commands e.g. medic/spy etc
 rcbot_voice_cmds 1
 #
-# Tweaks the bots knowledge of projectiles and gravity
-rcbot_projtweak 0.05
-#
 # Bots don't shoot the host - useful for testing waypoints
 rcbot_notarget 0
 #
@@ -107,6 +104,9 @@ rcbot_bot_squads_percent 50
 #
 # If 1 bots only prone in DOD:S when they have an enemy
 rcbot_prone_enemy_only 1
+#
+# Tweaks the bots knowledge of projectiles and gravity
+rcbot_projtweak 0.05
 #
 ####### HL2DM Settings #######
 #
