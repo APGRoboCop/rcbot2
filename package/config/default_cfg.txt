@@ -76,9 +76,6 @@ rcbot_max_cc_time 240
 # Bots use voice commands e.g. medic/spy etc
 rcbot_voice_cmds 1
 #
-# Minimum distance to move objects to
-rcbot_move_dist 800
-#
 # Tweaks the bots knowledge of projectiles and gravity
 rcbot_projtweak 0.05
 #
@@ -156,6 +153,9 @@ rcbot_spyknifefov 80
 #
 # Fraction of how much the heavy aims at a diagonal offset
 rcbot_heavyaimoffset 0.1
+#
+# Minimum distance to move objects to
+rcbot_move_dist 800
 #
 # Seconds for bots to start thinking about moving sentries
 rcbot_move_sentry_time 120
