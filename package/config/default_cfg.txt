@@ -10,9 +10,6 @@ rcbot_supermode 0
 # The time in seconds for bots to be added after another
 rcbot_addbottime 5
 #
-# Free for all mode -- bots shoot everyone
-rcbot_ffa 0
-#
 # If 1 , bots will all move forward
 rcbot_dont_move 0
 #
@@ -30,15 +27,6 @@ rcbot_avoid_strength 100
 #
 # (0 = no smoothing) -Broken!
 rcbot_aimsmoothing 0
-#
-# If 1, bots will shoot breakable objects
-rcbot_shoot_breakables 1
-#
-# The distance bots will shoot breakables at
-rcbot_shoot_breakable_dist 128.0
-#
-# The cosine of the angle bots should worry about breaking objects at (default = 0.9) ~= 25 degrees
-rcbot_shoot_breakable_cos 0.9
 #
 # How many revs the bot searches for visible players and enemies, lower to reduce cpu usage
 # Replaced by visionticks_clients setting in profile .ini files - DNA.styx
@@ -58,9 +46,6 @@ rcbot_enemyshootfov 0.97
 # Bots change classes at random intervals - Required to prevent DoDS crashes
 rcbot_change_classes 0
 #
-# Enable/disable bots taunting
-rcbot_taunt 0
-#
 # Bots mess around at start up
 rcbot_messaround 1
 #
@@ -76,12 +61,6 @@ rcbot_max_cc_time 240
 # Bots use voice commands e.g. medic/spy etc
 rcbot_voice_cmds 1
 #
-# Minimum distance to move objects to
-rcbot_move_dist 800
-#
-# Tweaks the bots knowledge of projectiles and gravity
-rcbot_projtweak 0.05
-#
 # Bots don't shoot the host - useful for testing waypoints
 rcbot_notarget 0
 #
@@ -95,6 +74,9 @@ rcbot_wpt_pathdist 400
 rcbot_show_welcome_msg 1
 #
 ######## DoDS Settings ########
+#
+# Free for all mode -- bots shoot everyone
+rcbot_ffa 0
 #
 # Bots don't capture flags in DOD:S
 rcbot_dontcapture 0
@@ -111,6 +93,18 @@ rcbot_bot_squads_percent 50
 # If 1 bots only prone in DOD:S when they have an enemy
 rcbot_prone_enemy_only 1
 #
+# Tweaks the bots knowledge of projectiles and gravity
+rcbot_projtweak 0.05
+#
+# If 1, bots will shoot breakable objects
+rcbot_shoot_breakables 1
+#
+# The distance bots will shoot breakables at
+rcbot_shoot_breakable_dist 128.0
+#
+# The cosine of the angle bots should worry about breaking objects at (default = 0.9) ~= 25 degrees
+rcbot_shoot_breakable_cos 0.9
+#
 ####### HL2DM Settings #######
 #
 # The distance from an obstacle the bot will jump
@@ -120,6 +114,9 @@ rcbot_jump_obst_dist 80
 rcbot_enemyshoot_gravgun_fov 0.98
 #
 ######## TF2 Settings ########
+#
+# Enable/disable bots taunting
+rcbot_taunt 0
 #
 # Debug command : allow spy bots to cloak and disguise
 rcbot_tf2_debug_spies_cloakdisguise 1
@@ -156,6 +153,9 @@ rcbot_spyknifefov 80
 #
 # Fraction of how much the heavy aims at a diagonal offset
 rcbot_heavyaimoffset 0.1
+#
+# Minimum distance to move objects to
+rcbot_move_dist 800
 #
 # Seconds for bots to start thinking about moving sentries
 rcbot_move_sentry_time 120
