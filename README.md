@@ -68,10 +68,22 @@ passing in `--depth 1` or a few to avoid retrieving the files that were removed 
 1. [Install the prerequisites for building SourceMod for your OS.][Building SourceMod]
 2. Create a `build/` subdirectory, then run `configure.py`.
 	- Use the following options (where `${MOD}` is only TF2):
-	`python ../configure.py -s ${MOD} --mms_path ${MMS_PATH} --hl2sdk-root ${HL2SDK_ROOT}`
-	- Specifying an `--sm-path` argument enables linking to SourceMod.
+	`python ../configure.py -s ${MOD} --mms-path ${MMS_PATH} --hl2sdk-root ${HL2SDK_ROOT}`
+	- Specifying an `--sm-path ${SM_PATH}` argument enables linking to SourceMod.
 	- Note that the automatic versioning system requires an installation of `git` and a
-	relatively modern version of Python 3. Python version 2 is now depreciated.
+	relatively modern version of Python 3. Python version 2 is now deprecated.
+	i.e.
+	Using bash:
+	```
+	python ../configure.py -s hl2dm --mms-path "${PWD%/*}/alliedmodders/metamod-source" \
+	--hl2sdk-root "${PWD%/*}/alliedmodders" --sm-path "${PWD%/*}/alliedmodders/sourcemod"
+	```
+	Using Powershell:
+	```
+	python ../configure.py -s hl2dm --mms-path "$((Get-Item $pwd).parent.FullName)\alliedmodders\metamod-source" `
+	--hl2sdk-root "$((Get-Item $pwd).parent.FullName)\alliedmodders" `
+	--sm-path "$((Get-Item $pwd).parent.FullName)\alliedmodders\sourcemod"
+	```
 3. Run `ambuild`.  MetaMod:Source plugin is built and the base install files will be available
 in `build/package`.
 
