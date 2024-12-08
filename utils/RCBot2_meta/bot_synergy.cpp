@@ -457,7 +457,7 @@ bool CBotSynergy::setVisible(edict_t* pEntity, bool bVisible)
 				}
 			}
 		}
-		else if (std::strncmp(szclassname, "item_item_crate", 12) == 0 && (!m_pNearbyItemCrate.get() || fDist < distanceFrom(m_pNearbyItemCrate.get())))
+		else if (std::strncmp(szclassname, "item_item_crate", 15) == 0 && (!m_pNearbyItemCrate.get() || fDist < distanceFrom(m_pNearbyItemCrate.get())))
 		{
 			m_pNearbyItemCrate = pEntity;
 		}

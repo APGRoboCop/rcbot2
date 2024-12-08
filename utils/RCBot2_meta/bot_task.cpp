@@ -2197,31 +2197,29 @@ void CFindPathTask :: execute ( CBot *pBot, CBotSchedule *pSchedule )
 		fail();
 }
 
-CBotTF2FindPipeWaypoint:: CBotTF2FindPipeWaypoint (const Vector& vOrigin, const Vector& vTarget) : m_vOrigin(vOrigin),
-m_vTarget(vTarget)
+CBotTF2FindPipeWaypoint::CBotTF2FindPipeWaypoint(const Vector& vOrigin, const Vector& vTarget)
+	: m_iters(0),
+	m_i(0),
+	m_j(0), // Initialize m_pTarget to nullptr
+	m_vOrigin(vOrigin),
+	m_vTarget(vTarget),
+	m_iTargetWaypoint(static_cast<short>(CWaypointLocations::NearestWaypoint(m_vTarget, BLAST_RADIUS, -1, true, true))),
+	m_fNearesti(2048.0f),
+	m_fNearestj(4096.0f),
+	m_iNearesti(-1),
+	m_iNearestj(-1),
+	m_pTable(CWaypoints::getVisiblity()),
+	m_pTarget(nullptr)
 {
-	m_i = 0;
-	m_j = 0;
-	m_iters = 0;
-	m_iNearesti = -1;
-	m_iNearestj = -1;
-	m_fNearesti = 2048.0f;
-	m_fNearestj = 4096.0f;
-	m_iTargetWaypoint = static_cast<short>(CWaypointLocations::NearestWaypoint(m_vTarget,BLAST_RADIUS, -1, true, true));
-		
-	m_pTable = CWaypoints::getVisiblity();	
-
-	if ( m_iTargetWaypoint != -1 )
+	if (m_iTargetWaypoint != -1)
 	{
 		// first find the waypoint nearest the target
 		Vector vComp = vOrigin - vTarget;
-		vComp = vComp/vComp.Length();
-		vComp = vTarget + vComp*256; // get into a better area
+		vComp = vComp / vComp.Length();
+		vComp = vTarget + vComp * 256; // get into a better area
 		m_pTarget = CWaypoints::getWaypoint(m_iTargetWaypoint);
-		CWaypointLocations::GetAllInArea(vComp,&m_WaypointsI,m_iTargetWaypoint);
+		CWaypointLocations::GetAllInArea(vComp, &m_WaypointsI, m_iTargetWaypoint);
 	}
-
-	
 }
 // a concurrentish pipe waypoint search
 void CBotTF2FindPipeWaypoint :: execute (CBot *pBot,CBotSchedule *pSchedule)
