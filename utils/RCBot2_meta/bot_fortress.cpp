@@ -4464,9 +4464,9 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 			pWaypointResupply = CWaypoints::getWaypoint(CWaypoints::getClosestFlagged(CWaypointTypes::W_FL_RESUPPLY, vOrigin, iTeam, &fResupplyDist, failedlist));
 
 		if ( bNeedAmmo )
-			pWaypointAmmo = CWaypoints::getWaypoint(CWaypoints::getClosestFlagged(CWaypointTypes::W_FL_AMMO,vOrigin,iTeam,&fAmmoDist,failedlist));
+			pWaypointAmmo = CWaypoints::getWaypoint(CWaypoints::getClosestFlagged(CWaypointTypes::W_FL_AMMO,vOrigin,getTeam(),&fAmmoDist,failedlist));
 		if ( bNeedHealth )
-			pWaypointHealth = CWaypoints::getWaypoint(CWaypoints::getClosestFlagged(CWaypointTypes::W_FL_HEALTH,vOrigin,iTeam,&fHealthDist,failedlist));
+			pWaypointHealth = CWaypoints::getWaypoint(CWaypoints::getClosestFlagged(CWaypointTypes::W_FL_HEALTH,vOrigin,getTeam(),&fHealthDist,failedlist));
 	}
 
 	if ( iClass == TF_CLASS_ENGINEER )
@@ -4812,6 +4812,7 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 			(CTeamFortress2Mod::isMapType(TF_MAP_SD)||CTeamFortress2Mod::isMapType(TF_MAP_CART)||
 			CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE)||
 			(CTeamFortress2Mod::isMapType(TF_MAP_ARENA)&&CTeamFortress2Mod::isArenaPointOpen())||
+			(CTeamFortress2Mod::isMapType(TF_MAP_SAXTON)&&CTeamFortress2Mod::isArenaPointOpen())||
 			(CTeamFortress2Mod::isMapType(TF_MAP_KOTH)&&CTeamFortress2Mod::isArenaPointOpen())||
 			CTeamFortress2Mod::isMapType(TF_MAP_CP)||CTeamFortress2Mod::isMapType(TF_MAP_CPPL)||CTeamFortress2Mod::isMapType(TF_MAP_TC)),fGetFlagUtility)
 
@@ -4819,7 +4820,7 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 	// (!CTeamFortress2Mod::isAttackDefendMap()||(m_iTeam==TF2_TEAM_RED))
 	ADD_UTILITY(BOT_UTIL_DEFEND_POINT, (m_iCurrentDefendArea>0) && 
 		(CTeamFortress2Mod::isMapType(TF_MAP_MVM)||CTeamFortress2Mod::isMapType(TF_MAP_SD)||CTeamFortress2Mod::isMapType(TF_MAP_CART)||
-		CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE)||CTeamFortress2Mod::isMapType(TF_MAP_ARENA)||
+		CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE)||CTeamFortress2Mod::isMapType(TF_MAP_ARENA)||CTeamFortress2Mod::isMapType(TF_MAP_SAXTON)||
 		CTeamFortress2Mod::isMapType(TF_MAP_KOTH)||CTeamFortress2Mod::isMapType(TF_MAP_CP)|| CTeamFortress2Mod::isMapType(TF_MAP_CPPL)||
 		CTeamFortress2Mod::isMapType(TF_MAP_TC))&&m_iClass!=TF_CLASS_SCOUT,fDefendFlagUtility)
 
@@ -4967,7 +4968,7 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 
 		ADD_UTILITY(BOT_UTIL_DEMO_STICKYTRAP_POINT, (iTeam == TF2_TEAM_RED) && (m_iCurrentDefendArea>0) &&
 			(CTeamFortress2Mod::isMapType(TF_MAP_MVM) || CTeamFortress2Mod::isMapType(TF_MAP_SD) || CTeamFortress2Mod::isMapType(TF_MAP_CART) ||
-			CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE) || CTeamFortress2Mod::isMapType(TF_MAP_ARENA) ||
+			CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE) || CTeamFortress2Mod::isMapType(TF_MAP_ARENA) || CTeamFortress2Mod::isMapType(TF_MAP_SAXTON) ||
 			CTeamFortress2Mod::isMapType(TF_MAP_KOTH) || CTeamFortress2Mod::isMapType(TF_MAP_CP) || CTeamFortress2Mod::isMapType(TF_MAP_CPPL) ||
 			CTeamFortress2Mod::isMapType(TF_MAP_TC)),
 			fDefendFlagUtility + 0.4f)

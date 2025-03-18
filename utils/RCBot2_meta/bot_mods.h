@@ -807,6 +807,8 @@ typedef enum : std::uint8_t
 	TF_MAP_CART,
 	TF_MAP_CARTRACE,
 	TF_MAP_ARENA,
+	TF_MAP_SAXTON,
+	TF_MAP_PIPELINE,
 	TF_MAP_KOTH,
 	TF_MAP_SD, // special delivery : added 15 jul 12
 	TF_MAP_TR,
