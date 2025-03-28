@@ -843,7 +843,27 @@ int CTeamFortress2Mod::getArea()
 
 bool CTeamFortress2Mod :: isPayloadBomb ( edict_t *pEntity, const int iTeam )
 {
-	return std::strncmp(pEntity->GetClassName(),"mapobj_cart_dispenser",21) == 0 && CClassInterface::getTeam(pEntity)==iTeam;
+	const string_t mapname = gpGlobals->mapname;
+
+	const char* szmapname = mapname.ToCStr();
+
+	if (CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE) || CTeamFortress2Mod::isMapType(TF_MAP_CPPL) || CTeamFortress2Mod::isMapType(TF_MAP_CART) && !(/*std::strncmp(szmapname, "plr_cutter", 10) == 0 || */std::strncmp(szmapname, "pl_embargo", 10) == 0 || std::strncmp(szmapname, "tow_", 4) == 0))
+	{
+		return std::strncmp(pEntity->GetClassName(), "mapobj_cart_dispenser", 21) == 0 && CClassInterface::getTeam(pEntity) == iTeam;
+	}
+	if (std::strncmp(szmapname, "pl_embargo", 10) == 0  && engine->IndexOfEdict(pEntity) >= 400) // Make bots focus on payload only - RussiaTails
+	{
+		return std::strncmp(pEntity->GetClassName(), "mapobj_cart_dispenser", 21) == 0 && CClassInterface::getTeam(pEntity) == iTeam;
+	}
+	/*if (std::strncmp(szmapname, "plr_cutter", 10) == 0 && engine->IndexOfEdict(pEntity) >= 400)
+	{
+		return std::strncmp(pEntity->GetClassName(), "mapobj_cart_dispenser", 21) == 0 && CClassInterface::getTeam(pEntity) == iTeam;
+	}*/
+	if (std::strncmp(szmapname, "tow_", 4) == 0)
+	{
+		return std::strncmp(pEntity->GetClassName(), "mapobj_cart_dispenser", 21) == 0;
+	}
+	return false;
 }
 
 
