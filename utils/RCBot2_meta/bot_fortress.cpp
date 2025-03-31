@@ -7639,13 +7639,17 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 		}
 	}
 	// TODO: to allow bots to properly attack RD Robots [APG]RoboCop[CL]
-	else if ( CTeamFortress2Mod::isMapType(TF_MAP_RD) && !std::strcmp(pEdict->GetClassName(),"tf_robot_destruction_robot") && (CClassInterface::getTeam(pEdict) != m_iTeam) )
+	else if ( (CTeamFortress2Mod::isMapType(TF_MAP_RD) || CTeamFortress2Mod::isMapType(TF_MAP_CTF)) && !std::strcmp(pEdict->GetClassName(),"tf_robot_destruction_robot") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
 		bValid = true;
 	}
-	else if ( CTeamFortress2Mod::isBoss(pEdict) )
+	else if (!std::strcmp(pEdict->GetClassName(), "tf_zombie") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
-		bIsBoss = bValid = true;
+		bValid = true;
+	}
+	else if ((std::strncmp(szmapname, "koth_bound_event_rc3a", 21) == 0) && !std::strcmp(pEdict->GetClassName(), "func_breakable") && (CClassInterface::getTeam(pEdict) != m_iTeam))
+	{
+		bValid = true;
 	}
 	// "FrenzyTime" is the time it takes for the bot to check out where he got hurt
 	else if ( (m_iClass != TF_CLASS_SPY) || (m_fFrenzyTime > engine->Time()) )	

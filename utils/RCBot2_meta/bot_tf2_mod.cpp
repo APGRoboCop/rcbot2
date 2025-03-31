@@ -537,7 +537,6 @@ bool CTeamFortress2Mod::isBoss(edict_t* pEntity, float* fFactor)
 		if (std::strcmp(pEntity->GetClassName(), "merasmus") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "headless_hatman") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "eyeball_boss") == 0 ||
-			std::strcmp(pEntity->GetClassName(), "tf_zombie") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "base_boss") == 0) // For Krampus and any other NPCs which uses base_boss entity - RussiaTails
 		{
 			m_pBoss = pEntity;
@@ -551,8 +550,7 @@ bool CTeamFortress2Mod::isBoss(edict_t* pEntity, float* fFactor)
 			return true;
 		// TODO: to allow RCBot to target Mafia Skeleton in pl_spineyard [APG]RoboCop[CL]
 		// for bots to target skeletons [APG]RoboCop[CL]
-		if (std::strcmp(pEntity->GetClassName(), "tf_zombie") == 0 ||
-			std::strcmp(pEntity->GetClassName(), "base_boss") == 0 || // For Krampus and any other NPCs which uses base_boss entity - RussiaTails
+		if (std::strcmp(pEntity->GetClassName(), "base_boss") == 0 || // For Krampus and any other NPCs which uses base_boss entity - RussiaTails
 			std::strcmp(pEntity->GetClassName(), "tf_robot_botler") == 0 || // Botler Robots from Embargo entity - RussiaTails
 			std::strcmp(pEntity->GetClassName(), "prop_soccer_ball") == 0)
 		{
@@ -577,8 +575,7 @@ bool CTeamFortress2Mod::isBoss(edict_t* pEntity, float* fFactor)
 	{
 		if (m_pBoss.get() == pEntity)
 			return true;
-		if (std::strcmp(pEntity->GetClassName(), "tf_zombie") == 0 ||
-			std::strcmp(pEntity->GetClassName(), "func_physbox") == 0 ||
+		if (std::strcmp(pEntity->GetClassName(), "func_physbox") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "base_boss") == 0)
 		{
 			m_pBoss = pEntity;
