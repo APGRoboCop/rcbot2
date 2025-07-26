@@ -575,11 +575,14 @@ bool CTeamFortress2Mod::isBoss(edict_t* pEntity, float* fFactor)
 		if (std::strcmp(pEntity->GetClassName(), "merasmus") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "headless_hatman") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "eyeball_boss") == 0 ||
+			std::strcmp(pEntity->GetClassName(), "tf_merasmus_trick_or_treat_prop") == 0 ||
 			std::strcmp(pEntity->GetClassName(), "base_boss") == 0) // For Krampus and any other NPCs which uses base_boss entity - RussiaTails
 		{
 			m_pBoss = pEntity;
 			return true;
 		}
+		if (std::strcmp(pEntity->GetClassName(), "tf_merasmus_trick_or_treat_prop") == 0 && CBotGlobals::entityIsAlive(m_pBoss.get()))
+			return (std::strcmp(pEntity->GetClassName(), "merasmus") != 0);
 	}
 	else if (CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE) || isMapType(TF_MAP_CART) || isMapType(TF_MAP_CTF) || isMapType(TF_MAP_KOTH) ||
 		isMapType(TF_MAP_CP) || isMapType(TF_MAP_PD) || isMapType(TF_MAP_ARENA) || isMapType(TF_MAP_SAXTON) || isMapType(TF_MAP_SD) || isMapType(TF_MAP_DM))
@@ -1318,7 +1321,7 @@ void CTeamFortress2Mod:: addWaypointFlags (edict_t *pPlayer, edict_t *pEdict, in
 	{
 		*iFlags |= CWaypointTypes::W_FL_CAPPOINT;
 		*iArea = m_ObjectiveResource.getControlPointArea(pEdict);
-		*fMaxDistance = 100;
+		*fMaxDistance = 200;
 	}
 }
 
