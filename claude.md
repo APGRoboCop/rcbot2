@@ -247,6 +247,11 @@ Current development priorities (from README.md):
 - **Waypoints**: http://rcbot.bots-united.com/waypoints.php
 - **Bots United Discord**: https://discord.gg/5v5YvKG4Hr
 
+### SourceMod Resources
+
+- **SourceMod Scripting Wiki**: https://wiki.alliedmods.net/Category:SourceMod_Scripting
+- **SourceMod API Reference**: https://sm.alliedmods.net/new-api/
+
 ### This Fork
 
 - **GitHub**: Current repository (file issues here)
