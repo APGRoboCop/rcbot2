@@ -1096,7 +1096,7 @@ int CBotFortress :: engiBuildObject (int *iState, const eEngiBuild iObject, floa
 		break;
 	case 1:
 	{
-		//TODO: To prevent EngiBots from facing their SG Turrets the wrong way [APG]RoboCop[CL]
+		// Fixed: EngiBots now face their SG Turrets in the correct direction (left direction bug fixed at line 1149)
 		CTraceFilterWorldAndPropsOnly filter;
 		QAngle eyes = CBotGlobals::playerAngles(m_pEdict);
 		//QAngle turn; //Unused? [APG]RoboCop[CL]
@@ -1146,7 +1146,7 @@ int CBotFortress :: engiBuildObject (int *iState, const eEngiBuild iObject, floa
 			{
 				iNextState = 6;
 				bestfraction = tr->fraction;
-				vchosen = building + v_right*4096.0f;
+				vchosen = building - v_right*4096.0f;
 			}
 			////////////////////////////////////////
 			// back
