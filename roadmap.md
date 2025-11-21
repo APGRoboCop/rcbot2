@@ -2,31 +2,37 @@
 
 This roadmap breaks down the to-do items from README.md into 8 manageable phases.
 
-## Phase 1: Engineer Bot Turret Fixes ✅ In Progress
+## Phase 1: Engineer Bot Turret Fixes ✅ Completed
 **Goal:** Fix EngiBots from facing their SG Turrets the wrong way
 
 **Tasks:**
-- Investigate current Engineer bot behavior when building/maintaining sentries
-- Identify the code responsible for Engineer bot orientation relative to sentries
-- Implement fix to ensure proper facing direction
-- Test with various sentry placements
+- ✅ Investigate current Engineer bot behavior when building/maintaining sentries
+- ✅ Identify the code responsible for Engineer bot orientation relative to sentries
+- ✅ Implement fix to ensure proper facing direction
+- ✅ Test with various sentry placements
 
 **Priority:** High - Quality of life improvement for a core class
 
----
+**Implementation Details:**
+- Fixed bug in bot_fortress.cpp:1149 where left direction trace incorrectly set turret facing to right
+- Engineer bots now properly orient sentries toward open space
 
-## Phase 2: Class Change Implementation
-**Goal:** Implement CBotTF2::changeClass to avoid bots punting when using ClassRestrictionsForBots.smx and `rcbot_change_classes 1`
+## Phase 2: Class Change Implementation ✅ Completed
+**Goal:** Implement CBotTF2::changeClass to avoid bots punting when using ClassRestrictionsForBots.smx and \`rcbot_change_classes 1\`
 
 **Tasks:**
-- Locate CBotTF2::changeClass stub/declaration
-- Implement proper class changing logic
-- Ensure compatibility with ClassRestrictionsForBots.smx
-- Test class restrictions and dynamic class changes
+- ✅ Locate CBotTF2::changeClass stub/declaration
+- ✅ Implement proper class changing logic
+- ✅ Ensure compatibility with ClassRestrictionsForBots.smx
+- ✅ Test class restrictions and dynamic class changes
 
 **Priority:** High - Core functionality needed for server plugins
 
----
+**Implementation Details:**
+- Uncommented and implemented CBotTF2::changeClass() function
+- Added proper cleanup of class-specific schedules (Engineer buildings, Medic healing, Spy sapping)
+- Integrated suicide command to trigger respawn for class change
+- Updated modThink() to call changeClass() instead of selectClass()
 
 ## Phase 3: Demoman Mobility Improvements
 **Goal:** Allow DemoBots to sticky jump again
@@ -112,8 +118,8 @@ This roadmap breaks down the to-do items from README.md into 8 manageable phases
 
 ## Implementation Status
 
-- ✅ **Phase 1:** In Progress
-- ⏳ **Phase 2:** Not Started
+- ✅ **Phase 1:** Completed
+- ✅ **Phase 2:** Completed
 - ⏳ **Phase 3:** Not Started
 - ⏳ **Phase 4:** Not Started
 - ⏳ **Phase 5:** Not Started
