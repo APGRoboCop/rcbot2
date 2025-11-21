@@ -901,7 +901,7 @@ public:
 	
 	void roundWon ( int iTeam, bool bFullRound );
 
-	//void changeClass (); // TODO: Needs implemented to avoid bots punting when using ClassRestrictionsForBots.smx? [APG]RoboCop[CL]
+	void changeClass ();
 
 	bool needAmmo() override;
 

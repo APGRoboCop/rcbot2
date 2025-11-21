@@ -1096,7 +1096,7 @@ int CBotFortress :: engiBuildObject (int *iState, const eEngiBuild iObject, floa
 		break;
 	case 1:
 	{
-		//TODO: To prevent EngiBots from facing their SG Turrets the wrong way [APG]RoboCop[CL]
+		// Fixed: EngiBots now face their SG Turrets in the correct direction (left direction bug fixed at line 1149)
 		CTraceFilterWorldAndPropsOnly filter;
 		QAngle eyes = CBotGlobals::playerAngles(m_pEdict);
 		//QAngle turn; //Unused? [APG]RoboCop[CL]
@@ -1146,7 +1146,7 @@ int CBotFortress :: engiBuildObject (int *iState, const eEngiBuild iObject, floa
 			{
 				iNextState = 6;
 				bestfraction = tr->fraction;
-				vchosen = building + v_right*4096.0f;
+				vchosen = building - v_right*4096.0f;
 			}
 			////////////////////////////////////////
 			// back
@@ -3081,10 +3081,8 @@ void CBotTF2::modThink()
 				// Change class if either I think I could do better
 				if (randomFloat(0.0f, 1.0f) > (scoreValue / CTeamFortress2Mod::getHighestScore()))
 				{
-					chooseClass(); // edits m_iDesiredClass
-
-					// change class
-					selectClass();
+					// Use changeClass() which handles cleanup, class selection, and respawn
+					changeClass();
 				}
 			}
 		}
@@ -7526,25 +7524,46 @@ void CBotTF2::roundWon(int iTeam, const bool bFullRound)
 	removeCondition(CONDITION_COVERT);
 }
 
-// TODO: Needs implemented to avoid bots punting when using ClassRestrictionsForBots.smx? [APG]RoboCop[CL]
-/*void CBotTF2::changeClass()
-{
-	if (m_fChangeClassTime < engine->Time())
-	{
-		m_fChangeClassTime = engine->Time() + randomFloat(0.5f, 2.5f); // wait a bit before changing class again
 
-		if (m_iClass == TF_CLASS_ENGINEER)
-		{
-			if (m_pSchedules->hasSchedule(SCHED_TF_BUILD))
-				m_pSchedules->freeMemory();
-		}
-		else if (m_iClass == TF_CLASS_MEDIC)
-		{
-			if (m_pSchedules->hasSchedule(SCHED_HEAL))
-				m_pSchedules->freeMemory();
-		}
+void CBotTF2::changeClass()
+{
+	// Clean up any class-specific schedules before changing
+	if (m_iClass == TF_CLASS_ENGINEER)
+	{
+		// Clear building schedules for engineers
+		if (m_pSchedules->hasSchedule(SCHED_TF_BUILD))
+			m_pSchedules->freeMemory();
 	}
-}*/
+	else if (m_iClass == TF_CLASS_MEDIC)
+	{
+		// Clear healing schedules for medics
+		if (m_pSchedules->hasSchedule(SCHED_HEAL))
+			m_pSchedules->freeMemory();
+	}
+	else if (m_iClass == TF_CLASS_SPY)
+	{
+		// Clear spy-specific schedules
+		if (m_pSchedules->hasSchedule(SCHED_SPY_SAP_BUILDING))
+			m_pSchedules->freeMemory();
+	}
+
+	// Choose a new class (updates m_iDesiredClass)
+	chooseClass();
+
+	// Change to the new class
+	selectClass();
+
+	// If bot is alive, need to suicide to trigger class change
+	// TF2 requires respawn for class changes to take effect
+	if (isAlive())
+	{
+		helpers->ClientCommand(m_pEdict, "kill");
+	}
+
+	// Reset the change class timer
+	m_fChangeClassTime = engine->Time() + randomFloat(bot_min_cc_time.GetFloat(), bot_max_cc_time.GetFloat());
+}
+
 
 void CBotTF2::waitRemoveSap ()
 {
