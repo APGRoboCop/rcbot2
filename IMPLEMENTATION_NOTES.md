@@ -1,8 +1,9 @@
 # RCBot2 Medium-Term Goals Implementation Notes
 
 **Date Started**: 2025-11-21
-**Branch**: `claude/create-clau-01BQekPwjuJFQ3FB99UhEU6G`
-**Status**: In Progress
+**Branch**: `claude/update-implementation-notes-018erfGiw47DWxV5UWKQf4Pp`
+**Last Updated**: 2025-11-22
+**Status**: Multiple items completed, ongoing development
 
 ---
 
@@ -12,11 +13,11 @@ This document tracks the implementation of medium-term goals from roadmap.md. Th
 
 ---
 
-## 1. Enhanced Game Detection System ✅ IMPLEMENTED
+## 1. Enhanced Game Detection System ✅ COMPLETED
 
 **Goal**: Un-hardcode gamemode detection (addresses Issue #37)
 **Priority**: Medium (🟡)
-**Status**: Core implementation complete, integration pending
+**Status**: ✅ Fully implemented and merged (commit 38eff98)
 
 ### Problem
 
@@ -154,30 +155,18 @@ const GamemodeDefinition* def = g_GamemodeConfig.getDefinition(TF_MAP_MVM);
 
 ### Integration Status
 
-**Completed**:
+**✅ ALL COMPLETED** (commit 38eff98):
 - [x] Configuration file format designed
 - [x] INI parser implemented
 - [x] Detection algorithms implemented
 - [x] All 20 gametypes supported
 - [x] Special cases handled
 - [x] Global instance created
-
-**Pending**:
-- [ ] Integrate into `bot_tf2_mod.cpp::mapInit()`
-- [ ] Add config loading at plugin startup
-- [ ] Add CVar to enable/disable config-based detection
-- [ ] Add CVar to set config file path
-- [ ] Test on various maps
-- [ ] Performance profiling
-- [ ] Documentation update
-
-### Next Steps
-
-1. **Integration**: Modify `CTeamFortress2Mod::mapInit()` to use config
-2. **Loading**: Load config in plugin initialization
-3. **Testing**: Test on all gamemode types
-4. **CVars**: Add `rcbot_gamemode_config_enable` and `rcbot_gamemode_config_file`
-5. **Fallback**: Keep hardcoded detection as backup
+- [x] Integrated into bot_tf2_mod.cpp::mapInit()
+- [x] Config loading at plugin startup
+- [x] CVars for configuration
+- [x] Tested and working
+- [x] Production ready
 
 ### Code Locations
 
@@ -188,50 +177,103 @@ const GamemodeDefinition* def = g_GamemodeConfig.getDefinition(TF_MAP_MVM);
 
 ---
 
-## 2. Extended SourceMod Natives 🔄 PLANNED
+## 2. Extended SourceMod Natives ✅ COMPLETED
 
 **Goal**: Add more SourceMod natives for plugin developers
 **Priority**: Medium (🟡)
-**Status**: Not started
+**Status**: ✅ Phases 1-7 fully implemented (commits 70d6b56 through ba8839e, merged in f7a9870)
 
-### Planned Natives
+### Implementation Summary
 
-From docs/api.md, we already have basic natives:
-- `RCBot_CreateBot()`
-- `RCBot_KickBot()`
-- `RCBot_IsBot()`
-- `RCBot_GetBotCount()`
-- `RCBot_GetBotSkill()`
-- `RCBot_SetBotSkill()`
+**Completed Phases**:
+- ✅ **Phase 1**: Enhanced SourceMod Integration - Bot Command & Control, Weapon Management, Task System
+- ✅ **Phase 2**: TF2-Specific Extensions - Class management, building control
+- ✅ **Phase 3**: Navigation & Pathfinding - Waypoint queries, path management
+- ✅ **Phase 4**: Event System & Callbacks - Forwards and event hooks
+- ✅ **Phase 5**: Squad & Team Coordination - Squad creation and management
+- ✅ **Phase 6**: Advanced Bot Management - Profile management, statistics
+- ✅ **Phase 7**: Perception & AI Configuration - FOV, conditions, weapon preferences
 
-**Additional natives to implement**:
-- [ ] `RCBot_GetBotClass()` - Get bot's current class (TF2)
-- [ ] `RCBot_SetBotClass()` - Force bot to change class
-- [ ] `RCBot_GetBotTask()` - Get current task/utility
-- [ ] `RCBot_SetBotTarget()` - Force bot to target specific entity
-- [ ] `RCBot_GetBotLoadout()` - Get weapon loadout
-- [ ] `RCBot_SetBotLoadout()` - Set weapon loadout
-- [ ] `RCBot_GetBotProfile()` - Get personality profile
-- [ ] `RCBot_SetBotProfile()` - Set personality profile
-- [ ] `RCBot_ForceTask()` - Force specific task
-- [ ] `RCBot_GetBotSquad()` - Get squad membership
-- [ ] `RCBot_SetBotSquad()` - Assign to squad
+### Implemented Natives (93+ total)
 
-**Additional forwards to implement**:
-- [ ] `RCBot_OnBotSpawn()` - Called when bot spawns
-- [ ] `RCBot_OnBotDeath()` - Called when bot dies
-- [ ] `RCBot_OnBotClassChange()` - Called when bot changes class (TF2)
-- [ ] `RCBot_OnBotTaskChange()` - Called when bot changes task
-- [ ] `RCBot_OnBotDamage()` - Called when bot takes damage
-- [ ] `RCBot_OnBotKill()` - Called when bot gets a kill
+**Bot Command & Control**:
+- [x] `RCBot2_SetBotEnemy()` - Set bot's enemy target
+- [x] `RCBot2_GetBotEnemy()` - Get current enemy
+- [x] `RCBot2_ForceBotAction()` - Force specific action
+- [x] `RCBot2_GetBotTeam()` - Get bot's team
+- [x] `RCBot2_GetBotHealth()` - Get health
+- [x] `RCBot2_GetBotOrigin()` - Get position
+- [x] `RCBot2_GetBotEyeAngles()` - Get view angles
+- [x] `RCBot2_GotoOrigin()` - Navigate to position
+- [x] `RCBot2_StopMovement()` - Stop bot movement
 
-### Implementation Plan
+**Weapon & Equipment**:
+- [x] `RCBot2_SelectWeapon()` - Switch weapon
+- [x] `RCBot2_GetCurrentWeapon()` - Get active weapon
+- [x] `RCBot2_ForceAttack()` - Force attack
+- [x] `RCBot2_ForceReload()` - Force reload
 
-1. Define natives in `sm_ext/bot_sm_natives.h`
-2. Implement in `sm_ext/bot_sm_natives.cpp`
-3. Add forwards to extension
-4. Update `docs/api.md` with new natives
-5. Create example plugins
+**Task System**:
+- [x] `RCBot2_GetCurrentSchedule()` - Get active schedule
+- [x] `RCBot2_ClearSchedule()` - Clear schedule
+- [x] `RCBot2_HasSchedule()` - Check if has schedule
+
+**Navigation & Pathfinding**:
+- [x] `RCBot2_GetWaypointCount()` - Total waypoints
+- [x] `RCBot2_GetNearestWaypoint()` - Find nearest waypoint
+- [x] `RCBot2_GetWaypointOrigin()` - Get waypoint position
+- [x] `RCBot2_GetWaypointFlags()` - Get waypoint flags
+- [x] `RCBot2_HasPath()` - Check if has path
+- [x] `RCBot2_GetGoalOrigin()` - Get goal position
+- [x] `RCBot2_GetCurrentWaypointID()` - Current waypoint
+- [x] `RCBot2_GetGoalWaypointID()` - Goal waypoint
+- [x] `RCBot2_ClearPath()` - Clear path
+- [x] `RCBot2_IsStuck()` - Check if stuck
+
+**Squad System**:
+- [x] `RCBot2_CreateSquad()` - Create new squad
+- [x] `RCBot2_DestroySquad()` - Destroy squad
+- [x] `RCBot2_AddBotToSquad()` - Add bot to squad
+- [x] `RCBot2_RemoveBotFromSquad()` - Remove from squad
+- [x] `RCBot2_GetBotSquadLeader()` - Get squad leader
+- [x] `RCBot2_GetSquadMemberCount()` - Count members
+- [x] `RCBot2_GetSquadMembers()` - Get all members
+- [x] `RCBot2_IsInSquad()` - Check squad membership
+
+**Advanced Management**:
+- [x] `RCBot2_KickBot()` - Kick specific bot
+- [x] `RCBot2_CountBots()` - Count all bots
+- [x] `RCBot2_GetBotByIndex()` - Get bot by index
+- [x] `RCBot2_GetBotName()` - Get bot name
+- [x] `RCBot2_SaveProfile()` - Save profile
+- [x] `RCBot2_LoadProfile()` - Load profile
+- [x] `RCBot2_ResetProfile()` - Reset profile
+- [x] `RCBot2_GetBotKills()` - Get kill count
+- [x] `RCBot2_GetBotDeaths()` - Get death count
+
+**Perception & AI**:
+- [x] `RCBot2_SetBotFOV()` - Set field of view
+- [x] `RCBot2_GetBotFOV()` - Get FOV
+- [x] `RCBot2_GetVisibleEnemies()` - Get visible enemies
+- [x] `RCBot2_GetNearbyAllies()` - Get nearby allies
+- [x] `RCBot2_SetCondition()` - Set condition
+- [x] `RCBot2_RemoveCondition()` - Remove condition
+- [x] `RCBot2_HasCondition()` - Check condition
+- [x] `RCBot2_GetConditions()` - Get all conditions
+- [x] `RCBot2_SetWeaponPreference()` - Set weapon preference
+- [x] `RCBot2_GetWeaponPreference()` - Get weapon preference
+
+**Game-Specific (TF2, HL2DM, etc.)**:
+- [x] TF2 class management
+- [x] TF2 building control (Engineer)
+- [x] HL2DM Gravity Gun integration
+- [x] Game-specific event forwards
+
+### Code Locations
+
+- Header: `sm_ext/bot_sm_natives.h`
+- Implementation: `sm_ext/bot_sm_natives.cpp`
+- Include file: `scripting/include/rcbot2.inc`
 
 ---
 
@@ -357,37 +399,45 @@ From ISSUES_VERIFICATION.md:
 
 ---
 
-## 6. Performance Optimizations 🔄 PLANNED
+## 6. Performance Optimizations 🔶 PARTIALLY COMPLETED
 
 **Goal**: Optimize bot AI performance
 **Priority**: Low (🟢)
-**Status**: Not started
+**Status**: HL2DM optimizations completed (commits 06d60d3, ba9e849), other games pending
 
-### Profiling Results
+### Completed Optimizations
 
-(To be added after profiling)
+**HL2DM Performance** (commit 06d60d3):
+- ✅ Reduced redundant function calls
+- ✅ Optimized distance calculations
+- ✅ Eliminated unnecessary computations in Think() loop
+- ✅ Improved entity visibility checks
 
-### Optimization Targets
+### Remaining Optimization Targets
 
 1. **Pathfinding**
-   - A* algorithm optimization
-   - Waypoint caching
-   - Path simplification
+   - [ ] A* algorithm optimization
+   - [ ] Waypoint caching
+   - [ ] Path simplification
 
 2. **Vision System**
-   - Reduce entity checks
-   - Cone of vision optimization
-   - Occlusion culling
+   - [x] Reduce entity checks (done for HL2DM)
+   - [ ] Cone of vision optimization
+   - [ ] Occlusion culling
 
 3. **Decision Making**
-   - Utility calculation caching
-   - Reduced think frequency
-   - Task batching
+   - [ ] Utility calculation caching
+   - [ ] Reduced think frequency
+   - [ ] Task batching
 
 4. **Navigation**
-   - Smoother movement
-   - Reduced waypoint checks
-   - Better prediction
+   - [ ] Smoother movement
+   - [x] Reduced waypoint checks (done for HL2DM)
+   - [ ] Better prediction
+
+### Code Locations
+
+- HL2DM optimizations: `utils/RCBot2_meta/bot_hl2dm_bot.cpp`
 
 ---
 
@@ -477,13 +527,35 @@ For SM natives and CSS buy menu:
 
 ---
 
-## Conclusion
+## Summary
 
-The Enhanced Game Detection system is a significant architectural improvement that addresses Issue #37 and provides a foundation for community extensibility. The implementation is complete and ready for integration and testing.
+**Completed Items**:
+1. ✅ **Enhanced Game Detection System** - Fully implemented and merged (commit 38eff98)
+2. ✅ **Extended SourceMod Natives** - Phases 1-7 completed (93+ natives, commits 70d6b56-ba8839e)
+3. 🔶 **Performance Optimizations** - HL2DM optimizations completed (commit 06d60d3)
 
-Next steps focus on integrating the system into the existing codebase, adding configuration CVars, and comprehensive testing across all game modes.
+**In Progress**:
+- None currently
+
+**Planned**:
+4. 🔄 **SourceMod Plugin Suite** - Not started (requires .sp plugin development)
+5. 🔄 **CS:S Buy Menu System** - Not started
+6. 🔄 **Waypoint System Enhancements** - Not started
+
+**Overall Progress**: 2.5/6 items completed (42%)
+
+**Major Achievements**:
+- Configuration-based gamemode detection eliminates hardcoded map detection
+- Comprehensive SourceMod API with 93+ natives across 7 phases
+- HL2DM performance improvements and Gravity Gun integration
+- Enhanced branch now has production-ready SourceMod integration
+
+**Next Priorities**:
+1. SourceMod plugin suite development (.sp files)
+2. CS:S buy menu implementation
+3. Waypoint generation and management tools
 
 ---
 
-**Last Updated**: 2025-11-21
-**Next Review**: After integration and testing
+**Last Updated**: 2025-11-22
+**Next Review**: When new features are implemented
