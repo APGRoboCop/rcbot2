@@ -24,8 +24,11 @@
 
 #include "bot_commands.h"
 #include "bot_recorder.h"
+#include "bot_onnx.h"
 #include "bot_globals.h"
 #include "bot.h"
+
+#include <sstream>
 
 // ML Recording Commands
 
@@ -186,5 +189,190 @@ CBotCommandInline MLRecordClearCommand("ml_record_clear", CMD_ACCESS_BOT | CMD_A
 
         CBotRecorder::GetInstance()->ClearRecording();
         CBotGlobals::botMessage(pEntity, 0, "[ML] Recording buffer cleared");
+        return COMMAND_ACCESSED;
+    });
+
+// ML Model Management Commands
+
+CBotCommandInline MLModelLoadCommand("ml_model_load", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!args[0] || !*args[0] || !args[1] || !*args[1]) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_model_load <name> <filepath>");
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Example: rcbot ml_model_load test models/test_model.onnx");
+            return COMMAND_ERROR;
+        }
+
+        const char* name = args[0];
+        const char* path = args[1];
+
+        if (CONNXModelManager::GetInstance()->LoadModel(name, path)) {
+            CONNXModel* model = CONNXModelManager::GetInstance()->GetModel(name);
+            if (model) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML] Model '%s' loaded successfully", name);
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Input: %zu features", model->GetInputSize());
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Output: %zu values", model->GetOutputSize());
+            }
+            return COMMAND_ACCESSED;
+        } else {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Failed to load model '%s'", name);
+            return COMMAND_ERROR;
+        }
+    });
+
+CBotCommandInline MLModelUnloadCommand("ml_model_unload", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!args[0] || !*args[0]) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_model_unload <name>");
+            return COMMAND_ERROR;
+        }
+
+        CONNXModelManager::GetInstance()->UnloadModel(args[0]);
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Model '%s' unloaded", args[0]);
+        return COMMAND_ACCESSED;
+    });
+
+CBotCommandInline MLModelListCommand("ml_model_list", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        CONNXModelManager::GetInstance()->ListModels();
+        return COMMAND_ACCESSED;
+    });
+
+CBotCommandInline MLModelTestCommand("ml_model_test", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!args[0] || !*args[0]) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_model_test <name>");
+            return COMMAND_ERROR;
+        }
+
+        CONNXModel* model = CONNXModelManager::GetInstance()->GetModel(args[0]);
+        if (!model) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Model '%s' not found", args[0]);
+            return COMMAND_ERROR;
+        }
+
+        // Create dummy input
+        std::vector<float> input(model->GetInputSize(), 0.5f);
+        std::vector<float> output;
+
+        // Run inference
+        if (model->Inference(input, output)) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Inference successful!");
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Time: %.3f ms", model->GetLastInferenceTimeMs());
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   First 5 outputs: %.3f, %.3f, %.3f, %.3f, %.3f",
+                output.size() > 0 ? output[0] : 0.0f,
+                output.size() > 1 ? output[1] : 0.0f,
+                output.size() > 2 ? output[2] : 0.0f,
+                output.size() > 3 ? output[3] : 0.0f,
+                output.size() > 4 ? output[4] : 0.0f);
+            return COMMAND_ACCESSED;
+        } else {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Inference failed");
+            return COMMAND_ERROR;
+        }
+    });
+
+CBotCommandInline MLModelBenchmarkCommand("ml_model_benchmark", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!args[0] || !*args[0]) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_model_benchmark <name> [iterations]");
+            return COMMAND_ERROR;
+        }
+
+        CONNXModel* model = CONNXModelManager::GetInstance()->GetModel(args[0]);
+        if (!model) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Model '%s' not found", args[0]);
+            return COMMAND_ERROR;
+        }
+
+        int iterations = 1000;
+        if (args[1] && *args[1]) {
+            iterations = atoi(args[1]);
+            if (iterations <= 0 || iterations > 10000) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML] Invalid iterations (1-10000)");
+                return COMMAND_ERROR;
+            }
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Benchmarking model '%s' (%d iterations)...", args[0], iterations);
+
+        // Create dummy input
+        std::vector<float> input(model->GetInputSize(), 0.5f);
+
+        // Run benchmark
+        float avg_time = model->BenchmarkInference(input, iterations);
+
+        if (avg_time >= 0.0f) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Benchmark complete!");
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Average time: %.3f ms", avg_time);
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   FPS limit: %.1f", 1000.0f / avg_time);
+
+            // Performance assessment
+            if (avg_time < 0.5f) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: EXCELLENT (HL2DM target met)");
+            } else if (avg_time < 1.0f) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: GOOD (TF2 target met)");
+            } else if (avg_time < 2.0f) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: ACCEPTABLE");
+            } else {
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: TOO SLOW (optimize model)");
+            }
+
+            return COMMAND_ACCESSED;
+        } else {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Benchmark failed");
+            return COMMAND_ERROR;
+        }
+    });
+
+CBotCommandInline MLModelInfoCommand("ml_model_info", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!args[0] || !*args[0]) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_model_info <name>");
+            return COMMAND_ERROR;
+        }
+
+        CONNXModel* model = CONNXModelManager::GetInstance()->GetModel(args[0]);
+        if (!model) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Model '%s' not found", args[0]);
+            return COMMAND_ERROR;
+        }
+
+        std::string info = model->GetModelInfo();
+        std::istringstream iss(info);
+        std::string line;
+        while (std::getline(iss, line)) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] %s", line.c_str());
+        }
+
         return COMMAND_ACCESSED;
     });
