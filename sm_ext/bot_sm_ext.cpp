@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include "bot_sm_ext.h"
 #include "bot_sm_natives.h"
+#include "bot_sm_forwards.h"
 
 #ifdef TF2
 #include "bot_sm_natives_tf2.h"
@@ -35,10 +36,15 @@ bool RCBotSourceModExt::OnExtensionLoad(IExtension *me, IShareSys *sys, char *er
 	sharesys->AddNatives(myself, g_RCBotNativesTF2);
 #endif
 
+	// Phase 4: Create event forwards
+	RCBotForwards::CreateForwards();
+
 	return true;
 }
 
 void RCBotSourceModExt::OnExtensionUnload() {
+	// Phase 4: Cleanup event forwards
+	RCBotForwards::DestroyForwards();
 	SM_UnsetInterfaces();
 }
 

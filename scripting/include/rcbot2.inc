@@ -384,6 +384,75 @@ native bool RCBot2_ClearPath(int client);
  */
 native bool RCBot2_IsStuck(int client);
 
+//=============================================================================
+// Phase 4: Event System & Callbacks
+//=============================================================================
+
+/**
+ * Called when a bot spawns in the game.
+ *
+ * @param client        Bot client index
+ */
+forward void RCBot2_OnBotSpawn(int client);
+
+/**
+ * Called when a bot dies.
+ *
+ * @param client        Bot client index
+ * @param attacker      Attacker client index, or 0 if world/suicide
+ */
+forward void RCBot2_OnBotDeath(int client, int attacker);
+
+/**
+ * Called when a bot kills another player.
+ *
+ * @param client        Bot client index
+ * @param victim        Victim client index
+ */
+forward void RCBot2_OnBotKill(int client, int victim);
+
+/**
+ * Called every time a bot thinks (processes AI logic).
+ * WARNING: This fires very frequently! Use sparingly.
+ *
+ * @param client        Bot client index
+ */
+forward void RCBot2_OnBotThink(int client);
+
+/**
+ * Called when a bot acquires a new enemy target.
+ *
+ * @param client        Bot client index
+ * @param enemy         Enemy client index
+ */
+forward void RCBot2_OnBotEnemyFound(int client, int enemy);
+
+/**
+ * Called when a bot loses track of an enemy.
+ *
+ * @param client        Bot client index
+ * @param enemy         Enemy client index that was lost
+ */
+forward void RCBot2_OnBotEnemyLost(int client, int enemy);
+
+/**
+ * Called when a bot takes damage.
+ *
+ * @param client        Bot client index
+ * @param attacker      Attacker client index, or 0 if world
+ * @param damage        Amount of damage taken
+ */
+forward void RCBot2_OnBotDamaged(int client, int attacker, int damage);
+
+/**
+ * Called when a bot's active task/schedule changes.
+ *
+ * @param client        Bot client index
+ * @param oldTask       Previous RCBotSchedule
+ * @param newTask       New RCBotSchedule
+ */
+forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",
