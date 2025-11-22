@@ -79,13 +79,18 @@ void CFeatureExtractor::NormalizePosition(const Vector& pos, Vector& normalized)
 
 void CHL2DMFeatureExtractor::Extract(CBot* pBot, std::vector<float>& features)
 {
+    // Pre-allocate if needed (avoids reallocation)
+    if (features.capacity() < FEATURE_COUNT) {
+        features.reserve(FEATURE_COUNT);
+    }
+
     if (!pBot) {
         features.assign(FEATURE_COUNT, 0.0f);
         return;
     }
 
-    features.resize(FEATURE_COUNT);
-    std::fill(features.begin(), features.end(), 0.0f);
+    // Resize and zero-initialize (more efficient than separate fill)
+    features.assign(FEATURE_COUNT, 0.0f);
 
     // Extract each feature category
     ExtractSelfState(pBot, features, 0);         // [0-11]
@@ -147,6 +152,9 @@ void CHL2DMFeatureExtractor::GetNearestEnemies(CBot* pBot, std::vector<EnemyInfo
 
     const Vector botPos = pBot->getOrigin();
 
+    // Pre-allocate to avoid reallocations (typical case: few enemies)
+    enemies.reserve(max_count + 2);
+
     // Collect all visible enemies with their info
     for (int i = 0; i < pVisibles->numVisible(); i++) {
         edict_t* pEntity = pVisibles->getVisible(i);
@@ -169,28 +177,33 @@ void CHL2DMFeatureExtractor::GetNearestEnemies(CBot* pBot, std::vector<EnemyInfo
         enemies.push_back(info);
     }
 
-    // Sort by distance (closest first)
-    std::sort(enemies.begin(), enemies.end(),
-        [](const EnemyInfo& a, const EnemyInfo& b) {
-            return a.distance < b.distance;
-        });
-
-    // Keep only the closest max_count enemies
+    // Use partial_sort for better performance - only sort what we need
     if (enemies.size() > max_count) {
+        std::partial_sort(enemies.begin(), enemies.begin() + max_count, enemies.end(),
+            [](const EnemyInfo& a, const EnemyInfo& b) {
+                return a.distance < b.distance;
+            });
         enemies.resize(max_count);
+    } else if (enemies.size() > 1) {
+        // Still need to sort if we have multiple enemies (even if less than max_count)
+        std::sort(enemies.begin(), enemies.end(),
+            [](const EnemyInfo& a, const EnemyInfo& b) {
+                return a.distance < b.distance;
+            });
     }
 }
 
 void CHL2DMFeatureExtractor::ExtractEnemies(CBot* pBot, std::vector<float>& features, size_t offset)
 {
-    std::vector<EnemyInfo> enemies;
+    static thread_local std::vector<EnemyInfo> enemies;  // Reuse vector across calls
     GetNearestEnemies(pBot, enemies, MAX_ENEMIES);
 
     const Vector botPos = pBot->getOrigin();
     const QAngle botAngles = CBotGlobals::playerAngles(pBot->getEdict());
+    constexpr float DEG_TO_RAD = M_PI / 180.0f;
 
     for (size_t i = 0; i < MAX_ENEMIES; i++) {
-        size_t baseIdx = offset + (i * 6);
+        const size_t baseIdx = offset + (i * 6);
 
         if (i < enemies.size()) {
             const EnemyInfo& enemy = enemies[i];
@@ -209,7 +222,7 @@ void CHL2DMFeatureExtractor::ExtractEnemies(CBot* pBot, std::vector<float>& feat
             while (horizAngleDiff < -180.0f) horizAngleDiff += 360.0f;
 
             // Convert to radians and get cos/sin
-            float horizRad = horizAngleDiff * (M_PI / 180.0f);
+            const float horizRad = horizAngleDiff * DEG_TO_RAD;
             features[baseIdx + 1] = cosf(horizRad);
             features[baseIdx + 2] = sinf(horizRad);
 
@@ -218,7 +231,7 @@ void CHL2DMFeatureExtractor::ExtractEnemies(CBot* pBot, std::vector<float>& feat
             while (vertAngleDiff > 180.0f) vertAngleDiff -= 360.0f;
             while (vertAngleDiff < -180.0f) vertAngleDiff += 360.0f;
 
-            float vertRad = vertAngleDiff * (M_PI / 180.0f);
+            const float vertRad = vertAngleDiff * DEG_TO_RAD;
             features[baseIdx + 3] = cosf(vertRad);
             features[baseIdx + 4] = sinf(vertRad);
 
@@ -226,10 +239,13 @@ void CHL2DMFeatureExtractor::ExtractEnemies(CBot* pBot, std::vector<float>& feat
             features[baseIdx + 5] = enemy.health;
 
         } else {
-            // No enemy in this slot - fill with zeros
-            for (size_t j = 0; j < 6; j++) {
-                features[baseIdx + j] = 0.0f;
-            }
+            // No enemy in this slot - fill with zeros (already done by assign, but being explicit)
+            features[baseIdx + 0] = 0.0f;
+            features[baseIdx + 1] = 0.0f;
+            features[baseIdx + 2] = 0.0f;
+            features[baseIdx + 3] = 0.0f;
+            features[baseIdx + 4] = 0.0f;
+            features[baseIdx + 5] = 0.0f;
         }
     }
 }
@@ -238,11 +254,12 @@ void CHL2DMFeatureExtractor::ExtractNavigation(CBot* pBot, std::vector<float>& f
 {
     CBotNavigator* pNav = pBot->getNavigator();
     const Vector botPos = pBot->getOrigin();
+    constexpr float DEG_TO_RAD = M_PI / 180.0f;
 
     if (pNav && pNav->hasNextPoint()) {
         // Distance to next waypoint
-        Vector nextPos = pNav->getNextPoint();
-        float dist = (nextPos - botPos).Length();
+        const Vector nextPos = pNav->getNextPoint();
+        const float dist = (nextPos - botPos).Length();
         features[offset + 0] = NormalizeDistance(dist, 1024.0f);
 
         // Direction to waypoint (cos, sin of horizontal angle)
@@ -250,7 +267,7 @@ void CHL2DMFeatureExtractor::ExtractNavigation(CBot* pBot, std::vector<float>& f
         QAngle angleToWpt;
         VectorAngles(toWaypoint, angleToWpt);
 
-        float horizRad = angleToWpt.y * (M_PI / 180.0f);
+        const float horizRad = angleToWpt.y * DEG_TO_RAD;
         features[offset + 1] = cosf(horizRad);
         features[offset + 2] = sinf(horizRad);
 
@@ -318,6 +335,7 @@ Vector CHL2DMFeatureExtractor::GetNearestAmmoPack(CBot* pBot, float& distance)
 void CHL2DMFeatureExtractor::ExtractPickups(CBot* pBot, std::vector<float>& features, size_t offset)
 {
     const Vector botPos = pBot->getOrigin();
+    constexpr float DEG_TO_RAD = M_PI / 180.0f;
 
     // Nearest health pack
     float healthDist = 0.0f;
@@ -325,10 +343,10 @@ void CHL2DMFeatureExtractor::ExtractPickups(CBot* pBot, std::vector<float>& feat
     if (healthDist > 0.0f) {
         features[offset + 0] = NormalizeDistance(healthDist, 1024.0f);
 
-        Vector toHealth = healthPos - botPos;
+        const Vector toHealth = healthPos - botPos;
         QAngle angleToHealth;
         VectorAngles(toHealth, angleToHealth);
-        float horizRad = angleToHealth.y * (M_PI / 180.0f);
+        const float horizRad = angleToHealth.y * DEG_TO_RAD;
         features[offset + 1] = cosf(horizRad);
         features[offset + 2] = sinf(horizRad);
     } else {
@@ -343,10 +361,10 @@ void CHL2DMFeatureExtractor::ExtractPickups(CBot* pBot, std::vector<float>& feat
     if (ammoDist > 0.0f) {
         features[offset + 3] = NormalizeDistance(ammoDist, 1024.0f);
 
-        Vector toAmmo = ammoPos - botPos;
+        const Vector toAmmo = ammoPos - botPos;
         QAngle angleToAmmo;
         VectorAngles(toAmmo, angleToAmmo);
-        float horizRad = angleToAmmo.y * (M_PI / 180.0f);
+        const float horizRad = angleToAmmo.y * DEG_TO_RAD;
         features[offset + 4] = cosf(horizRad);
         features[offset + 5] = sinf(horizRad);
     } else {

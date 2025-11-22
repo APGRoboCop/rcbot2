@@ -112,6 +112,10 @@ private:
     std::vector<float> m_LastActions;   // Previous frame actions
     float m_fActionSmoothing;           // Action smoothing factor (0-1)
 
+    // Reusable buffers to reduce allocations (performance optimization)
+    std::vector<float> m_FeaturesBuffer;  // Reused for feature extraction
+    std::vector<float> m_ActionsBuffer;   // Reused for inference output
+
     // Helper methods
     bool ExtractFeatures(std::vector<float>& features);
     bool RunInference(const std::vector<float>& features, std::vector<float>& actions);

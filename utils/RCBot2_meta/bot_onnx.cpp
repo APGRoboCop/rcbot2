@@ -76,6 +76,11 @@ bool CONNXModel::InitializeONNXRuntime()
         // Disable telemetry
         m_sessionOptions->DisableProfiling();
 
+        // Create cached memory info object (reused for all tensor creations)
+        m_memoryInfo = std::make_unique<Ort::MemoryInfo>(
+            Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault)
+        );
+
         Msg("[RCBot2 ML] ONNX Runtime initialized\n");
         return true;
     } catch (const Ort::Exception& e) {
@@ -93,6 +98,7 @@ void CONNXModel::CleanupONNXRuntime()
 #ifdef RCBOT_WITH_ONNX
     m_session.reset();
     m_sessionOptions.reset();
+    m_memoryInfo.reset();
     m_env.reset();
 #endif
 }
@@ -140,8 +146,11 @@ bool CONNXModel::LoadModel(const char* model_path)
         // Assume [batch_size, features] or [features]
         if (input_dims.size() == 2) {
             m_inputSize = static_cast<size_t>(input_dims[1]);
+            // Cache shape for inference (batch size = 1)
+            m_inputShape = {1, static_cast<int64_t>(m_inputSize)};
         } else if (input_dims.size() == 1) {
             m_inputSize = static_cast<size_t>(input_dims[0]);
+            m_inputShape = {static_cast<int64_t>(m_inputSize)};
         } else {
             Warning("[RCBot2 ML] Unexpected input dimensions: %zu\n", input_dims.size());
             UnloadModel();
@@ -171,8 +180,11 @@ bool CONNXModel::LoadModel(const char* model_path)
         // Assume [batch_size, outputs] or [outputs]
         if (output_dims.size() == 2) {
             m_outputSize = static_cast<size_t>(output_dims[1]);
+            // Cache shape for inference (batch size = 1)
+            m_outputShape = {1, static_cast<int64_t>(m_outputSize)};
         } else if (output_dims.size() == 1) {
             m_outputSize = static_cast<size_t>(output_dims[0]);
+            m_outputShape = {static_cast<int64_t>(m_outputSize)};
         } else {
             Warning("[RCBot2 ML] Unexpected output dimensions: %zu\n", output_dims.size());
             UnloadModel();
@@ -200,6 +212,8 @@ void CONNXModel::UnloadModel()
 {
 #ifdef RCBOT_WITH_ONNX
     m_session.reset();
+    m_inputShape.clear();
+    m_outputShape.clear();
 #endif
     m_inputSize = 0;
     m_outputSize = 0;
@@ -234,17 +248,13 @@ bool CONNXModel::Inference(const std::vector<float>& input, std::vector<float>& 
     auto start = std::chrono::high_resolution_clock::now();
 
     try {
-        // Create input tensor
-        std::vector<int64_t> input_shape = {1, static_cast<int64_t>(m_inputSize)};
-        Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(
-            OrtAllocatorType::OrtArenaAllocator, OrtMemType::OrtMemTypeDefault);
-
+        // Create input tensor using cached memory info and shape
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
-            memory_info,
+            *m_memoryInfo,
             const_cast<float*>(input.data()),
             input.size(),
-            input_shape.data(),
-            input_shape.size()
+            m_inputShape.data(),
+            m_inputShape.size()
         );
 
         // Run inference
@@ -257,9 +267,12 @@ bool CONNXModel::Inference(const std::vector<float>& input, std::vector<float>& 
             1
         );
 
-        // Extract output
+        // Extract output - pre-allocate if needed
+        if (output.size() != m_outputSize) {
+            output.resize(m_outputSize);
+        }
         float* output_data = output_tensors[0].GetTensorMutableData<float>();
-        output.assign(output_data, output_data + m_outputSize);
+        std::memcpy(output.data(), output_data, m_outputSize * sizeof(float));
 
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

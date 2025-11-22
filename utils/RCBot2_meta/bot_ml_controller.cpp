@@ -158,27 +158,25 @@ bool CMLBotController::Update()
 
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    // Extract features
-    std::vector<float> features;
-    if (!ExtractFeatures(features))
+    // Extract features into reusable buffer
+    if (!ExtractFeatures(m_FeaturesBuffer))
     {
         // Feature extraction failed - fallback to rule-based AI
         return false;
     }
 
-    // Run inference
-    std::vector<float> actions;
-    if (!RunInference(features, actions))
+    // Run inference into reusable buffer
+    if (!RunInference(m_FeaturesBuffer, m_ActionsBuffer))
     {
         // Inference failed - fallback to rule-based AI
         return false;
     }
 
-    // Apply action smoothing
-    SmoothActions(actions);
+    // Apply action smoothing (in-place)
+    SmoothActions(m_ActionsBuffer);
 
     // Apply actions to bot
-    ApplyActions(actions);
+    ApplyActions(m_ActionsBuffer);
 
     // Update performance statistics
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -192,9 +190,9 @@ bool CMLBotController::Update()
 
     m_iInferenceCount++;
 
-    // Store for next frame
-    m_LastFeatures = features;
-    m_LastActions = actions;
+    // Swap buffers with last frame data (avoid copying)
+    m_LastFeatures.swap(m_FeaturesBuffer);
+    m_LastActions.swap(m_ActionsBuffer);
 
     return true;
 
@@ -242,16 +240,19 @@ bool CMLBotController::RunInference(const std::vector<float>& features, std::vec
 
 void CMLBotController::SmoothActions(std::vector<float>& actions)
 {
-    if (m_fActionSmoothing <= 0.0f || m_LastActions.empty())
+    // Early exit if no smoothing or incompatible sizes
+    if (m_fActionSmoothing <= 0.0f || m_LastActions.empty() || actions.size() != m_LastActions.size())
         return;
 
-    if (actions.size() != m_LastActions.size())
-        return;
+    // Cache smoothing factors to avoid repeated calculations
+    const float alpha = m_fActionSmoothing;
+    const float one_minus_alpha = 1.0f - alpha;
+    const size_t count = actions.size();
 
     // Exponential moving average: smoothed = alpha * old + (1-alpha) * new
-    for (size_t i = 0; i < actions.size(); ++i)
+    for (size_t i = 0; i < count; ++i)
     {
-        actions[i] = m_fActionSmoothing * m_LastActions[i] + (1.0f - m_fActionSmoothing) * actions[i];
+        actions[i] = alpha * m_LastActions[i] + one_minus_alpha * actions[i];
     }
 }
 
