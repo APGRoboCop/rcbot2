@@ -84,9 +84,12 @@ if builder.options.sm_path:
     os.path.join(builder.currentSourcePath, 'sm_ext', 'smsdk_config.cpp'),
     os.path.join(builder.currentSourcePath, 'sm_ext', 'bot_sm_ext.cpp'),
     os.path.join(builder.currentSourcePath, 'sm_ext', 'bot_sm_natives.cpp'),
+    os.path.join(builder.currentSourcePath, 'sm_ext', 'bot_sm_natives_tf2.cpp'),
+    os.path.join(builder.currentSourcePath, 'sm_ext', 'bot_sm_forwards.cpp'),
+    os.path.join(builder.currentSourcePath, 'sm_ext', 'bot_sm_events.cpp'),
   ]
-  
-  compiler_defines += [ 'SM_EXT', ]
+
+  compiler_defines += [ 'SM_EXT', 'ENABLE_SOURCEMOD_INTEGRATION', ]
 
 # List of SDK names that require hooks on runcmd
 mods_requiring_runcmd_overrides = [
