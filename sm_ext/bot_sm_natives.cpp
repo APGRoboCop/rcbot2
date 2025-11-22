@@ -166,3 +166,404 @@ float* GetFloatProperty(CBotProfile* profile, const RCBotProfileVar profileVar) 
 	}
 	return nullptr;
 }
+
+//=============================================================================
+// Phase 1: Bot Command & Control
+//=============================================================================
+
+/* native bool RCBot2_SetBotEnemy(int client, int target); */
+cell_t sm_RCBotSetBotEnemy(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int target = params[2];
+
+	// Validate client index
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	// Get bot instance
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Clear enemy if target is -1
+	if (target == -1) {
+		bot->setEnemy(nullptr);
+		return 1;
+	}
+
+	// Validate target index
+	if (target < 1 || target > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid target index %d", target);
+	}
+
+	// Get target edict
+	edict_t *pTarget = engine->PEntityOfEntIndex(target);
+	if (!pTarget || pTarget->IsFree()) {
+		return 0;
+	}
+
+	// Set enemy
+	bot->setEnemy(pTarget);
+	return 1;
+}
+
+/* native int RCBot2_GetBotEnemy(int client); */
+cell_t sm_RCBotGetBotEnemy(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	edict_t *pEnemy = bot->getEnemy();
+	if (!pEnemy || pEnemy->IsFree()) {
+		return -1;
+	}
+
+	return engine->IndexOfEdict(pEnemy);
+}
+
+/* native bool RCBot2_ForceBotAction(int client, RCBotAction action); */
+cell_t sm_RCBotForceBotAction(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int action = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Force specific actions via bot buttons
+	switch (action) {
+		case 0: // Jump
+			bot->jump();
+			return 1;
+		case 1: // Crouch
+			bot->duck(true);
+			return 1;
+		case 2: // Attack1
+			bot->primaryAttack();
+			return 1;
+		case 3: // Attack2
+			bot->secondaryAttack();
+			return 1;
+		case 4: // Reload
+			bot->reload();
+			return 1;
+		case 5: // Use
+			bot->use();
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+/* native int RCBot2_GetBotTeam(int client); */
+cell_t sm_RCBotGetBotTeam(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return bot->getTeam();
+}
+
+/* native int RCBot2_GetBotHealth(int client); */
+cell_t sm_RCBotGetBotHealth(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return bot->getHealth();
+}
+
+/* native bool RCBot2_GetBotOrigin(int client, float origin[3]); */
+cell_t sm_RCBotGetBotOrigin(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	Vector vOrigin = bot->getOrigin();
+
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+	addr[0] = sp_ftoc(vOrigin.x);
+	addr[1] = sp_ftoc(vOrigin.y);
+	addr[2] = sp_ftoc(vOrigin.z);
+
+	return 1;
+}
+
+/* native bool RCBot2_GetBotEyeAngles(int client, float angles[3]); */
+cell_t sm_RCBotGetBotEyeAngles(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	QAngle vAngles = bot->eyeAngles();
+
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+	addr[0] = sp_ftoc(vAngles.x);
+	addr[1] = sp_ftoc(vAngles.y);
+	addr[2] = sp_ftoc(vAngles.z);
+
+	return 1;
+}
+
+/* native bool RCBot2_GotoOrigin(int client, const float origin[3]); */
+cell_t sm_RCBotGotoOrigin(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Get origin parameter
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+	Vector vOrigin(sp_ctof(addr[0]), sp_ctof(addr[1]), sp_ctof(addr[2]));
+
+	// Use bot's navigator to go to position
+	bot->getNavigator()->gotoOrigin(vOrigin);
+
+	return 1;
+}
+
+/* native bool RCBot2_StopMovement(int client); */
+cell_t sm_RCBotStopMovement(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Clear navigator goals
+	bot->getNavigator()->clear();
+	bot->stopMoving();
+
+	return 1;
+}
+
+//=============================================================================
+// Phase 1: Weapon & Equipment Management
+//=============================================================================
+
+/* native bool RCBot2_SelectWeapon(int client, const char[] weapon); */
+cell_t sm_RCBotSelectWeapon(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Get weapon name parameter
+	char *weaponName;
+	pContext->LocalToString(params[2], &weaponName);
+
+	// Find weapon by name and select it
+	CBotWeapon *pWeapon = bot->getWeapons()->getWeapon(CWeapons::getWeapon(weaponName));
+	if (pWeapon) {
+		bot->selectBotWeapon(pWeapon);
+		return 1;
+	}
+
+	return 0;
+}
+
+/* native bool RCBot2_GetCurrentWeapon(int client, char[] weapon, int maxlength); */
+cell_t sm_RCBotGetCurrentWeapon(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int maxlength = params[3];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	CBotWeapon *pWeapon = bot->getCurrentWeapon();
+	if (!pWeapon) {
+		return 0;
+	}
+
+	const char *weaponName = pWeapon->getWeaponName();
+	if (!weaponName) {
+		return 0;
+	}
+
+	pContext->StringToLocal(params[2], maxlength, weaponName);
+	return 1;
+}
+
+/* native bool RCBot2_ForceAttack(int client, bool primary, float duration); */
+cell_t sm_RCBotForceAttack(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const bool primary = params[2] != 0;
+	const float duration = sp_ctof(params[3]);
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	// Set attack button and hold time
+	if (primary) {
+		bot->primaryAttack(true, duration);
+	} else {
+		bot->secondaryAttack(true, duration);
+	}
+
+	return 1;
+}
+
+/* native bool RCBot2_ForceReload(int client); */
+cell_t sm_RCBotForceReload(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	bot->reload();
+	return 1;
+}
+
+//=============================================================================
+// Phase 1: Task System Queries
+//=============================================================================
+
+/* native RCBotSchedule RCBot2_GetCurrentSchedule(int client); */
+cell_t sm_RCBotGetCurrentSchedule(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	CBotSchedules *pSchedules = bot->getSchedule();
+	if (!pSchedules) {
+		return 0; // RCBotSchedule_None
+	}
+
+	// Get current schedule from front of queue
+	if (pSchedules->isEmpty()) {
+		return 0;
+	}
+
+	return static_cast<int>(pSchedules->getCurrentSchedule()->getID());
+}
+
+/* native bool RCBot2_ClearSchedule(int client); */
+cell_t sm_RCBotClearSchedule(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	CBotSchedules *pSchedules = bot->getSchedule();
+	if (pSchedules) {
+		pSchedules->freeMemory();
+		return 1;
+	}
+
+	return 0;
+}
+
+/* native bool RCBot2_HasSchedule(int client, RCBotSchedule schedule); */
+cell_t sm_RCBotHasSchedule(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int schedule = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	CBotSchedules *pSchedules = bot->getSchedule();
+	if (!pSchedules) {
+		return 0;
+	}
+
+	return pSchedules->hasSchedule(static_cast<eBotSchedule>(schedule));
+}
