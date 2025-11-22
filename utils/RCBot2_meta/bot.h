@@ -283,7 +283,7 @@ public:
 	{
 		if ( !CBotGlobals::entityIsValid(m_Leader) || CBotGlobals::entityIsAlive(m_Leader) )
 		{
-			m_Leader = NULL;
+			m_Leader = nullptr;
 
 			// find a new leader
 			unsigned i;
@@ -298,7 +298,7 @@ public:
 
 	bool killme()
 	{
-		return (m_Leader.get() == NULL) && (m_Members.size() == 0);
+		return (m_Leader.get() == nullptr) && (m_Members.size() == 0);
 	}
 
 private:

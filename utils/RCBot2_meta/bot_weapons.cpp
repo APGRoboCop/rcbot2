@@ -525,8 +525,8 @@ bool CBotWeapons ::update ( bool bOverrideAllFromEngine )
 	for ( i = 0; i < MAX_WEAPONS; i ++ )
 	{
 		// create a 'hash' of current weapons
-		pWeapon = (m_Weapon_iter==NULL) ? NULL : INDEXENT(m_Weapon_iter->GetEntryIndex());
-		iWeaponsSignature += ((unsigned)pWeapon) + ((pWeapon == NULL) ? 0 : (unsigned)CClassInterface::getWeaponState(pWeapon));
+		pWeapon = (m_Weapon_iter==nullptr) ? nullptr : INDEXENT(m_Weapon_iter->GetEntryIndex());
+		iWeaponsSignature += ((unsigned)pWeapon) + ((pWeapon == nullptr) ? 0 : (unsigned)CClassInterface::getWeaponState(pWeapon));
 		m_Weapon_iter++;
 	}
 
@@ -546,9 +546,9 @@ bool CBotWeapons ::update ( bool bOverrideAllFromEngine )
 			m_Weapon_iter = m_Weapons;
 			iWeaponState = 0;
 			bFound = false;
-			pWeapon = NULL;
+			pWeapon = nullptr;
 
-			if ( (m_BotWeapon_iter->getWeaponInfo()!=NULL) && (m_BotWeapon_iter->getWeaponInfo()->getWeaponName()!=NULL) )
+			if ( (m_BotWeapon_iter->getWeaponInfo()!=nullptr) && (m_BotWeapon_iter->getWeaponInfo()->getWeaponName()!=nullptr) )
 			{
 				for ( j = 0; j < MAX_WEAPONS; j ++ )
 				{
@@ -726,7 +726,7 @@ int i = 0;
 Vector origin;
 const char *classname;
 CWeapon *pWeapon;
-edict_t *pEnt = NULL;
+edict_t *pEnt = nullptr;
 
 m_theWeapons[iId].setHasWeapon(true);
 
@@ -952,7 +952,7 @@ CBotWeapon* CBotWeapons::getActiveWeapon(const char* szWeaponName, edict_t* pWea
 bool CBotWeaponGravGun ::outOfAmmo (CBot *pBot)
 {
 	if ( m_pEnt )
-		(return CClassInterface::gravityGunObject(m_pEnt)==NULL);
+		(return CClassInterface::gravityGunObject(m_pEnt)==nullptr);
 
 	return true;
 }

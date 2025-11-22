@@ -5936,7 +5936,7 @@ bool CBotTask :: timedOut () const
 
 eTaskState CBotTask :: isInterrupted (CBot *pBot)
 {
-	if ( m_pInterruptFunc != nullptr)
+	if ( m_pInterruptFunc )
 	{
 		bool bFailed = false;
 		bool bCompleted = false;
@@ -5945,7 +5945,7 @@ eTaskState CBotTask :: isInterrupted (CBot *pBot)
 		{
 			if ( bFailed )
 				return STATE_FAIL;
-			
+
 			return STATE_COMPLETE;
 		}
 	}

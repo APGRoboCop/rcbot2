@@ -67,7 +67,7 @@ void CTF2FindFlagFunc :: execute ( edict_t *pEntity )
 
 void CTF2FindFlagFunc :: init ()
 {
-	m_pBest = NULL;
+	m_pBest = nullptr;
 	m_fBestFactor = 0;
 }*/
 

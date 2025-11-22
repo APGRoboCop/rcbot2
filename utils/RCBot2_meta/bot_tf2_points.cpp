@@ -187,13 +187,13 @@ int CTFObjectiveResource::getRandomValidPointForTeam (const int team, const ePoi
 
 	TF2PointProb_t* arr = m_ValidPoints[team - 2][type];
 
-	for ( int i = 0; i < *m_iNumControlPoints; i ++ )
+	for (int i = 0; i < *m_iNumControlPoints; i++)
 	{
 		if ( arr[i].bValid == true )
 		{
 			points.emplace_back(i);
 
-			if ( type == TF2_POINT_ATTACK ) 
+			if ( type == TF2_POINT_ATTACK )
 			{
 				if (GetCappingTeam(i) == team)
 					arr[i].fProbMultiplier = 3.0f;
@@ -398,7 +398,7 @@ int CTFObjectiveResource::NearestArea (const Vector& vOrigin) const
 	float fNearest = 2048.0f;
 	float fDist; //TODO: fDist could be reduced? [APG]RoboCop[CL]
 
-	for ( int i = 0; i < *m_iNumControlPoints; i ++ )
+	for (int i = 0; i < *m_iNumControlPoints; i++)
 	{
 		if ( (fDist = (m_vCPPositions[i]-vOrigin).Length()) < fNearest )
 		{

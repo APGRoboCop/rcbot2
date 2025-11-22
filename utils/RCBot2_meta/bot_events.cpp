@@ -53,7 +53,7 @@
 #include "bot_schedule.h"
 #include "bot_waypoint_locations.h"
 
-std::vector<CBotEvent*> CBotEvents :: m_theEvents;
+std::vector<std::unique_ptr<CBotEvent>> CBotEvents :: m_theEvents;
 ///////////////////////////////////////////////////////
 
 class CBotSeeFriendlyKill : public IBotFunction
@@ -266,7 +266,7 @@ void CPlayerHurtEvent :: execute ( IBotEventInterface *pEvent )
 		{
 			int *flags;
 
-			if ( (flags=CClassInterface::getPlayerFlagsPointer(m_pActivator)) != NULL )
+			if ( (flags=CClassInterface::getPlayerFlagsPointer(m_pActivator)) != nullptr )
 			{
 				if ( *flags & FL_GODMODE )
 				{
@@ -1088,7 +1088,7 @@ void CDODBombPlanted :: execute ( IBotEventInterface *pEvent )
 	{
 		CBot *pBot;
 
-		if ( (pBot = CBots::getBotPointer(m_pActivator)) != NULL )
+		if ( (pBot = CBots::getBotPointer(m_pActivator)) != nullptr )
 		{
 			// hack
 			((CDODBot*)pBot)->removeBomb();
@@ -1176,75 +1176,75 @@ inline bool CBotEvent :: isType ( const char *szType ) const
 ///////////////////////////////////////////////////////
 void CBotEvents :: setupEvents ()
 {
-	addEvent(new CTF2MVMWaveCompleteEvent());
-	addEvent(new CTF2MVMWaveFailedEvent());
-	addEvent(new CRoundStartEvent());
-	addEvent(new CRoundFreezeEndEvent());
-	addEvent(new CPlayerHurtEvent());
-	addEvent(new CPlayerDeathEvent());
-	addEvent(new CBombPickupEvent());
-	addEvent(new CCSSBombPlantedEvent());
-	addEvent(new CPlayerFootstepEvent());
-	addEvent(new CBombDroppedEvent());
-	addEvent(new CWeaponFireEvent());
-	addEvent(new CBulletImpactEvent());
-	addEvent(new CFlagEvent());
-	addEvent(new CPlayerSpawnEvent());
+	addEvent(std::make_unique<CTF2MVMWaveCompleteEvent>());
+	addEvent(std::make_unique<CTF2MVMWaveFailedEvent>());
+	addEvent(std::make_unique<CRoundStartEvent>());
+	addEvent(std::make_unique<CRoundFreezeEndEvent>());
+	addEvent(std::make_unique<CPlayerHurtEvent>());
+	addEvent(std::make_unique<CPlayerDeathEvent>());
+	addEvent(std::make_unique<CBombPickupEvent>());
+	addEvent(std::make_unique<CCSSBombPlantedEvent>());
+	addEvent(std::make_unique<CPlayerFootstepEvent>());
+	addEvent(std::make_unique<CBombDroppedEvent>());
+	addEvent(std::make_unique<CWeaponFireEvent>());
+	addEvent(std::make_unique<CBulletImpactEvent>());
+	addEvent(std::make_unique<CFlagEvent>());
+	addEvent(std::make_unique<CPlayerSpawnEvent>());
 	////////////// tf2
-	addEvent(new CTF2BuiltObjectEvent());
-	addEvent(new CTF2ChangeClass());
-	addEvent(new CTF2RoundStart());
-	addEvent(new CTF2PointCaptured());
-	addEvent(new CTF2PointStartCapture());
-	addEvent(new CTF2ObjectSapped());
-	addEvent(new CTF2ObjectDestroyed());
-	addEvent(new CTF2PointStopCapture());
-	addEvent(new CTF2PointBlockedCapture());
-	addEvent(new CTF2UpgradeObjectEvent());
-	addEvent(new CTF2SetupFinished());
-	addEvent(new COverTimeBegin());
-	addEvent(new CPlayerHealed());
-	addEvent(new CPlayerTeleported());
-	addEvent(new CDODChangeClass());
-	addEvent(new CDODBombPlanted());
-	addEvent(new CDODBombExploded());
-	addEvent(new CDODBombDefused());
-	addEvent(new CDODPointCaptured());
-	addEvent(new CDODFireWeaponEvent());
-	addEvent(new CTF2RoundWinEvent());
-	addEvent(new CTF2PointUnlocked());
-	addEvent(new CTF2PointLocked());
-	addEvent(new CTF2MannVsMachineAlarm());
-	addEvent(new CPostInventoryApplicationTF2());
+	addEvent(std::make_unique<CTF2BuiltObjectEvent>());
+	addEvent(std::make_unique<CTF2ChangeClass>());
+	addEvent(std::make_unique<CTF2RoundStart>());
+	addEvent(std::make_unique<CTF2PointCaptured>());
+	addEvent(std::make_unique<CTF2PointStartCapture>());
+	addEvent(std::make_unique<CTF2ObjectSapped>());
+	addEvent(std::make_unique<CTF2ObjectDestroyed>());
+	addEvent(std::make_unique<CTF2PointStopCapture>());
+	addEvent(std::make_unique<CTF2PointBlockedCapture>());
+	addEvent(std::make_unique<CTF2UpgradeObjectEvent>());
+	addEvent(std::make_unique<CTF2SetupFinished>());
+	addEvent(std::make_unique<COverTimeBegin>());
+	addEvent(std::make_unique<CPlayerHealed>());
+	addEvent(std::make_unique<CPlayerTeleported>());
+	addEvent(std::make_unique<CDODChangeClass>());
+	addEvent(std::make_unique<CDODBombPlanted>());
+	addEvent(std::make_unique<CDODBombExploded>());
+	addEvent(std::make_unique<CDODBombDefused>());
+	addEvent(std::make_unique<CDODPointCaptured>());
+	addEvent(std::make_unique<CDODFireWeaponEvent>());
+	addEvent(std::make_unique<CTF2RoundWinEvent>());
+	addEvent(std::make_unique<CTF2PointUnlocked>());
+	addEvent(std::make_unique<CTF2PointLocked>());
+	addEvent(std::make_unique<CTF2MannVsMachineAlarm>());
+	addEvent(std::make_unique<CPostInventoryApplicationTF2>());
 /*
-pumpkin_lord_summoned 
-merasmus_summoned 
-eyeball_boss_summoned 
+pumpkin_lord_summoned
+merasmus_summoned
+eyeball_boss_summoned
 
-pumpkin_lord_killed 
-merasmus_killed 
-merasmus_escaped 
-eyeball_boss_killed 
+pumpkin_lord_killed
+merasmus_killed
+merasmus_escaped
+eyeball_boss_killed
 eyeball_boss_escaped */
 
-	addEvent(new CBossSummonedEvent("pumpkin_lord_summoned"));
-	addEvent(new CBossSummonedEvent("merasmus_summoned"));
-	addEvent(new CBossSummonedEvent("eyeball_boss_summoned"));
-	addEvent(new CBossKilledEvent("pumpkin_lord_killed"));
-	addEvent(new CBossKilledEvent("merasmus_killed"));
-	addEvent(new CBossKilledEvent("merasmus_escaped"));
-	addEvent(new CBossKilledEvent("eyeball_boss_killed"));
-	addEvent(new CBossKilledEvent("eyeball_boss_escaped"));
-	addEvent(new CTF2RoundActive());
-	addEvent(new CDODRoundStart());
-	addEvent(new CDODRoundActive());
-	addEvent(new CDODRoundWin());
-	addEvent(new CDODRoundOver());
-	addEvent(new CTF2PointStartTouch());
-	addEvent(new CTF2PointEndTouch());
+	addEvent(std::make_unique<CBossSummonedEvent>("pumpkin_lord_summoned"));
+	addEvent(std::make_unique<CBossSummonedEvent>("merasmus_summoned"));
+	addEvent(std::make_unique<CBossSummonedEvent>("eyeball_boss_summoned"));
+	addEvent(std::make_unique<CBossKilledEvent>("pumpkin_lord_killed"));
+	addEvent(std::make_unique<CBossKilledEvent>("merasmus_killed"));
+	addEvent(std::make_unique<CBossKilledEvent>("merasmus_escaped"));
+	addEvent(std::make_unique<CBossKilledEvent>("eyeball_boss_killed"));
+	addEvent(std::make_unique<CBossKilledEvent>("eyeball_boss_escaped"));
+	addEvent(std::make_unique<CTF2RoundActive>());
+	addEvent(std::make_unique<CDODRoundStart>());
+	addEvent(std::make_unique<CDODRoundActive>());
+	addEvent(std::make_unique<CDODRoundWin>());
+	addEvent(std::make_unique<CDODRoundOver>());
+	addEvent(std::make_unique<CTF2PointStartTouch>());
+	addEvent(std::make_unique<CTF2PointEndTouch>());
 }
 
-void CBotEvents :: addEvent ( CBotEvent *pEvent )
+void CBotEvents :: addEvent ( std::unique_ptr<CBotEvent> pEvent )
 {
 	extern IGameEventManager2 *gameeventmanager; //redundant? [APG]RoboCop[CL]
 	//extern CRCBotMetaPlugin g_RCBOTServerPlugin;
@@ -1253,16 +1253,12 @@ void CBotEvents :: addEvent ( CBotEvent *pEvent )
 	//if ( gameeventmanager )
 	//	gameeventmanager->AddListener( g_RCBotPluginMeta.getEventListener(), pEvent->getName(), true );
 
-	m_theEvents.emplace_back(pEvent);
+	m_theEvents.emplace_back(std::move(pEvent));
 }
 
 void CBotEvents :: freeMemory ()
 {
-	for (CBotEvent*& m_theEvent : m_theEvents)
-	{
-		delete m_theEvent;
-		m_theEvent = nullptr;	
-	}
+	// Smart pointers automatically delete their contents
 	m_theEvents.clear();
 }
 
@@ -1284,7 +1280,7 @@ void CBotEvents::executeEvent(void* pEvent, const eBotEventType iType)
 	if (iType != TYPE_IGAMEEVENT)
 		iEventId = pInterface->getInt("eventid");
 
-	for (CBotEvent* pFound : m_theEvents)
+	for (const auto& pFound : m_theEvents)
 	{
 		// if it has an pEvent id stored just check that
 		//if ( ( iType != TYPE_IGAMEEVENT ) && pFound->hasEventId() )

@@ -33,6 +33,7 @@
 
 #include "bot_const.h"
 
+#include <memory>
 #include <vector>
 
 class CBotEventInterface;
@@ -92,7 +93,7 @@ public:
 protected:
 	edict_t *m_pActivator;
 private:
-	char *m_szType;
+	const char *m_szType;
 	int m_iEventId;	
 	eModId m_iModId;
 };
@@ -792,9 +793,9 @@ public:
 
 	static void freeMemory ();
 
-	static void addEvent ( CBotEvent *pEvent );
+	static void addEvent ( std::unique_ptr<CBotEvent> pEvent );
 
 private:
-	static std::vector<CBotEvent*> m_theEvents;
+	static std::vector<std::unique_ptr<CBotEvent>> m_theEvents;
 };
 #endif

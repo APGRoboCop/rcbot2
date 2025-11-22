@@ -181,7 +181,7 @@ class CDODFlag
 public:
 	CDODFlag()
 	{
-		m_pEdict = NULL;
+		m_pEdict = nullptr;
 		m_iId = -1;
 	}
 

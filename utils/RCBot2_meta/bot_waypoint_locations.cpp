@@ -186,13 +186,10 @@ void CWaypointLocations :: GetAllVisible (const int iFrom, int iOther, const Vec
 		{
 			for ( int k = iMinLock; k <= iMaxLock; k++ )
 			{
-				WaypointList& arr = m_iLocations[i][j][k];
-				for (std::size_t l = 0; l < m_iLocations[i][j][k].size(); l++)
+				const WaypointList& arr = m_iLocations[i][j][k];
+				for (const int iWpt : arr)
 				{
-					int iWpt = arr[l];
 					const CWaypoint* pWpt = CWaypoints::getWaypoint(iWpt);
-
-					//int iWpt = tempStack.ChooseFromStack();
 					
 					// within range only deal with these waypoints
 					if ( pWpt->distanceFrom(vOrigin) < fEDist && pWpt->distanceFrom(vOther) < fEDist )
@@ -221,14 +218,9 @@ void CWaypointLocations :: AutoPathInBucket ( edict_t *pPlayer, const int i, con
 	//CTraceFilterWorldOnly filter;
 
 	const WaypointList& arr = m_iLocations[i][j][k];
-	const std::size_t size = arr.size();
-	
-	for (std::size_t l = 0; l < size; l++)
+
+	for (const int iWpt : arr)
 	{
-		const int iWpt = arr[l];
-
-		//iWpt = tempStack.ChooseFromStack();
-
 		CWaypoint* pOtherWpt = CWaypoints::getWaypoint(iWpt);
 
 		if ( !pOtherWpt->isUsed() )
@@ -355,13 +347,10 @@ void CWaypointLocations :: FindNearestCoverWaypointInBucket (const int i, const 
 	//dataStack <int> tempStack = m_iLocations[i][j][k];
 
 	const WaypointList &arr = m_iLocations[i][j][k];
-	const std::size_t size = arr.size();
 	//CBotMod *curmod = CBotGlobals::getCurrentMod();
 
-	for (std::size_t l = 0; l < size; l++)
-	//while ( !tempStack.IsEmpty() )
+	for (const int iSelectedIndex : arr)
 	{
-		const int iSelectedIndex = arr[l];//tempStack.ChooseFromStack();
 
 		if ( iCoverFromWpt == iSelectedIndex )
 			continue;
@@ -456,12 +445,10 @@ void CWaypointLocations :: FindNearestBlastInBucket (const int i, const int j, c
 	//trace_t tr; //tr not used? [APG]RoboCop[CL]
 
 	const WaypointList &arr = m_iLocations[i][j][k];
-	const std::size_t size = arr.size();
 	CBotMod *curmod = CBotGlobals::getCurrentMod();
 
-	for (std::size_t l = 0; l < size; l ++ )
+	for (const int iSelectedIndex : arr)
 	{
-		const int iSelectedIndex = arr[l];//tempStack.ChooseFromStack();
 
 		if ( iSelectedIndex == iIgnoreWpt )
 			continue;
@@ -545,12 +532,9 @@ void CWaypointLocations :: FindNearestInBucket (const int i, const int j, const 
 	CBotMod *curmod = CBotGlobals::getCurrentMod();
 
 	const WaypointList &arr = m_iLocations[i][j][k];
-	const std::size_t size = arr.size();
-	
-	for (std::size_t l = 0; l < size; l++)
-	//while ( !tempStack.IsEmpty() )
+
+	for (const int iSelectedIndex : arr)
 	{
-		const int iSelectedIndex = arr[l];//tempStack.ChooseFromStack();
 
 		if ( iSelectedIndex == iIgnoreWpt )
 			continue;
@@ -691,11 +675,9 @@ int CWaypointLocations :: NearestWaypoint (const Vector &vOrigin, float fNearest
 
 	if ( iFailedWpts )
 	{
-		int iWpt;
-		
-		for (std::size_t l = 0; l < iFailedWpts->size(); l++)
+		for (const int iWpt : *iFailedWpts)
 		{
-			if ( (iWpt=(*iFailedWpts)[l]) != -1 ) //( (iWpt = tempStack.ChooseFromStack()) != -1 )
+			if ( iWpt != -1 )
 			{
 				if ( g_iFailedWaypoints[iWpt] == 2 )
 				{
@@ -743,10 +725,10 @@ void CWaypointLocations :: DrawWaypoints (const CClient *pClient, float fDist)
 			for (int k = iMinLock; k <= iMaxLock; k++)
 			{
 				// TODO use a type alias for this
-				WaypointList &arr = m_iLocations[i][j][k];
-				for (const int l : arr)
+				const WaypointList &arr = m_iLocations[i][j][k];
+				for (const int iWptIndex : arr)
 				{
-					iWpt = l;
+					iWpt = iWptIndex;
 
 					pWpt = CWaypoints::getWaypoint(iWpt);//tempStack.ChooseFromStack());
 

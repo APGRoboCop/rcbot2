@@ -380,7 +380,7 @@ void CBotMod::setup(const char* szModFolder, const eModId iModId, const eBotType
 
 /*CBot *CBotMod :: makeNewBots ()
 {
-	return NULL;
+	return nullptr;
 }*/
 
 bool CBotMod::isModFolder(const char* szModFolder) const

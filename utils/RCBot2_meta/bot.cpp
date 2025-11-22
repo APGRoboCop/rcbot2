@@ -455,7 +455,7 @@ bool CBot :: FVisible ( edict_t *pEdict, const bool bCheckHead )
 		}
 		/*
 #if defined(_DEBUG) && !defined(__linux__)
-		else if ( CClients::clientsDebugging(BOT_DEBUG_VIS) && (CBotGlobals::getTraceResult()->m_pEnt != NULL) )
+		else if ( CClients::clientsDebugging(BOT_DEBUG_VIS) && (CBotGlobals::getTraceResult()->m_pEnt != nullptr) )
 		{
 			extern IServerGameEnts *servergameents;
 
@@ -3356,7 +3356,7 @@ int CBots::levelInit()
 	return 0;
 }
 
-#define CHECK_STRING(str) (((str)==NULL)?"NULL":(str))
+#define CHECK_STRING(str) (((str)==nullptr)?"NULL":(str))
 
 void CBots :: botThink ()
 {

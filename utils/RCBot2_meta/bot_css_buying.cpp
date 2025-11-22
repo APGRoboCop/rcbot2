@@ -125,11 +125,11 @@ CCSSBotBuying::CCSSBotBuying(CBot *pBot)
 
 CCSSBotBuying::~CCSSBotBuying()
 {
-    m_pBot = NULL;
+    m_pBot = nullptr;
     m_money = 0;
     m_fLastBuyTime = 0.0f;
-    m_pPrimaryWeapon = NULL;
-    m_pSecondaryWeapon = NULL;
+    m_pPrimaryWeapon = nullptr;
+    m_pSecondaryWeapon = nullptr;
     m_eProfile = CS_BUY_PROFILE_INVALID;
 }
 
@@ -139,8 +139,8 @@ void CCSSBotBuying::reset()
     m_money = 0;
     m_deaths = 0;
     m_fLastBuyTime = 0.0f;
-    m_pPrimaryWeapon = NULL;
-    m_pSecondaryWeapon = NULL;
+    m_pPrimaryWeapon = nullptr;
+    m_pSecondaryWeapon = nullptr;
     m_eProfile = CS_BUY_PROFILE_INVALID;
 }
 

@@ -41,6 +41,8 @@ struct edict_t;
 #include "bot_fortress.h"
 #include "bot_waypoint.h"
 
+#include <memory>
+
 class CWaypointVisibilityTable;
 
 class IBotTaskInterrupt
@@ -95,14 +97,7 @@ class CBotTask
 public:
 	CBotTask();
 
-	virtual ~CBotTask()
-	{
-		if (m_pInterruptFunc != nullptr)
-		{
-			delete m_pInterruptFunc;
-			m_pInterruptFunc = nullptr;
-		}
-	}
+	virtual ~CBotTask() = default;
 	void _init();
 	virtual void init();
 	virtual void execute(CBot* pBot, CBotSchedule* pSchedule);
@@ -117,7 +112,7 @@ public:
 	//void setEdict ( edict_t *pEdict );
 	void setFailInterrupt(int iInterruptHave, int iInterruptDontHave = 0);
 	void setCompleteInterrupt(int iInterruptHave, int iInterruptDontHave = 0);
-	void setInterruptFunction(IBotTaskInterrupt* func) { m_pInterruptFunc = func; }
+	void setInterruptFunction(std::unique_ptr<IBotTaskInterrupt> func) { m_pInterruptFunc = std::move(func); }
 	virtual eTaskState isInterrupted(CBot* pBot);
 	void fail();
 	void complete();
@@ -130,7 +125,7 @@ public:
 
 protected:
 
-	IBotTaskInterrupt* m_pInterruptFunc;
+	std::unique_ptr<IBotTaskInterrupt> m_pInterruptFunc;
 	//void setID();
 	// flags
 	int m_iFlags;
