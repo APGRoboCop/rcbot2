@@ -6,6 +6,8 @@
 #include "bot.h"
 #include "bot_profile.h"
 #include "bot_waypoint.h"
+#include "bot_waypoint_locations.h"
+#include "bot_navigator.h"
 
 enum RCBotProfileVar : std::uint8_t {
 	RCBotProfile_iVisionTicks,
@@ -566,4 +568,203 @@ cell_t sm_RCBotHasSchedule(IPluginContext *pContext, const cell_t *params) {
 	}
 
 	return pSchedules->hasSchedule(static_cast<eBotSchedule>(schedule));
+}
+
+//=============================================================================
+// Phase 3: Navigation & Pathfinding Natives
+//=============================================================================
+
+/* native int RCBot2_GetWaypointCount(); */
+cell_t sm_RCBotGetWaypointCount(IPluginContext *pContext, const cell_t *params) {
+	return CWaypoints::numWaypoints();
+}
+
+/* native int RCBot2_GetNearestWaypoint(const float origin[3], float maxdist = 0.0); */
+cell_t sm_RCBotGetNearestWaypoint(IPluginContext *pContext, const cell_t *params) {
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[1], &addr);
+
+	const Vector vOrigin(sp_ctof(addr[0]), sp_ctof(addr[1]), sp_ctof(addr[2]));
+	const float fMaxDist = sp_ctof(params[2]);
+
+	// Use CWaypointLocations::NearestWaypoint for efficient nearest waypoint search
+	// Parameters: origin, maxdist, ignore_wpt, getVisible, getUnreachable, isBot, failedWpts, nearestAimingOnly, team, checkArea, getVisibleFromOther, vOther, flagsOnly
+	const int iWaypoint = CWaypointLocations::NearestWaypoint(vOrigin, fMaxDist, -1, true, false, false, nullptr, false, 0, false, false, Vector(0,0,0), 0);
+
+	return iWaypoint;
+}
+
+/* native bool RCBot2_GetWaypointOrigin(int waypointid, float origin[3]); */
+cell_t sm_RCBotGetWaypointOrigin(IPluginContext *pContext, const cell_t *params) {
+	const int waypointId = params[1];
+
+	if (!CWaypoints::validWaypointIndex(waypointId)) {
+		return 0;
+	}
+
+	CWaypoint* pWaypoint = CWaypoints::getWaypoint(waypointId);
+	if (!pWaypoint) {
+		return 0;
+	}
+
+	const Vector vOrigin = pWaypoint->getOrigin();
+
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+	addr[0] = sp_ftoc(vOrigin.x);
+	addr[1] = sp_ftoc(vOrigin.y);
+	addr[2] = sp_ftoc(vOrigin.z);
+
+	return 1;
+}
+
+/* native int RCBot2_GetWaypointFlags(int waypointid); */
+cell_t sm_RCBotGetWaypointFlags(IPluginContext *pContext, const cell_t *params) {
+	const int waypointId = params[1];
+
+	if (!CWaypoints::validWaypointIndex(waypointId)) {
+		return 0;
+	}
+
+	CWaypoint* pWaypoint = CWaypoints::getWaypoint(waypointId);
+	if (!pWaypoint) {
+		return 0;
+	}
+
+	return pWaypoint->getFlags();
+}
+
+/* native bool RCBot2_HasPath(int client); */
+cell_t sm_RCBotHasPath(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	IBotNavigator* pNav = bot->getNavigator();
+	if (!pNav) {
+		return 0;
+	}
+
+	return pNav->hasNextPoint();
+}
+
+/* native bool RCBot2_GetGoalOrigin(int client, float origin[3]); */
+cell_t sm_RCBotGetGoalOrigin(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	IBotNavigator* pNav = bot->getNavigator();
+	if (!pNav) {
+		return 0;
+	}
+
+	const Vector vGoal = pNav->getGoalOrigin();
+
+	// Check if goal is valid (not zero vector)
+	if (vGoal.x == 0.0f && vGoal.y == 0.0f && vGoal.z == 0.0f) {
+		return 0;
+	}
+
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+	addr[0] = sp_ftoc(vGoal.x);
+	addr[1] = sp_ftoc(vGoal.y);
+	addr[2] = sp_ftoc(vGoal.z);
+
+	return 1;
+}
+
+/* native int RCBot2_GetCurrentWaypointID(int client); */
+cell_t sm_RCBotGetCurrentWaypointID(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	IBotNavigator* pNav = bot->getNavigator();
+	if (!pNav) {
+		return -1;
+	}
+
+	return pNav->getCurrentWaypointID();
+}
+
+/* native int RCBot2_GetGoalWaypointID(int client); */
+cell_t sm_RCBotGetGoalWaypointID(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	const CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	IBotNavigator* pNav = bot->getNavigator();
+	if (!pNav) {
+		return -1;
+	}
+
+	return pNav->getCurrentGoalID();
+}
+
+/* native bool RCBot2_ClearPath(int client); */
+cell_t sm_RCBotClearPath(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	IBotNavigator* pNav = bot->getNavigator();
+	if (!pNav) {
+		return 0;
+	}
+
+	pNav->clear();
+	return 1;
+}
+
+/* native bool RCBot2_IsStuck(int client); */
+cell_t sm_RCBotIsStuck(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* bot = CBots::getBot(client - 1);
+	if (!bot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return bot->checkStuck();
 }

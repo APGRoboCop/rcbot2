@@ -38,6 +38,18 @@ cell_t sm_RCBotGetCurrentSchedule(IPluginContext *pContext, const cell_t *params
 cell_t sm_RCBotClearSchedule(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotHasSchedule(IPluginContext *pContext, const cell_t *params);
 
+// Phase 3: Navigation & Pathfinding
+cell_t sm_RCBotGetWaypointCount(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetNearestWaypoint(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetWaypointOrigin(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetWaypointFlags(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotHasPath(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetGoalOrigin(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetCurrentWaypointID(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetGoalWaypointID(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotClearPath(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotIsStuck(IPluginContext *pContext, const cell_t *params);
+
 const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_IsWaypointAvailable", sm_RCBotIsWaypointAvailable },
 
@@ -71,6 +83,18 @@ const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_GetCurrentSchedule", sm_RCBotGetCurrentSchedule },
 	{ "RCBot2_ClearSchedule", sm_RCBotClearSchedule },
 	{ "RCBot2_HasSchedule", sm_RCBotHasSchedule },
+
+	// Phase 3: Navigation & Pathfinding
+	{ "RCBot2_GetWaypointCount", sm_RCBotGetWaypointCount },
+	{ "RCBot2_GetNearestWaypoint", sm_RCBotGetNearestWaypoint },
+	{ "RCBot2_GetWaypointOrigin", sm_RCBotGetWaypointOrigin },
+	{ "RCBot2_GetWaypointFlags", sm_RCBotGetWaypointFlags },
+	{ "RCBot2_HasPath", sm_RCBotHasPath },
+	{ "RCBot2_GetGoalOrigin", sm_RCBotGetGoalOrigin },
+	{ "RCBot2_GetCurrentWaypointID", sm_RCBotGetCurrentWaypointID },
+	{ "RCBot2_GetGoalWaypointID", sm_RCBotGetGoalWaypointID },
+	{ "RCBot2_ClearPath", sm_RCBotClearPath },
+	{ "RCBot2_IsStuck", sm_RCBotIsStuck },
 
 	{nullptr, nullptr},
 };

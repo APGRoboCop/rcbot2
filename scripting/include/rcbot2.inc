@@ -292,6 +292,98 @@ native bool RCBot2_ClearSchedule(int client);
  */
 native bool RCBot2_HasSchedule(int client, RCBotSchedule schedule);
 
+//=============================================================================
+// Phase 3: Navigation & Pathfinding
+//=============================================================================
+
+/**
+ * Gets the total number of waypoints loaded for the current map.
+ *
+ * @return              Number of waypoints, or 0 if none loaded
+ */
+native int RCBot2_GetWaypointCount();
+
+/**
+ * Finds the nearest waypoint to a position.
+ *
+ * @param origin        Position to search from
+ * @param maxdist       Maximum search distance (0 = unlimited)
+ * @return              Waypoint index, or -1 if none found
+ */
+native int RCBot2_GetNearestWaypoint(const float origin[3], float maxdist = 0.0);
+
+/**
+ * Gets a waypoint's position.
+ *
+ * @param waypointid    Waypoint index
+ * @param origin        Array to store waypoint position
+ * @return              true on success, false if waypoint invalid
+ */
+native bool RCBot2_GetWaypointOrigin(int waypointid, float origin[3]);
+
+/**
+ * Gets a waypoint's flags (properties like jump, crouch, ladder, etc).
+ *
+ * @param waypointid    Waypoint index
+ * @return              Waypoint flags bitfield, or 0 if invalid
+ */
+native int RCBot2_GetWaypointFlags(int waypointid);
+
+/**
+ * Checks if a bot currently has a navigation path.
+ *
+ * @param client        Bot client index
+ * @return              true if bot has a path, false otherwise
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_HasPath(int client);
+
+/**
+ * Gets a bot's current navigation goal position.
+ *
+ * @param client        Bot client index
+ * @param origin        Array to store goal position
+ * @return              true on success, false if no goal set
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_GetGoalOrigin(int client, float origin[3]);
+
+/**
+ * Gets the waypoint ID the bot is currently moving towards.
+ *
+ * @param client        Bot client index
+ * @return              Waypoint index, or -1 if no current waypoint
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetCurrentWaypointID(int client);
+
+/**
+ * Gets the waypoint ID of the bot's final navigation goal.
+ *
+ * @param client        Bot client index
+ * @return              Goal waypoint index, or -1 if no goal
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetGoalWaypointID(int client);
+
+/**
+ * Clears the bot's current navigation path.
+ *
+ * @param client        Bot client index
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_ClearPath(int client);
+
+/**
+ * Checks if the bot is currently stuck (unable to move).
+ *
+ * @param client        Bot client index
+ * @return              true if stuck, false otherwise
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_IsStuck(int client);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",
