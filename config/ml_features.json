@@ -1,0 +1,322 @@
+{
+  "version": "1.0",
+  "description": "Machine Learning feature configuration for RCBot2",
+  "last_updated": "2025-11-22",
+
+  "feature_groups": {
+    "self_state": {
+      "enabled": true,
+      "description": "Bot's own state information",
+      "feature_count": 10,
+      "features": [
+        {
+          "name": "health",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Normalized health (0=dead, 1=full health)"
+        },
+        {
+          "name": "armor",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Normalized armor/shield (game-specific)"
+        },
+        {
+          "name": "ammo_primary",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Primary weapon ammo (normalized by max)"
+        },
+        {
+          "name": "ammo_secondary",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Secondary weapon ammo (normalized by max)"
+        },
+        {
+          "name": "weapon_id",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "description": "Current weapon slot (one-hot encoded)"
+        },
+        {
+          "name": "position_x",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "X position (normalized by map bounds)"
+        },
+        {
+          "name": "position_y",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Y position (normalized by map bounds)"
+        },
+        {
+          "name": "position_z",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Z position (normalized by map bounds)"
+        },
+        {
+          "name": "velocity",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Movement speed (normalized by max speed)"
+        },
+        {
+          "name": "on_ground",
+          "type": "bool",
+          "description": "Is bot on ground (1) or airborne (0)"
+        }
+      ]
+    },
+
+    "visible_threats": {
+      "enabled": true,
+      "description": "Information about visible enemy entities",
+      "max_enemies": 5,
+      "features_per_enemy": 8,
+      "feature_count": 40,
+      "features": [
+        {
+          "name": "enemy_exists",
+          "type": "bool",
+          "description": "Is this enemy slot occupied"
+        },
+        {
+          "name": "enemy_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to enemy (0=max range, 1=melee range)"
+        },
+        {
+          "name": "enemy_angle_cos",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Cosine of relative angle (horizontal)"
+        },
+        {
+          "name": "enemy_angle_sin",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Sine of relative angle (horizontal)"
+        },
+        {
+          "name": "enemy_health",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Estimated enemy health (0-1)"
+        },
+        {
+          "name": "enemy_class",
+          "type": "int",
+          "min": 0,
+          "max": 9,
+          "description": "Enemy class ID (game-specific)"
+        },
+        {
+          "name": "enemy_threat_level",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Computed threat score (distance, weapon, health)"
+        },
+        {
+          "name": "enemy_visible",
+          "type": "bool",
+          "description": "Direct line of sight (1) or occluded (0)"
+        }
+      ]
+    },
+
+    "objectives": {
+      "enabled": true,
+      "description": "Game mode objectives and map state",
+      "feature_count": 20,
+      "game_mode_specific": true,
+      "features": [
+        {
+          "name": "objective_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest objective"
+        },
+        {
+          "name": "objective_status",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "0=enemy controlled, 0.5=contested, 1=friendly"
+        },
+        {
+          "name": "team_score_diff",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Team score difference (normalized)"
+        },
+        {
+          "name": "time_remaining",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Match time remaining (0=just started, 1=ending)"
+        },
+        {
+          "name": "nearest_health_pack_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest health pack"
+        },
+        {
+          "name": "nearest_ammo_pack_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest ammo pack"
+        }
+      ]
+    },
+
+    "navigation": {
+      "enabled": true,
+      "description": "Waypoint navigation and pathfinding info",
+      "feature_count": 16,
+      "features": [
+        {
+          "name": "current_waypoint_type",
+          "type": "int",
+          "min": 0,
+          "max": 10,
+          "description": "Type of current waypoint (one-hot encoded)"
+        },
+        {
+          "name": "waypoint_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to next waypoint"
+        },
+        {
+          "name": "path_length",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Total path length to goal"
+        },
+        {
+          "name": "cover_front_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover in front"
+        },
+        {
+          "name": "cover_left_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover on left"
+        },
+        {
+          "name": "cover_right_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover on right"
+        },
+        {
+          "name": "cover_back_dist",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover behind"
+        }
+      ]
+    },
+
+    "recent_history": {
+      "enabled": true,
+      "description": "Recent performance and events",
+      "feature_count": 10,
+      "time_window_seconds": 5.0,
+      "features": [
+        {
+          "name": "damage_dealt_recent",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Damage dealt in last 5 seconds (normalized)"
+        },
+        {
+          "name": "damage_taken_recent",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Damage taken in last 5 seconds"
+        },
+        {
+          "name": "kills_recent",
+          "type": "int",
+          "min": 0,
+          "max": 10,
+          "description": "Kills in last 60 seconds"
+        },
+        {
+          "name": "deaths_recent",
+          "type": "int",
+          "min": 0,
+          "max": 10,
+          "description": "Deaths in last 60 seconds"
+        },
+        {
+          "name": "time_since_spawn",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Time since last respawn (0=just spawned)"
+        },
+        {
+          "name": "time_since_damage",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Time since last took damage"
+        }
+      ]
+    }
+  },
+
+  "normalization": {
+    "method": "min_max",
+    "description": "Normalization method: min_max, z_score, or running_stats",
+    "running_stats": false,
+    "running_stats_window": 1000,
+    "clip_outliers": true,
+    "outlier_threshold": 3.0
+  },
+
+  "total_features": {
+    "self_state": 10,
+    "visible_threats": 40,
+    "objectives": 20,
+    "navigation": 16,
+    "recent_history": 10,
+    "total": 96
+  }
+}
