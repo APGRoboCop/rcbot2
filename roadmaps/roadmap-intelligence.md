@@ -8,11 +8,61 @@ This document outlines the research and implementation process for advancing RCB
 
 1. **Immediate Priority**: Phase 0 (Foundation) - Setup infrastructure and data collection
 2. **First ML Feature**: Behavior cloning from human replays (simplest approach)
-3. **Testing Ground**: TF2 (most mature codebase, 8,485 lines)
+3. **Testing Ground**: **HL2DM ONLY** (simplest game, fastest iteration)
 4. **Recommended Framework**: ONNX Runtime (flexible, cross-platform, production-ready)
-5. **Development Approach**: Incremental - each feature must work before moving to next
+5. **Development Approach**: Prove it works on HL2DM, THEN expand to other games
+6. **Expansion Path**: HL2DM → TF2 → DOD:S → CS:S → Others
 
-**Timeline for First Working ML Feature**: 2-3 months from start
+**Timeline for First Working ML Feature (HL2DM)**: 2-3 months from start
+
+---
+
+## Why HL2DM First? 🎯
+
+**HL2DM is the ideal starting point for ML implementation:**
+
+### Simplicity Advantages
+- ✅ **Pure Deathmatch**: No complex objectives, just combat and survival
+- ✅ **No Class System**: All players have identical abilities (unlike TF2's 9 classes)
+- ✅ **Smaller Codebase**: `bot_hldm_bot.cpp` only 884 lines vs TF2's 8,485 lines
+- ✅ **Fewer Weapons**: ~15 weapons vs TF2's 100+ weapon variations
+- ✅ **Standard Physics**: Basic Source Engine physics, no rocket jumping, double jumps, etc.
+- ✅ **Simpler Features**: ~48-64 features vs 96+ for TF2
+- ✅ **Faster Training**: Simpler state/action space = faster convergence
+
+### Development Benefits
+- ✅ **Faster Iteration**: Simple game = quick testing cycles
+- ✅ **Easier Debugging**: Fewer variables to track
+- ✅ **Clear Metrics**: K/D ratio, survival time are straightforward
+- ✅ **Proof of Concept**: Validates approach before investing in complex games
+- ✅ **Foundation for Expansion**: Architecture built here extends to other games
+
+### Expansion Strategy
+
+Once HL2DM ML works (Phase 0 complete), expand in order of complexity:
+
+**Phase 1 Expansion: TF2** (1-2 months)
+- Add class-specific models (9 classes)
+- Complex objectives (payload, CTF, control points, MvM)
+- Class abilities (healing, building, disguises, etc.)
+- Expected effort: ~80% code reuse from HL2DM
+
+**Phase 2 Expansion: DOD:S** (1 month)
+- Team-based classes (6 classes)
+- Capture point mechanics
+- Historical weapons
+- Expected effort: ~85% code reuse
+
+**Phase 3 Expansion: CS:S** (1-2 months)
+- Economy system
+- Buy menu decisions
+- Bomb defusal objectives
+- Expected effort: ~70% code reuse (buy system is new)
+
+**Phase 4+: Others** (weeks each)
+- Black Mesa, Synergy, etc.
+- Minimal changes from HL2DM
+- Expected effort: ~90% code reuse
 
 ---
 
@@ -21,12 +71,14 @@ This document outlines the research and implementation process for advancing RCB
 This roadmap incorporates modern approaches:
 
 - ✅ **Imitation Learning First**: Start with behavior cloning (simpler than RL from scratch)
+- ✅ **Start Simple, Scale Up**: HL2DM first, then expand to complex games
 - ✅ **Model Distillation**: Train large models offline, distill to small inference models
 - ✅ **ONNX Standard**: Train in PyTorch/TensorFlow, deploy via ONNX Runtime
 - ✅ **Incremental Deployment**: Each phase adds value independently
 - ✅ **Human-in-the-Loop**: Combine human demonstrations with RL fine-tuning
 - ✅ **Efficient Architectures**: Prioritize MLP/small CNNs over large transformers
 - ✅ **Quantization Ready**: Design for INT8 quantization from day one
+- ✅ **Transfer Learning**: Leverage HL2DM models for other games
 
 ---
 
@@ -49,10 +101,11 @@ This roadmap incorporates modern approaches:
 
 ---
 
-## Phase 0: Foundation and Infrastructure 🟢
+## Phase 0: Foundation and Infrastructure (HL2DM Only) 🟢
 
 **Priority**: IMMEDIATE | **Status**: Not Started
-**Goal**: Establish ML infrastructure and data collection before advanced features
+**Target Game**: **HL2DM ONLY**
+**Goal**: Establish ML infrastructure with working behavior cloning on HL2DM
 **Timeline**: 2-3 months
 
 ### Why Phase 0 Comes First
@@ -64,7 +117,18 @@ Before implementing advanced ML features, we need:
 - ✅ Performance monitoring and debugging tools
 - ✅ Proof-of-concept that ML can improve bot behavior
 
-**Success Criteria**: Deploy one simple ML feature (behavior cloning) that demonstrably improves bot behavior
+**Success Criteria**:
+- ✅ Deploy working behavior cloning model for HL2DM
+- ✅ ML bot performs better than rule-based bot (higher K/D, survival time)
+- ✅ Inference time <1ms per bot
+- ✅ FPS impact <5% with 16 bots
+- ✅ Architecture ready for expansion to TF2/DOD/CS:S
+
+**Why HL2DM for Phase 0?**
+- Fastest path to first working ML feature
+- Validates entire pipeline with minimal complexity
+- Proves ML can improve bot behavior
+- Once working, expansion to other games is straightforward
 
 ### 0.1 Data Collection Infrastructure
 
@@ -143,47 +207,96 @@ Before implementing advanced ML features, we need:
 
 ---
 
-### 0.3 Feature Extraction System
+### 0.3 Feature Extraction System (HL2DM Focused)
 
-**Objective**: Convert game state into ML model inputs
+**Objective**: Convert HL2DM game state into ML model inputs
+
+**HL2DM Feature Set** (Simpler than TF2):
+
+Total features: **~48-64 floats** (vs 96+ for TF2)
+
+**Feature Groups**:
+1. **Self State** (8 features)
+   - Health (0-1 normalized)
+   - Armor (0-1 normalized)
+   - Current weapon ID (one-hot encoded, 5 slots)
+   - Ammo primary (0-1 normalized)
+   - Velocity magnitude (0-1 normalized)
+   - On ground flag (0 or 1)
+
+2. **Visible Enemies** (24 features = 3 enemies × 8)
+   - Enemy distance (0-1, closer = higher value)
+   - Enemy angle (cos, sin of horizontal angle)
+   - Enemy health estimate (0-1)
+   - Enemy has weapon advantage (0 or 1)
+   - Enemy is moving (0 or 1)
+   - Direct line of sight (0 or 1)
+
+3. **Environment** (16 features)
+   - Nearest health pack (distance, direction)
+   - Nearest weapon pickup (distance, direction)
+   - Nearest ammo pack (distance, direction)
+   - Safe zones / cover (4 directions, distance to each)
+   - Height advantage (0=lower, 0.5=equal, 1=higher ground)
+
+4. **Navigation** (8 features)
+   - Current waypoint distance
+   - Path to nearest item
+   - Stuck detection flag
+   - Fall damage risk
+
+5. **Recent History** (8 features)
+   - Damage dealt (last 5 seconds, normalized)
+   - Damage taken (last 5 seconds, normalized)
+   - Kills (last 60 seconds)
+   - Deaths (last 60 seconds)
+   - Time since spawn (0-1 normalized)
+   - Time since last damage taken
 
 **Implementation Tasks**:
-- [ ] Design feature representation
-  - **Spatial features**: Bot position, waypoint, nearby cover (normalized)
-  - **Visual features**: Visible enemies (distance, class, health, threat level)
-  - **State features**: Bot health, ammo, class, objective status
-  - **Temporal features**: Recent damage, kills, time since spawn
-  - Total features: ~64-128 floats (keep it simple initially)
-- [ ] Implement feature extractors
-  - `CFeatureExtractor` base class
-  - Game-specific extractors (`CTF2FeatureExtractor`)
-  - Feature normalization (0-1 scaling, running mean/std)
-  - Feature caching (update once per Think() cycle)
-- [ ] Create feature configuration
-  - JSON config file: `config/ml_features.json`
+- [ ] Design HL2DM feature representation (48-64 features)
+- [ ] Implement `CHL2DMFeatureExtractor` class
+  - Inherits from `IFeatureExtractor` base
+  - Extract self state (health, armor, weapon, ammo)
+  - Extract visible enemies (up to 3 closest threats)
+  - Extract pickups (health, weapons, ammo)
+  - Extract navigation data
+  - Extract recent performance history
+- [ ] Feature normalization
+  - All features scaled to [0, 1] or [-1, 1]
+  - Running statistics for adaptive normalization
+  - Outlier clipping
+- [ ] Create HL2DM feature configuration
+  - `config/ml_features_hl2dm.json`
   - Enable/disable specific feature groups
   - Feature scaling parameters
 - [ ] Add debugging tools
-  - Console command: `rcbot_ml_features_dump` (print current features)
-  - Feature visualization (HUD overlay for debugging)
+  - `rcbot_ml_features_dump` - print current features
+  - `rcbot_ml_features_hud 1` - show feature overlay
   - Feature statistics logging
 
 **Deliverables**:
-- Feature extraction system integrated
-- Configuration file with documented features
-- Debugging tools working
+- HL2DM feature extraction working
+- `config/ml_features_hl2dm.json` configuration
+- Debugging console commands
 
 **Code Locations**:
-- New files: `bot_features.h/cpp`, `bot_features_tf2.cpp`
-- `config/ml_features.json`
+- New files: `bot_features.h/cpp`, `bot_features_hl2dm.cpp`
+- `config/ml_features_hl2dm.json`
+- `bot_hldm_bot.cpp`: Integration point
 
-**Estimated Effort**: 2-3 weeks
+**Estimated Effort**: 2 weeks (simpler than TF2)
+
+**Future Expansion**:
+- Once HL2DM works, create `bot_features_tf2.cpp` (96 features)
+- Then `bot_features_dod.cpp`, `bot_features_css.cpp`, etc.
+- Share common base class logic (~70% code reuse)
 
 ---
 
-### 0.4 Behavior Cloning Proof-of-Concept
+### 0.4 Behavior Cloning Proof-of-Concept (HL2DM)
 
-**Objective**: Train first ML model using imitation learning from human demos
+**Objective**: Train first ML model using imitation learning from HL2DM human demos
 
 **Why Behavior Cloning First?**
 - ✅ Simpler than RL (supervised learning, no reward engineering)
@@ -192,40 +305,68 @@ Before implementing advanced ML features, we need:
 - ✅ Validates entire pipeline (data → training → inference → deployment)
 - ✅ Provides baseline for RL to improve upon
 
+**HL2DM-Specific Advantages**:
+- ✅ Simpler action space (no class abilities, no complex objectives)
+- ✅ Easier to collect demos (HL2DM has active playerbase)
+- ✅ Faster convergence due to simpler state space
+- ✅ Clear success metrics (K/D ratio, survival time)
+
 **Implementation Tasks**:
+- [ ] **Collect HL2DM Training Data**
+  - Record 10+ hours of human HL2DM gameplay
+  - Use SourceTV demos from public servers
+  - Or record skilled players playing against bots
+  - Export to training format (JSON/numpy)
+
 - [ ] **Training Pipeline** (Offline, Python)
-  - Load recorded human demonstration data
+  - Load recorded HL2DM demonstration data
   - Train neural network (PyTorch/TensorFlow)
-    - Architecture: MLP (128 input → 256 → 128 → 64 → action output)
-    - Loss: Cross-entropy for discrete actions, MSE for continuous
+    - Architecture: MLP (64 input → 128 → 64 → 32 → 10 output)
+    - Simpler than TF2 (64 features vs 96)
+    - Loss: MSE for continuous actions, BCE for buttons
+  - Data augmentation: horizontal flip, noise injection
   - Export to ONNX format
-  - Validate model accuracy on test set
-- [ ] **Action Decoder**
+  - Validate model accuracy on test set (>80% action prediction accuracy)
+
+- [ ] **Action Decoder for HL2DM**
   - Convert model output to bot actions
-  - Map to movement (forward/back/left/right)
-  - Map to aim adjustments (yaw/pitch deltas)
-  - Map to button presses (jump, crouch, fire, reload)
-- [ ] **Integration with Bot**
-  - Add mode selection: `rcbot_ml_mode <off|behavior_clone|hybrid>`
-  - Hybrid mode: Use ML for movement, keep rule-based for high-level strategy
-  - Smooth blending between ML and rules
-- [ ] **Evaluation**
+  - Movement: forward/back/strafe (-450 to +450 units/sec)
+  - Aim: yaw/pitch deltas (±30 degrees/frame)
+  - Buttons: jump, crouch, fire, reload, weapon switch
+  - No special abilities (unlike TF2 airblast, medic heal, etc.)
+
+- [ ] **Integration with HL2DM Bot**
+  - Integrate into `bot_hldm_bot.cpp` (only 884 lines!)
+  - Add ML mode selection: `rcbot_ml_mode <off|behavior_clone|hybrid>`
+  - Hybrid mode: ML for combat, rules for navigation
+  - Smooth blending between ML and rule-based decisions
+
+- [ ] **Evaluation on HL2DM**
   - A/B test: ML bot vs rule-based bot
-  - Metrics: Survival time, K/D ratio, objective completion
-  - Collect player feedback (does it look more human-like?)
+  - Metrics: K/D ratio, survival time, weapon efficiency
+  - Test on multiple HL2DM maps (dm_lockdown, dm_overwatch, etc.)
+  - Human player Turing test: Can players tell it's a bot?
 
 **Deliverables**:
-- Trained behavior cloning model (ONNX format)
-- Training scripts and documentation
-- Working in-game ML bot
-- Performance comparison report
+- Trained HL2DM behavior cloning model (ONNX format)
+- Training scripts: `tools/train_hl2dm_behavior_clone.py`
+- Working HL2DM ML bot
+- Performance comparison report (ML vs rules)
+- Documentation for expanding to TF2
 
 **Code Locations**:
-- Training: `tools/train_behavior_clone.py`
+- Training: `tools/train_hl2dm_behavior_clone.py`
 - New files: `bot_ml_behavior_clone.h/cpp`
-- `bot_fortress.cpp`: TF2 integration
+- **`bot_hldm_bot.cpp`**: HL2DM integration (primary focus)
+- `bot_fortress.cpp`: TF2 integration (future)
 
-**Estimated Effort**: 3-4 weeks
+**Estimated Effort**: 3 weeks (faster due to HL2DM simplicity)
+
+**Success Metrics**:
+- ✅ ML bot achieves >1.0 K/D ratio on average
+- ✅ ML bot survives >30% longer than rule-based bot
+- ✅ Inference time <0.5ms (HL2DM is simpler)
+- ✅ >50% of human players can't immediately identify it as a bot
 
 ---
 
@@ -267,23 +408,148 @@ Before implementing advanced ML features, we need:
 
 ### Phase 0 Summary
 
+**Target Game**: HL2DM ONLY
 **Total Estimated Time**: 2-3 months
-**Outcome**: Working ML infrastructure with one deployed feature (behavior cloning)
-**Next Phase Unlock**: With data collection and inference pipeline proven, Phase 1 (advanced RL) becomes feasible
+**Outcome**: Working ML infrastructure with deployed behavior cloning on HL2DM
+**Next Phase**: Expand to TF2, then RL enhancements
 
-**Checkpoint Questions Before Moving to Phase 1**:
-- ✅ Can we record and export gameplay data reliably?
-- ✅ Can we load and run ONNX models in-game with <1ms latency?
-- ✅ Does the behavior cloning model improve bot performance measurably?
-- ✅ Is the code modular enough to add new ML models easily?
+**Checkpoint Questions Before Expanding to Other Games**:
+- ✅ Can we record and export HL2DM gameplay data reliably?
+- ✅ Can we load and run ONNX models in-game with <0.5ms latency?
+- ✅ Does the HL2DM behavior cloning model improve bot performance measurably?
+- ✅ Is the code modular enough to add TF2/DOD/CS:S features easily?
+- ✅ Do players notice improved bot behavior (Turing test)?
+
+**Deliverables**:
+- ✅ Working HL2DM behavior cloning bot
+- ✅ Data collection system (works for any game)
+- ✅ ONNX inference pipeline (game-agnostic)
+- ✅ Feature extraction framework (extensible to other games)
+- ✅ ML controller architecture (reusable)
+- ✅ Performance monitoring (all games)
 
 ---
 
-## Phase 1: Neural Network Improvements 🔵
+## Phase 0.5: Multi-Game Expansion 🟡
 
-**Priority**: High (After Phase 0) | **Status**: Research
-**Current**: Basic perceptron for decision making
-**Prerequisites**: Phase 0 complete
+**Priority**: High (After Phase 0) | **Status**: Not Started
+**Goal**: Expand working HL2DM ML to other Source Engine games
+**Timeline**: 3-6 months (1-2 months per game)
+**Prerequisites**: Phase 0 complete with working HL2DM behavior cloning
+
+### Why Expand Games Before Advanced ML?
+
+Once HL2DM works, we should expand to other games BEFORE adding advanced ML features:
+- ✅ **Validates architecture**: Proves our design is game-agnostic
+- ✅ **Larger impact**: ML works on TF2/DOD/CS:S, the most popular games
+- ✅ **Parallel development**: Can work on TF2 expansion while researching RL
+- ✅ **Transfer learning ready**: Need multi-game models for transfer learning research
+
+### 0.5.1 TF2 Expansion (Priority 1)
+
+**Estimated Effort**: 1-2 months
+
+**Why TF2 Next?**
+- Most requested game for RCBot2
+- Largest existing codebase (8,485 lines of reference behavior)
+- Active competitive community
+- Complex enough to validate ML scales to harder problems
+
+**Implementation Tasks**:
+- [ ] Create `CTF2FeatureExtractor` (96 features vs HL2DM's 64)
+  - Add class-specific features (9 classes)
+  - Add objective features (payload, CTF, control points, MvM)
+  - Add class ability features (healing, building, disguises, etc.)
+- [ ] Extend action decoder for TF2
+  - Class-specific abilities (medic heal target, spy disguise, engineer build)
+  - Voice commands (medic call, sentry here, etc.)
+- [ ] Collect TF2 training data
+  - Record 10+ hours per class (90+ hours total, or start with Soldier/Scout)
+  - Class-specific models vs general model
+- [ ] Train TF2 behavior cloning models
+  - Option A: Single model for all classes
+  - Option B: Class-specific models (9 models)
+  - Recommend: Start with Soldier (simplest combat class)
+- [ ] Integration with `bot_fortress.cpp`
+- [ ] Test on TF2 game modes (payload, CTF, control points, MvM)
+
+**Transfer Learning Opportunity**:
+- Use HL2DM model as initialization for TF2
+- Fine-tune on TF2-specific data
+- Compare vs training from scratch
+
+**Code Reuse from HL2DM**: ~70-80%
+- ONNX pipeline: 100% reuse
+- Recording system: 100% reuse
+- Feature extraction base: 70% reuse (extend for TF2)
+- Training scripts: 80% reuse (adjust for class system)
+
+### 0.5.2 DOD:S Expansion (Priority 2)
+
+**Estimated Effort**: 1 month
+
+**Implementation Tasks**:
+- [ ] Create `CDODFeatureExtractor` (similar to HL2DM, ~64 features)
+  - Add class features (6 classes: Rifleman, Assault, Support, Sniper, MG, Rocket)
+  - Add capture point features
+  - Add flag features
+- [ ] Collect DOD:S training data (10+ hours)
+- [ ] Train DOD:S behavior cloning model
+- [ ] Integration with `bot_dod_bot.cpp`
+
+**Code Reuse from HL2DM**: ~85%
+- Simpler than TF2 (only 6 classes, no complex abilities)
+
+### 0.5.3 CS:S Expansion (Priority 3)
+
+**Estimated Effort**: 1-2 months
+
+**Unique Challenges**:
+- Economy system (buy decisions)
+- Bomb defusal objectives
+- Round-based gameplay
+
+**Implementation Tasks**:
+- [ ] Create `CCSSFeatureExtractor` (~80 features)
+  - Add economy features (money, buy opportunities)
+  - Add bomb/defuse features
+  - Add round context
+- [ ] Extend action decoder for buy menu
+- [ ] Collect CS:S training data (10+ hours)
+- [ ] Train CS:S behavior cloning model
+- [ ] Integration with `bot_css_bot.cpp`
+
+**Code Reuse from HL2DM**: ~70%
+- Economy system is new complexity
+
+### 0.5.4 Other Games (Black Mesa, Synergy, etc.)
+
+**Estimated Effort**: Days to weeks each
+
+- Most are similar to HL2DM
+- Minimal changes required
+- ~90% code reuse
+
+### Phase 0.5 Summary
+
+**Total Time**: 3-6 months for TF2, DOD:S, CS:S
+**Outcome**: ML behavior cloning working on all major RCBot2 games
+**Next Phase**: Advanced ML (RL, GA, transfer learning, etc.)
+
+**Deliverables**:
+- ✅ TF2 ML bot (all or most classes)
+- ✅ DOD:S ML bot
+- ✅ CS:S ML bot
+- ✅ Game-agnostic ML framework proven
+- ✅ Ready for advanced ML research
+
+---
+
+## Phase 1: Advanced Neural Networks & Reinforcement Learning 🔵
+
+**Priority**: High (After Phase 0.5) | **Status**: Research
+**Target Games**: Start with HL2DM, expand to all
+**Prerequisites**: Phase 0 and 0.5 complete (behavior cloning working on multiple games)
 
 ### Research Phase (Months 1-3)
 
@@ -1127,57 +1393,86 @@ Before implementing advanced ML features, we need:
 
 ## Timeline and Milestones
 
-### Year 1: Foundation and Core ML (2025)
-- **Q1 (Months 1-3)**: Phase 0 - Infrastructure and behavior cloning
-  - ✅ Data collection system operational
-  - ✅ ONNX Runtime integrated
-  - ✅ First ML model deployed (behavior cloning)
-- **Q2 (Months 4-6)**: Phase 1 Start - RL research and DNN integration
-  - Complete research phase
-  - Begin DQN/PPO implementation
-  - Initial RL experiments
-- **Q3 (Months 7-9)**: Phase 1 Continue - RL system implementation
-  - Complete RL training pipeline
-  - Deploy first RL-trained bot
-  - Begin transfer learning research
-- **Q4 (Months 10-12)**: Phase 1 Wrap - Transfer learning and adversarial training
-  - Cross-game transfer learning working
-  - Self-play tournaments running
-  - Performance optimization pass
+### Year 1: Foundation and Multi-Game Deployment (2025)
 
-### Year 2: Advanced AI and GA Enhancement (2026)
-- **Q1 (Months 13-15)**: Phase 2 Start - GA expansion
-  - 50+ parameter optimization
+**Focus**: Get behavior cloning working on HL2DM, then expand to all games
+
+- **Q1 (Months 1-3)**: Phase 0 - Infrastructure and HL2DM behavior cloning
+  - ✅ Data collection system operational (game-agnostic)
+  - ✅ ONNX Runtime integrated
+  - ✅ **HL2DM ML bot working** (behavior cloning)
+  - ✅ Architecture validated on simplest game
+
+- **Q2 (Months 4-6)**: Phase 0.5 - TF2 Expansion
+  - ✅ TF2 feature extraction (96 features)
+  - ✅ Collect TF2 training data (start with Soldier class)
+  - ✅ **TF2 ML bot working** (at least 1-2 classes)
+  - Transfer learning from HL2DM model tested
+
+- **Q3 (Months 7-9)**: Phase 0.5 Continue - DOD:S and CS:S Expansion
+  - ✅ DOD:S ML bot working
+  - ✅ CS:S ML bot working (including buy system)
+  - ✅ All major games have ML behavior cloning
+  - Begin Phase 1 RL research (parallel track)
+
+- **Q4 (Months 10-12)**: Phase 1 Start - RL on HL2DM
+  - Complete RL research phase
+  - Implement DQN/PPO for HL2DM (simplest game first)
+  - HL2DM RL bot deployed and tested
+  - Document RL expansion path for other games
+
+### Year 2: Advanced ML and Multi-Game RL (2026)
+
+**Focus**: Expand RL to all games, add GA enhancements
+
+- **Q1 (Months 13-15)**: Phase 1 - RL Expansion to TF2/DOD/CS:S
+  - TF2 RL implementation
+  - Transfer learning between games
+  - Self-play tournaments (HL2DM, TF2)
+
+- **Q2 (Months 16-18)**: Phase 2 - GA Enhancement
+  - 50+ parameter optimization (all games)
   - PBT infrastructure
   - Multi-objective optimization (NSGA-II)
-- **Q2 (Months 16-18)**: Phase 2 Continue - Adaptive systems
   - Automated difficulty scaling
+
+- **Q3 (Months 19-21)**: Phase 2 Continue - Adaptive Systems
   - Player skill recognition
   - Dynamic bot personalities
-- **Q3 (Months 19-21)**: Phase 3 Start - Advanced behaviors (voice, chat)
-  - Voice recognition prototype
-  - Basic chat system
-  - Emotion state machine
-- **Q4 (Months 22-24)**: Phase 3 Continue - Playstyle adaptation
-  - Adaptive playstyle learning
-  - Player profiling system
-  - Counter-strategy generation
+  - Online learning during gameplay
+  - Opponent-specific adaptation
 
-### Year 3: Refinement and Deployment (2027)
-- **Q1 (Months 25-27)**: Polish and optimization
-  - Complete all advanced behaviors
-  - Performance optimization across all features
-  - Comprehensive testing suite
-- **Q2 (Months 28-30)**: Community beta testing
-  - Public beta release
+- **Q4 (Months 22-24)**: Phase 3 Start - Advanced Behaviors
+  - Voice recognition prototype (TF2 focused)
+  - Basic chat system (all games)
+  - Emotion state machine
+  - Taunt/personality system
+
+### Year 3: Polish and Production Release (2027)
+
+**Focus**: Complete advanced features, testing, release
+
+- **Q1 (Months 25-27)**: Phase 3 - Advanced Behaviors Complete
+  - Voice commands working
+  - Natural language chat
+  - Adaptive playstyle learning
+  - Player profiling and counter-strategies
+
+- **Q2 (Months 28-30)**: Community Beta Testing
+  - Public beta release (all games with ML)
   - Community feedback integration
-  - Bug fixes and stability improvements
-- **Q3 (Months 31-33)**: Documentation and tooling
+  - Performance optimization
+  - Bug fixes and stability
+
+- **Q3 (Months 31-33)**: Documentation and Model Sharing
   - Complete user documentation
   - Training guides and tutorials
   - Model sharing infrastructure
-- **Q4 (Months 34-36)**: Production release
-  - v1.0 release with all features
+  - Community model leaderboard
+
+- **Q4 (Months 34-36)**: Production Release v1.0
+  - Final release with all features
+  - All games fully supported
   - Ongoing support and maintenance
   - Research publication and presentations
 
