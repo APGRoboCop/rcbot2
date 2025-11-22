@@ -1273,3 +1273,242 @@ cell_t sm_RCBotGetBotName(IPluginContext *pContext, const cell_t *params) {
 	pContext->StringToLocal(params[2], maxlength, botName);
 	return 1;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// PHASE 7: PERCEPTION & AI CONFIGURATION
+//////////////////////////////////////////////////////////////////////////
+
+/* native bool RCBot2_SetBotFOV(int client, float fov); */
+cell_t sm_RCBotSetBotFOV(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const float fov = sp_ctof(params[2]);
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	pBot->m_fFov = fov;
+	return 1;
+}
+
+/* native float RCBot2_GetBotFOV(int client); */
+cell_t sm_RCBotGetBotFOV(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return sp_ftoc(pBot->m_fFov);
+}
+
+/* native int RCBot2_GetVisibleEnemies(int client, int[] enemies, int maxsize); */
+cell_t sm_RCBotGetVisibleEnemies(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int maxsize = params[3];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	if (!pBot->m_pVisibles) {
+		return 0;
+	}
+
+	cell_t* enemiesArray;
+	pContext->LocalToPhysAddr(params[2], &enemiesArray);
+
+	int count = 0;
+	const int botTeam = pBot->getTeam();
+
+	// Iterate through all players to find visible enemies
+	for (int i = 0; i < gpGlobals->maxClients && count < maxsize; i++) {
+		edict_t* pEdict = INDEXENT(i + 1);
+		if (!pEdict || pEdict->IsFree()) {
+			continue;
+		}
+
+		// Skip non-players, bots themselves, and teammates
+		if (i == client - 1) {
+			continue;
+		}
+
+		IPlayerInfo* pPlayerInfo = playerinfomanager->GetPlayerInfo(pEdict);
+		if (!pPlayerInfo || !pPlayerInfo->IsConnected()) {
+			continue;
+		}
+
+		// Check if on different team (enemy)
+		if (pPlayerInfo->GetTeamIndex() == botTeam) {
+			continue;
+		}
+
+		// Check if visible
+		if (pBot->m_pVisibles->isVisible(pEdict)) {
+			enemiesArray[count++] = i + 1; // Store 1-based client index
+		}
+	}
+
+	return count;
+}
+
+/* native int RCBot2_GetNearbyAllies(int client, int[] allies, int maxsize, float radius); */
+cell_t sm_RCBotGetNearbyAllies(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int maxsize = params[3];
+	const float radius = sp_ctof(params[4]);
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	edict_t* pBotEdict = pBot->getEdict();
+	if (!pBotEdict || pBotEdict->IsFree()) {
+		return 0;
+	}
+
+	cell_t* alliesArray;
+	pContext->LocalToPhysAddr(params[2], &alliesArray);
+
+	int count = 0;
+	const int botTeam = pBot->getTeam();
+	const Vector botOrigin = CBotGlobals::entityOrigin(pBotEdict);
+	const float radiusSq = radius * radius;
+
+	// Iterate through all players to find nearby allies
+	for (int i = 0; i < gpGlobals->maxClients && count < maxsize; i++) {
+		edict_t* pEdict = INDEXENT(i + 1);
+		if (!pEdict || pEdict->IsFree()) {
+			continue;
+		}
+
+		// Skip non-players and the bot itself
+		if (i == client - 1) {
+			continue;
+		}
+
+		IPlayerInfo* pPlayerInfo = playerinfomanager->GetPlayerInfo(pEdict);
+		if (!pPlayerInfo || !pPlayerInfo->IsConnected()) {
+			continue;
+		}
+
+		// Check if on same team (ally)
+		if (pPlayerInfo->GetTeamIndex() != botTeam) {
+			continue;
+		}
+
+		// Check if within radius
+		const Vector allyOrigin = CBotGlobals::entityOrigin(pEdict);
+		const float distSq = (allyOrigin - botOrigin).LengthSqr();
+
+		if (distSq <= radiusSq) {
+			alliesArray[count++] = i + 1; // Store 1-based client index
+		}
+	}
+
+	return count;
+}
+
+/* native bool RCBot2_SetCondition(int client, int condition); */
+cell_t sm_RCBotSetCondition(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int condition = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	pBot->updateCondition(condition);
+	return 1;
+}
+
+/* native bool RCBot2_RemoveCondition(int client, int condition); */
+cell_t sm_RCBotRemoveCondition(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int condition = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	pBot->removeCondition(condition);
+	return 1;
+}
+
+/* native bool RCBot2_HasCondition(int client, int condition); */
+cell_t sm_RCBotHasCondition(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int condition = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return pBot->hasSomeConditions(condition) ? 1 : 0;
+}
+
+/* native int RCBot2_GetConditions(int client, int[] conditions, int maxsize); */
+cell_t sm_RCBotGetConditions(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int maxsize = params[3];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	cell_t* conditionsArray;
+	pContext->LocalToPhysAddr(params[2], &conditionsArray);
+
+	const int allConditions = pBot->getConditions();
+	int count = 0;
+
+	// Extract individual condition bits
+	for (int i = 0; i < NUM_CONDITIONS && count < maxsize; i++) {
+		const int conditionBit = 1 << i;
+		if (allConditions & conditionBit) {
+			conditionsArray[count++] = conditionBit;
+		}
+	}
+
+	return count;
+}

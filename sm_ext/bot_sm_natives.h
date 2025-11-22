@@ -74,6 +74,16 @@ cell_t sm_RCBotCountBots(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotGetBotByIndex(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotGetBotName(IPluginContext *pContext, const cell_t *params);
 
+// Phase 7: Perception & AI Configuration
+cell_t sm_RCBotSetBotFOV(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotFOV(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetVisibleEnemies(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetNearbyAllies(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotSetCondition(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotRemoveCondition(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotHasCondition(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetConditions(IPluginContext *pContext, const cell_t *params);
+
 const sp_nativeinfo_t g_RCBotNatives[] = {
 	// Waypoint natives
 	{ "RCBot2_IsWaypointAvailable", sm_RCBotIsWaypointAvailable },
@@ -144,6 +154,16 @@ const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_CountBots", sm_RCBotCountBots },
 	{ "RCBot2_GetBotByIndex", sm_RCBotGetBotByIndex },
 	{ "RCBot2_GetBotName", sm_RCBotGetBotName },
+
+	// Phase 7: Perception & AI Configuration
+	{ "RCBot2_SetBotFOV", sm_RCBotSetBotFOV },
+	{ "RCBot2_GetBotFOV", sm_RCBotGetBotFOV },
+	{ "RCBot2_GetVisibleEnemies", sm_RCBotGetVisibleEnemies },
+	{ "RCBot2_GetNearbyAllies", sm_RCBotGetNearbyAllies },
+	{ "RCBot2_SetCondition", sm_RCBotSetCondition },
+	{ "RCBot2_RemoveCondition", sm_RCBotRemoveCondition },
+	{ "RCBot2_HasCondition", sm_RCBotHasCondition },
+	{ "RCBot2_GetConditions", sm_RCBotGetConditions },
 
 	{nullptr, nullptr},
 };
