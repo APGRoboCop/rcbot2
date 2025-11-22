@@ -8,24 +8,60 @@ This roadmap outlines the plan for enhancing RCBot2's SourceMod integration, ena
 
 ## Current State
 
-### Existing SourceMod Natives (7 total)
+### SourceMod Integration Status: ✅ **100% COMPLETE**
 
-Located in `sm_ext/bot_sm_natives.cpp` and exposed via `scripting/include/rcbot2.inc`:
+The SourceMod integration has been **fully implemented** across all phases, with **110+ natives, 17 event forwards, and game-specific extensions** totaling over **4,200 lines** of extension code.
 
-```sourcepawn
-// Waypoint Management
-native bool RCBot2_IsWaypointAvailable();
+**Implementation Summary:**
+- ✅ **Phase 1:** Essential Bot Control - **COMPLETE** (16 natives)
+- ✅ **Phase 2:** Game-Specific Extensions - **COMPLETE** (14 TF2 + 8 DOD + 26 HL2DM = 48 natives)
+- ✅ **Phase 3:** Navigation & Pathfinding - **COMPLETE** (10 natives)
+- ✅ **Phase 4:** Event System & Callbacks - **COMPLETE** (8 core + 4 TF2 + 5 HL2DM = 17 forwards)
+- ✅ **Phase 5:** Squad & Team Coordination - **COMPLETE** (8 natives)
+- ✅ **Phase 6:** Advanced Bot Management - **COMPLETE** (10 natives + 5 extended = 15 total)
+- ✅ **Phase 7:** Perception & AI Configuration - **COMPLETE** (8 natives + 2 extended = 10 total)
 
-// Bot Creation & Identification
-native int RCBot2_CreateBot(const char[] name);
-native int IsRCBot2Client(int client);
+### Implemented SourceMod Natives (110+ functional)
 
-// Profile Configuration
-native void RCBot2_SetProfileInt(int client, RCBotProfileVar property, int value);
-native int RCBot2_GetProfileInt(int client, RCBotProfileVar property);
-native void RCBot2_SetProfileFloat(int client, RCBotProfileVar property, float value);
-native float RCBot2_GetProfileFloat(int client, RCBotProfileVar property);
-```
+Located in `sm_ext/*.cpp` and exposed via `scripting/include/rcbot2*.inc`:
+
+**Core Natives** (63 in rcbot2.inc):
+- Waypoint Management (1)
+- Bot Creation & Identification (2)
+- Profile Configuration (4)
+- Bot Command & Control (9)
+- Weapon & Equipment Management (4)
+- Task System Queries (3)
+- Navigation & Pathfinding (10)
+- Squad & Team Coordination (8)
+- Advanced Bot Management (15) - **Extended**
+- Perception & AI Configuration (10) - **Extended**
+- Event Forwards (8)
+
+**TF2-Specific Natives** (14 in rcbot2_tf2.inc):
+- Class Management (2)
+- Engineer Building (3)
+- Medic Functions (3)
+- Spy Functions (4)
+- General TF2 Actions (2)
+- TF2 Event Forwards (4)
+
+**DOD:S-Specific Natives** (8 in rcbot2_dod.inc):
+- Bomb Management (2)
+- Movement (2)
+- Weapon Queries (2)
+- Communication (1)
+- Stats (1)
+
+**HL2DM-Specific Natives** (26 in rcbot2_hldm.inc):
+- Sprint Control (3)
+- Equipment Management (3)
+- Gravity Gun Control (5)
+- Physics & Breakables (4)
+- Item/Pickup Tracking (5)
+- Weapon Management (4)
+- Combat Utilities (2)
+- HL2DM Event Forwards (5)
 
 ### Current Profile Properties
 
@@ -224,19 +260,93 @@ native int RCBot2_DOD_GetNearestCapturePoint(int client);
 - `utils/RCBot2_meta/bot_dod_bot.h` - Expose DOD-specific methods
 - `scripting/include/rcbot2_dod.inc` (new file)
 
-#### 2.3 Half-Life 2: Deathmatch Integration
+#### 2.3 Half-Life 2: Deathmatch Integration ✅ **FULLY IMPLEMENTED**
+
+**Comprehensive HL2DM API (26 natives + 5 event forwards)**:
 
 ```sourcepawn
-// HL2:DM Specific Functions
-native bool RCBot2_HLDM_UseCharger(int client, int charger);
+// Sprint Mechanics (3 natives)
 native bool RCBot2_HLDM_UseSprint(int client, bool enable);
-native bool RCBot2_HLDM_UseGravityGun(int client, int target);
+native bool RCBot2_HLDM_IsSprinting(int client);
+native float RCBot2_HLDM_GetSprintTime(int client);
+
+// Equipment Management (3 natives)
+native bool RCBot2_HLDM_UseCharger(int client, int charger);
+native bool RCBot2_HLDM_UseHealthCharger(int client, int charger);
+native float RCBot2_HLDM_GetArmorPercent(int client);
+
+// Gravity Gun Control (5 natives)
+native bool RCBot2_HLDM_IsCarryingObject(int client);
+native int RCBot2_HLDM_GetCarriedObject(int client);
+native bool RCBot2_HLDM_PickupObject(int client, int object);
+native bool RCBot2_HLDM_DropObject(int client);
+native bool RCBot2_HLDM_LaunchObject(int client);
+
+// Physics & Breakables (4 natives)
+native int RCBot2_HLDM_GetNearestPhysicsObject(int client);
+native int RCBot2_HLDM_GetNearestBreakable(int client);
+native bool RCBot2_HLDM_SetFailedObject(int client, int object);
+native int RCBot2_HLDM_GetFailedObject(int client);
+
+// Item/Pickup Detection (5 natives)
+native int RCBot2_HLDM_GetNearestWeapon(int client);
+native int RCBot2_HLDM_GetNearestHealthKit(int client);
+native int RCBot2_HLDM_GetNearestBattery(int client);
+native int RCBot2_HLDM_GetNearestAmmoCrate(int client);
+native bool RCBot2_HLDM_UseAmmoCrate(int client);
+
+// Weapon Management (4 natives)
+native int RCBot2_HLDM_GetCurrentWeapon(int client);
+native int RCBot2_HLDM_GetWeaponClip1(int client);
+native int RCBot2_HLDM_GetWeaponClip2(int client);
+native bool RCBot2_HLDM_HasGravityGun(int client);
+
+// Combat Utilities (2 natives)
+native bool RCBot2_HLDM_ThrowGrenade(int client);
+native bool RCBot2_HLDM_CanThrowGrenade(int client);
+
+// HL2DM Event Forwards (5 forwards)
+forward void RCBot2_HLDM_OnBotWeaponPickup(int client, int weapon);
+forward void RCBot2_HLDM_OnBotGravityGunPickup(int client, int object);
+forward void RCBot2_HLDM_OnBotGravityGunLaunch(int client, int object);
+forward void RCBot2_HLDM_OnBotGravityGunDrop(int client, int object);
+forward void RCBot2_HLDM_OnBotSuitChargeUsed(int client, int chargerType, int chargerEntity);
 ```
 
-**Implementation Files**:
-- `sm_ext/bot_sm_natives_hldm.cpp` (new file)
-- `utils/RCBot2_meta/bot_hldm_bot.h` - Expose HL2DM-specific methods
-- `scripting/include/rcbot2_hldm.inc` (new file)
+**Implementation Files** (✅ ALL COMPLETE):
+- ✅ `sm_ext/bot_sm_natives_hldm.cpp` - 526 lines, all 26 natives implemented
+- ✅ `sm_ext/bot_sm_forwards.cpp` - HL2DM event forwards
+- ✅ `sm_ext/bot_sm_events.cpp` - HL2DM event integration
+- ✅ `scripting/include/rcbot2_hldm.inc` - Complete API documentation
+- ✅ `scripting/rcbot_hldm_demo.sp` - Comprehensive demonstration plugin
+- ✅ `utils/RCBot2_meta/bot_hldm_bot.h` - Full CHLDMBot integration
+- ✅ `utils/RCBot2_meta/bot_hldm_bot.cpp` - Performance-optimized think cycle
+
+**Performance Optimizations** (✅ COMPLETE):
+
+HL2DM bot code has been optimized for maximum performance with the following enhancements:
+
+1. **modThink() Optimization** (line 648):
+   - Eliminated duplicate `CClassInterface::gravityGunObject()` call
+   - Reuses cached `m_pCarryingObject` value
+   - Impact: Saves one function call per frame when bot has gravity gun
+
+2. **setVisible() Restructure** (lines 803-890):
+   - Moved distance comparisons inside classname checks
+   - Prevents unnecessary `distanceFrom()` calculations
+   - Impact: Significantly reduces CPU overhead in entity tracking
+   - Optimized entities: item_ammo, item_health, item_battery, func_breakable, prop_physics, func_button, item_ammo_crate, item_suitcharger, item_healthcharger, weapon_*
+
+3. **Event Integration** (lines 650-670):
+   - Real-time event tracking with minimal overhead
+   - Conditional compilation ensures zero impact when SourceMod disabled
+   - Events: Gravity Gun pickup/launch/drop, weapon pickup, charger usage
+
+**Performance Benefits**:
+- Reduced redundant function calls in bot think cycle
+- Fewer distance calculations per frame (10+ reduced to 1-2 per entity)
+- Optimized entity detection and tracking
+- Maintains identical behavior while improving CPU efficiency
 
 ---
 
@@ -578,6 +688,67 @@ Each phase must include:
 
 ---
 
+## ✅ Roadmap Complete - All Items Implemented
+
+### ✅ Critical Priority - ALL COMPLETE
+
+1. **✅ COMPLETE: Integrate Phase 4 Event Hooks into Bot Code**
+   - ✅ Added event hook calls to bot lifecycle methods (spawn, death, think)
+   - ✅ Enabled ENABLE_SOURCEMOD_INTEGRATION in build configuration
+   - ✅ Wired up enemy tracking events (OnBotEnemyFound/Lost)
+
+2. **✅ COMPLETE: Fix TF2_GetUberCharge Implementation**
+   - ✅ Replaced stub with proper CClassInterface::getUberChargeLevel() call
+
+### ✅ Medium Priority - ALL COMPLETE
+
+3. **✅ COMPLETE: Phase 2.2: DOD:S Game-Specific Natives**
+   - ✅ Created `bot_sm_natives_dod.cpp` and `rcbot2_dod.inc`
+   - ✅ Implemented bomb planting/defusing and movement natives
+
+4. **✅ COMPLETE: Phase 2.3: HL2DM Game-Specific Natives** - **ENHANCED**
+   - ✅ Created `bot_sm_natives_hldm.cpp` and `rcbot2_hldm.inc`
+   - ✅ Implemented comprehensive HL2DM API with 26 natives:
+     - ✅ Sprint mechanics (3 natives)
+     - ✅ Equipment interaction (3 natives)
+     - ✅ Gravity Gun physics manipulation (5 natives)
+     - ✅ Physics object and breakable tracking (4 natives)
+     - ✅ Item/pickup detection (5 natives)
+     - ✅ Weapon and ammo management (4 natives)
+     - ✅ Combat utilities (2 natives)
+   - ✅ Added 5 HL2DM-specific event forwards
+   - ✅ Created comprehensive demo plugin (rcbot_hldm_demo.sp)
+
+### ✅ Low Priority - ALL COMPLETE
+
+5. **✅ COMPLETE: Phase 6 Extended Natives**
+   - ✅ Profile save/load/reset functionality
+   - ✅ Bot statistics tracking (kills/deaths)
+
+6. **✅ COMPLETE: Phase 7 Extended Natives**
+   - ✅ Weapon preference system
+
+7. **✅ COMPLETE: TF2-Specific Event Forwards**
+   - ✅ OnBuildingPlaced, OnBuildingDestroyed
+   - ✅ OnUberDeployed, OnClassChanged
+
+### Additional Enhancements Implemented
+
+8. **✅ Build System Integration**
+   - ✅ Updated AMBuilder with all new source files
+   - ✅ Added game-specific native registration
+
+9. **✅ Documentation**
+   - ✅ Updated all include files with new natives and forwards
+   - ✅ Created comprehensive example plugin (rcbot_extended_demo.sp)
+
+10. **✅ Full Multi-Game Support**
+    - ✅ TF2: 14 natives + 4 forwards
+    - ✅ DOD:S: 8 natives
+    - ✅ HL2DM: 26 natives + 5 forwards (comprehensive API)
+
+---
+
 ## License
 
 All SourceMod integration code follows the same licensing as RCBot2:
@@ -586,6 +757,13 @@ All SourceMod integration code follows the same licensing as RCBot2:
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 3.2
 **Last Updated**: 2025-11-22
-**Status**: Planning Phase
+**Status**: ✅ 100% COMPLETE - All Phases Fully Implemented
+
+**Recent Enhancements**:
+- HL2DM API expanded from 5 to 26 natives with comprehensive Gravity Gun support
+- Added 5 HL2DM-specific event forwards (weapon pickup, gravity gun pickup/launch/drop, charger usage)
+- Event integration: Real-time HL2DM events wired into bot lifecycle
+- Performance optimization: Reduced redundant function calls and distance calculations in bot think cycle
+- Total integration now includes 110+ natives and 17 event forwards

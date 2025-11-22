@@ -73,6 +73,11 @@ cell_t sm_RCBotKickBot(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotCountBots(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotGetBotByIndex(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotGetBotName(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotSaveProfile(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotLoadProfile(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotResetProfile(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotKills(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotDeaths(IPluginContext *pContext, const cell_t *params);
 
 // Phase 7: Perception & AI Configuration
 cell_t sm_RCBotSetBotFOV(IPluginContext *pContext, const cell_t *params);
@@ -83,6 +88,8 @@ cell_t sm_RCBotSetCondition(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotRemoveCondition(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotHasCondition(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotGetConditions(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotSetWeaponPreference(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetWeaponPreference(IPluginContext *pContext, const cell_t *params);
 
 const sp_nativeinfo_t g_RCBotNatives[] = {
 	// Waypoint natives
@@ -164,6 +171,17 @@ const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_RemoveCondition", sm_RCBotRemoveCondition },
 	{ "RCBot2_HasCondition", sm_RCBotHasCondition },
 	{ "RCBot2_GetConditions", sm_RCBotGetConditions },
+
+	// Phase 6 Extensions
+	{ "RCBot2_SaveProfile", sm_RCBotSaveProfile },
+	{ "RCBot2_LoadProfile", sm_RCBotLoadProfile },
+	{ "RCBot2_ResetProfile", sm_RCBotResetProfile },
+	{ "RCBot2_GetBotKills", sm_RCBotGetBotKills },
+	{ "RCBot2_GetBotDeaths", sm_RCBotGetBotDeaths },
+
+	// Phase 7 Extensions
+	{ "RCBot2_SetWeaponPreference", sm_RCBotSetWeaponPreference },
+	{ "RCBot2_GetWeaponPreference", sm_RCBotGetWeaponPreference },
 
 	{nullptr, nullptr},
 };

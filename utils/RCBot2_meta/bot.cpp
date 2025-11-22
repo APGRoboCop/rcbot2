@@ -94,6 +94,9 @@
 #include "valve_minmax_off.h"
 //#endif
 
+// SourceMod event integration
+#include "../../sm_ext/bot_sm_events.h"
+
 constexpr float DEG_TO_RAD(const float x) { return x * 0.0174533f; }
 constexpr float RAD_TO_DEG(const float x) { return x * 57.29578f; }
 
@@ -1719,6 +1722,11 @@ void CBot :: findEnemy ( edict_t *pOldEnemy )
 	{
 		enemyFound(m_pEnemy);
 	}
+	else if ( pOldEnemy && !m_pEnemy )
+	{
+		// Notify SourceMod that bot lost its enemy
+		RCBotEvents::OnBotEnemyLost(m_pEdict, pOldEnemy);
+	}
 }
 
 bool CBot :: isAlive ()
@@ -2195,6 +2203,9 @@ void CBot :: forceGotoWaypoint (const int wpt) const
 // found a new enemy
 void CBot :: enemyFound (edict_t *pEnemy)
 {
+	// Notify SourceMod of new enemy found
+	RCBotEvents::OnBotEnemyFound(m_pEdict, pEnemy);
+
 	m_bLookedForEnemyLast = false;
 }
 // work move velocity

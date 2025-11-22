@@ -10,6 +10,8 @@
 #include "bot.h"
 #include "bot_fortress.h"
 #include "bot_profile.h"
+#include "bot_mods.h"
+#include "bot_getprop.h"
 
 // TF2 Class enum mapping (from rcbot2_tf2.inc to bot_fortress.h)
 enum : std::uint8_t {
@@ -269,17 +271,23 @@ cell_t sm_RCBotTF2GetUberCharge(IPluginContext *pContext, const cell_t *params) 
 		return sp_ftoc(-1.0f);
 	}
 
-	// Get uber charge from entity property
-	// This requires accessing the TF2 player's m_flCharge property
+	// Get the bot's edict
 	edict_t* pEdict = bot->getEdict();
 	if (!pEdict || pEdict->IsFree()) {
 		return sp_ftoc(-1.0f);
 	}
 
-	// Try to get ubercharge via CClassInterface or entity properties
-	// For now, return 0.0 as placeholder - would need proper entity property access
-	// TODO: Implement proper ubercharge reading via CClassInterface::getUberChargeLevel()
-	return sp_ftoc(0.0f);
+	// Get the medigun weapon entity
+	edict_t* pMedigun = CTeamFortress2Mod::getMediGun(pEdict);
+	if (!pMedigun || pMedigun->IsFree()) {
+		return sp_ftoc(0.0f);  // Return 0% if no medigun equipped
+	}
+
+	// Get the ubercharge level (0-100)
+	const int chargeLevel = CClassInterface::getUberChargeLevel(pMedigun);
+
+	// Convert to float percentage (0.0-100.0)
+	return sp_ftoc(static_cast<float>(chargeLevel));
 }
 
 //=============================================================================

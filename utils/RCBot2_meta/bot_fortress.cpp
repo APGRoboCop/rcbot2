@@ -80,6 +80,9 @@
 #include "valve_minmax_off.h"
 //#endif
 
+// SourceMod event integration
+#include "../../sm_ext/bot_sm_events.h"
+
 extern IVDebugOverlay *debugoverlay;
 
 enum : std::uint8_t
@@ -877,11 +880,17 @@ void CBotFortress :: shot ( edict_t *pEnemy )
 void CBotFortress :: killed ( edict_t *pVictim, char *weapon )
 {
 	CBot::killed(pVictim,weapon);
+
+	// Notify SourceMod of bot kill event
+	RCBotEvents::OnBotKill(m_pEdict, pVictim);
 }
 
 void CBotFortress :: died ( edict_t *pKiller, const char *pszWeapon )
 {
 	CBot::died(pKiller,pszWeapon);
+
+	// Notify SourceMod of bot death event
+	RCBotEvents::OnBotDeath(m_pEdict, pKiller);
 
 	if ( CBotGlobals::isPlayer(pKiller) && (CClassInterface::getTF2Class(pKiller) == TF_CLASS_SPY) )
 		foundSpy(pKiller,static_cast<TF_Class>(0));
@@ -1004,6 +1013,9 @@ void CBotFortress :: spawnInit ()
 {
 	CBot::spawnInit();
 
+	// Notify SourceMod of bot spawn event
+	RCBotEvents::OnBotSpawn(m_pEdict);
+
 	m_fLastSentryEnemyTime = 0.0f;
 
 	m_fHealFactor = 0.0f;
@@ -1020,7 +1032,7 @@ void CBotFortress :: spawnInit ()
 
 	std::memset(m_fCallMedicTime,0,sizeof(float)*RCBOT_MAXPLAYERS);
 	m_fWaitTurnSentry = 0.0f;
-	
+
 	m_pLastSeeMedic.reset();
 
 	std::memset(m_fSpyAttackedList, 0, sizeof(float) * RCBOT_MAXPLAYERS);
@@ -2947,6 +2959,9 @@ bool m_classWasForced = false;
 
 void CBotTF2::modThink()
 {
+	// Notify SourceMod of bot think event
+	RCBotEvents::OnBotThink(m_pEdict);
+
 	static bool bNeedHealth;
 	static bool bNeedAmmo;
 

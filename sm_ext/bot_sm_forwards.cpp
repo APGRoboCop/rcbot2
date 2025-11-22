@@ -20,6 +20,19 @@ namespace RCBotForwards {
 	IForward* g_pOnBotDamaged = nullptr;
 	IForward* g_pOnBotTaskChange = nullptr;
 
+	// TF2-specific forward handles
+	IForward* g_pOnBotBuildingPlaced = nullptr;
+	IForward* g_pOnBotBuildingDestroyed = nullptr;
+	IForward* g_pOnBotUberDeployed = nullptr;
+	IForward* g_pOnBotClassChanged = nullptr;
+
+	// HL2DM-specific forward handles
+	IForward* g_pOnBotWeaponPickup = nullptr;
+	IForward* g_pOnBotGravityGunPickup = nullptr;
+	IForward* g_pOnBotGravityGunLaunch = nullptr;
+	IForward* g_pOnBotGravityGunDrop = nullptr;
+	IForward* g_pOnBotSuitChargeUsed = nullptr;
+
 	void CreateForwards() {
 		// Create core bot event forwards
 		// forward void RCBot2_OnBotSpawn(int client);
@@ -45,6 +58,35 @@ namespace RCBotForwards {
 
 		// forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
 		g_pOnBotTaskChange = forwards->CreateForward("RCBot2_OnBotTaskChange", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// Create TF2-specific event forwards
+		// forward void RCBot2_TF2_OnBotBuildingPlaced(int client, int buildingType, int entity);
+		g_pOnBotBuildingPlaced = forwards->CreateForward("RCBot2_TF2_OnBotBuildingPlaced", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotBuildingDestroyed(int client, int buildingType, int attacker);
+		g_pOnBotBuildingDestroyed = forwards->CreateForward("RCBot2_TF2_OnBotBuildingDestroyed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotUberDeployed(int client, int target);
+		g_pOnBotUberDeployed = forwards->CreateForward("RCBot2_TF2_OnBotUberDeployed", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotClassChanged(int client, int oldClass, int newClass);
+		g_pOnBotClassChanged = forwards->CreateForward("RCBot2_TF2_OnBotClassChanged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// Create HL2DM-specific event forwards
+		// forward void RCBot2_HLDM_OnBotWeaponPickup(int client, int weapon);
+		g_pOnBotWeaponPickup = forwards->CreateForward("RCBot2_HLDM_OnBotWeaponPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_HLDM_OnBotGravityGunPickup(int client, int object);
+		g_pOnBotGravityGunPickup = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_HLDM_OnBotGravityGunLaunch(int client, int object);
+		g_pOnBotGravityGunLaunch = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunLaunch", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_HLDM_OnBotGravityGunDrop(int client, int object);
+		g_pOnBotGravityGunDrop = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunDrop", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_HLDM_OnBotSuitChargeUsed(int client, int chargerType, int chargerEntity);
+		g_pOnBotSuitChargeUsed = forwards->CreateForward("RCBot2_HLDM_OnBotSuitChargeUsed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 	}
 
 	void DestroyForwards() {
@@ -79,6 +121,46 @@ namespace RCBotForwards {
 		if (g_pOnBotTaskChange) {
 			forwards->ReleaseForward(g_pOnBotTaskChange);
 			g_pOnBotTaskChange = nullptr;
+		}
+
+		// Destroy TF2-specific forwards
+		if (g_pOnBotBuildingPlaced) {
+			forwards->ReleaseForward(g_pOnBotBuildingPlaced);
+			g_pOnBotBuildingPlaced = nullptr;
+		}
+		if (g_pOnBotBuildingDestroyed) {
+			forwards->ReleaseForward(g_pOnBotBuildingDestroyed);
+			g_pOnBotBuildingDestroyed = nullptr;
+		}
+		if (g_pOnBotUberDeployed) {
+			forwards->ReleaseForward(g_pOnBotUberDeployed);
+			g_pOnBotUberDeployed = nullptr;
+		}
+		if (g_pOnBotClassChanged) {
+			forwards->ReleaseForward(g_pOnBotClassChanged);
+			g_pOnBotClassChanged = nullptr;
+		}
+
+		// Destroy HL2DM-specific forwards
+		if (g_pOnBotWeaponPickup) {
+			forwards->ReleaseForward(g_pOnBotWeaponPickup);
+			g_pOnBotWeaponPickup = nullptr;
+		}
+		if (g_pOnBotGravityGunPickup) {
+			forwards->ReleaseForward(g_pOnBotGravityGunPickup);
+			g_pOnBotGravityGunPickup = nullptr;
+		}
+		if (g_pOnBotGravityGunLaunch) {
+			forwards->ReleaseForward(g_pOnBotGravityGunLaunch);
+			g_pOnBotGravityGunLaunch = nullptr;
+		}
+		if (g_pOnBotGravityGunDrop) {
+			forwards->ReleaseForward(g_pOnBotGravityGunDrop);
+			g_pOnBotGravityGunDrop = nullptr;
+		}
+		if (g_pOnBotSuitChargeUsed) {
+			forwards->ReleaseForward(g_pOnBotSuitChargeUsed);
+			g_pOnBotSuitChargeUsed = nullptr;
 		}
 	}
 
@@ -143,6 +225,91 @@ namespace RCBotForwards {
 			g_pOnBotTaskChange->PushCell(oldTask);
 			g_pOnBotTaskChange->PushCell(newTask);
 			g_pOnBotTaskChange->Execute(nullptr);
+		}
+	}
+}
+
+	//=============================================================================
+	// TF2-Specific Forward Firing Functions
+	//=============================================================================
+
+	void OnBotBuildingPlaced(const int client, const int buildingType, const int entity) {
+		if (g_pOnBotBuildingPlaced) {
+			g_pOnBotBuildingPlaced->PushCell(client);
+			g_pOnBotBuildingPlaced->PushCell(buildingType);
+			g_pOnBotBuildingPlaced->PushCell(entity);
+			g_pOnBotBuildingPlaced->Execute(nullptr);
+		}
+	}
+
+	void OnBotBuildingDestroyed(const int client, const int buildingType, const int attacker) {
+		if (g_pOnBotBuildingDestroyed) {
+			g_pOnBotBuildingDestroyed->PushCell(client);
+			g_pOnBotBuildingDestroyed->PushCell(buildingType);
+			g_pOnBotBuildingDestroyed->PushCell(attacker);
+			g_pOnBotBuildingDestroyed->Execute(nullptr);
+		}
+	}
+
+	void OnBotUberDeployed(const int client, const int target) {
+		if (g_pOnBotUberDeployed) {
+			g_pOnBotUberDeployed->PushCell(client);
+			g_pOnBotUberDeployed->PushCell(target);
+			g_pOnBotUberDeployed->Execute(nullptr);
+		}
+	}
+
+	void OnBotClassChanged(const int client, const int oldClass, const int newClass) {
+		if (g_pOnBotClassChanged) {
+			g_pOnBotClassChanged->PushCell(client);
+			g_pOnBotClassChanged->PushCell(oldClass);
+			g_pOnBotClassChanged->PushCell(newClass);
+			g_pOnBotClassChanged->Execute(nullptr);
+		}
+	}
+
+	//=============================================================================
+	// HL2DM-Specific Forward Firing Functions
+	//=============================================================================
+
+	void OnBotWeaponPickup(const int client, const int weapon) {
+		if (g_pOnBotWeaponPickup) {
+			g_pOnBotWeaponPickup->PushCell(client);
+			g_pOnBotWeaponPickup->PushCell(weapon);
+			g_pOnBotWeaponPickup->Execute(nullptr);
+		}
+	}
+
+	void OnBotGravityGunPickup(const int client, const int object) {
+		if (g_pOnBotGravityGunPickup) {
+			g_pOnBotGravityGunPickup->PushCell(client);
+			g_pOnBotGravityGunPickup->PushCell(object);
+			g_pOnBotGravityGunPickup->Execute(nullptr);
+		}
+	}
+
+	void OnBotGravityGunLaunch(const int client, const int object) {
+		if (g_pOnBotGravityGunLaunch) {
+			g_pOnBotGravityGunLaunch->PushCell(client);
+			g_pOnBotGravityGunLaunch->PushCell(object);
+			g_pOnBotGravityGunLaunch->Execute(nullptr);
+		}
+	}
+
+	void OnBotGravityGunDrop(const int client, const int object) {
+		if (g_pOnBotGravityGunDrop) {
+			g_pOnBotGravityGunDrop->PushCell(client);
+			g_pOnBotGravityGunDrop->PushCell(object);
+			g_pOnBotGravityGunDrop->Execute(nullptr);
+		}
+	}
+
+	void OnBotSuitChargeUsed(const int client, const int chargerType, const int chargerEntity) {
+		if (g_pOnBotSuitChargeUsed) {
+			g_pOnBotSuitChargeUsed->PushCell(client);
+			g_pOnBotSuitChargeUsed->PushCell(chargerType);
+			g_pOnBotSuitChargeUsed->PushCell(chargerEntity);
+			g_pOnBotSuitChargeUsed->Execute(nullptr);
 		}
 	}
 }

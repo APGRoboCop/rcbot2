@@ -691,6 +691,150 @@ native bool RCBot2_HasCondition(int client, int condition);
  */
 native int RCBot2_GetConditions(int client, int[] conditions, int maxsize);
 
+//=============================================================================
+// Phase 6: Extended Bot Management
+//=============================================================================
+
+/**
+ * Saves a bot's profile to a file.
+ *
+ * @param client        Bot client index
+ * @param filename      Profile filename to save
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_SaveProfile(int client, const char[] filename);
+
+/**
+ * Loads a bot's profile from a file.
+ *
+ * @param client        Bot client index
+ * @param filename      Profile filename to load
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_LoadProfile(int client, const char[] filename);
+
+/**
+ * Resets a bot's profile to default values.
+ *
+ * @param client        Bot client index
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_ResetProfile(int client);
+
+/**
+ * Gets the bot's kill count.
+ *
+ * @param client        Bot client index
+ * @return              Number of kills, or 0 on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetBotKills(int client);
+
+/**
+ * Gets the bot's death count.
+ *
+ * @param client        Bot client index
+ * @return              Number of deaths, or 0 on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetBotDeaths(int client);
+
+//=============================================================================
+// Phase 7: Extended Perception & AI Configuration
+//=============================================================================
+
+/**
+ * Sets a weapon preference for a bot.
+ *
+ * @param client        Bot client index
+ * @param weapon        Weapon name
+ * @param preference    Preference value (0.0 - 1.0)
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_SetWeaponPreference(int client, const char[] weapon, float preference);
+
+/**
+ * Gets a weapon preference for a bot.
+ *
+ * @param client        Bot client index
+ * @param weapon        Weapon name
+ * @return              Preference value (0.0 - 1.0), or 1.0 on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native float RCBot2_GetWeaponPreference(int client, const char[] weapon);
+
+//=============================================================================
+// Event Forwards
+//=============================================================================
+
+/**
+ * Called when a bot spawns.
+ *
+ * @param client        Bot client index
+ */
+forward void RCBot2_OnBotSpawn(int client);
+
+/**
+ * Called when a bot dies.
+ *
+ * @param client        Bot client index
+ * @param attacker      Attacker client index
+ */
+forward void RCBot2_OnBotDeath(int client, int attacker);
+
+/**
+ * Called when a bot kills someone.
+ *
+ * @param client        Bot client index
+ * @param victim        Victim client index
+ */
+forward void RCBot2_OnBotKill(int client, int victim);
+
+/**
+ * Called during bot think cycle.
+ *
+ * @param client        Bot client index
+ */
+forward void RCBot2_OnBotThink(int client);
+
+/**
+ * Called when a bot acquires a new enemy.
+ *
+ * @param client        Bot client index
+ * @param enemy         Enemy client index
+ */
+forward void RCBot2_OnBotEnemyFound(int client, int enemy);
+
+/**
+ * Called when a bot loses its enemy.
+ *
+ * @param client        Bot client index
+ * @param enemy         Enemy client index
+ */
+forward void RCBot2_OnBotEnemyLost(int client, int enemy);
+
+/**
+ * Called when a bot takes damage.
+ *
+ * @param client        Bot client index
+ * @param attacker      Attacker client index
+ * @param damage        Damage amount
+ */
+forward void RCBot2_OnBotDamaged(int client, int attacker, int damage);
+
+/**
+ * Called when a bot's task/schedule changes.
+ *
+ * @param client        Bot client index
+ * @param oldTask       Old schedule ID
+ * @param newTask       New schedule ID
+ */
+forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",

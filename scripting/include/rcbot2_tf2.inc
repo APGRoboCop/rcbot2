@@ -196,3 +196,42 @@ native bool RCBot2_TF2_CallMedic(int client);
  * @error               Invalid client index or client is not an RCBot
  */
 native bool RCBot2_TF2_Taunt(int client, bool force = false);
+
+//=============================================================================
+// TF2 Event Forwards
+//=============================================================================
+
+/**
+ * Called when a TF2 bot places a building.
+ *
+ * @param client        Bot client index
+ * @param buildingType  Type of building (see TFObjectType enum)
+ * @param entity        Building entity index
+ */
+forward void RCBot2_TF2_OnBotBuildingPlaced(int client, int buildingType, int entity);
+
+/**
+ * Called when a TF2 bot's building is destroyed.
+ *
+ * @param client        Bot client index
+ * @param buildingType  Type of building (see TFObjectType enum)
+ * @param attacker      Attacker client index
+ */
+forward void RCBot2_TF2_OnBotBuildingDestroyed(int client, int buildingType, int attacker);
+
+/**
+ * Called when a TF2 medic bot deploys ubercharge.
+ *
+ * @param client        Medic bot client index
+ * @param target        Heal target client index
+ */
+forward void RCBot2_TF2_OnBotUberDeployed(int client, int target);
+
+/**
+ * Called when a TF2 bot changes class.
+ *
+ * @param client        Bot client index
+ * @param oldClass      Old TF2 class (see TFClass enum)
+ * @param newClass      New TF2 class (see TFClass enum)
+ */
+forward void RCBot2_TF2_OnBotClassChanged(int client, int oldClass, int newClass);
