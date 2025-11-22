@@ -32,6 +32,7 @@
 #define __BOT_BUTTONS_H__
 
 #include <mem.h>
+#include <memory>
 #include <vector>
 
 class CBotButton
@@ -88,18 +89,14 @@ public:
 
 	void freeMemory ()
 	{
-		for (CBotButton* const& m_theButton : m_theButtons)
-		{			
-			delete m_theButton;
-		}
-		
+		// Smart pointers automatically delete their contents
 		m_theButtons.clear();
 	}
 
 	void letGo (int iButtonId) const;
 	void holdButton (int iButtonId, float fFrom = 0.0f, float fFor = 1.0f, float fLetGoTime = 0.0f) const;
 
-	inline void add ( CBotButton *theButton );
+	inline void add ( std::unique_ptr<CBotButton> theButton );
 
 	bool holdingButton ( int iButtonId ) const;
 	bool canPressButton ( int iButtonId ) const;
@@ -117,7 +114,7 @@ public:
 	void duck (float fFor = 1.0f, float fFrom = 0) const;
 
 private:
-	std::vector<CBotButton*> m_theButtons;
+	std::vector<std::unique_ptr<CBotButton>> m_theButtons;
 	bool m_bLetGoAll;
 };
 #endif

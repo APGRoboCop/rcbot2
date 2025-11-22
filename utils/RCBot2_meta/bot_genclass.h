@@ -60,17 +60,17 @@ class dataNode
 	public:
 		dataNode()// constructor
 		{
-			m_Next = NULL;
+			m_Next = nullptr;
 		}
 
 		void _delete ()
 		{
-			m_Next = NULL;
+			m_Next = nullptr;
 		}
 		/*
 		~dataNode()
 		{			
-			m_Next = NULL;
+			m_Next = nullptr;
 		}
 		*/
 
@@ -85,7 +85,7 @@ class dataStack
 
 		void Init ()
 		{
-			m_Head = NULL;
+			m_Head = nullptr;
 		}
 
 		dataStack()// constructor -- Must be public.
@@ -114,7 +114,7 @@ class dataStack
 				if ( tempNode->m_NodeData == pObj )
 				{
 					// dont want program to free tempNode, already used in stack.
-					tempNode = NULL;
+					tempNode = nullptr;
 					return true;
 				}
 
@@ -151,8 +151,8 @@ class dataStack
 					delete deleteNode;
 
 					// dont want to free tempnode either!
-					tempNode = NULL;					
-					deleteNode = NULL;
+					tempNode = nullptr;					
+					deleteNode = nullptr;
 
 					return true;
 				}
@@ -189,8 +189,8 @@ class dataStack
 
 					delete deleteNode;
 
-					tempNode = NULL;
-					deleteNode = NULL;
+					tempNode = nullptr;
+					deleteNode = nullptr;
 
 					return true;
 				}
@@ -212,10 +212,10 @@ class dataStack
 				tempNode->_delete();
 				delete tempNode;
 
-				tempNode = NULL;
+				tempNode = nullptr;
 			}
 
-			m_Head = NULL;
+			m_Head = nullptr;
 		}
 
 		bool IsEmpty ()
@@ -262,7 +262,7 @@ class dataStack
 				// problem
 				//CBotGlobals::botMessage(NULL,0,"Bad pointer in stack, (Resetting tasks) Memory may have been lost");
 
-				m_Head = NULL;
+				m_Head = nullptr;
 				// return default
 				return T();
 			}
@@ -286,7 +286,7 @@ class dataStack
 				// problem
 				//BugMessage(NULL,"Bad pointer in stack, (Resetting tasks) Memory may have been lost");
 
-				m_Head = NULL;
+				m_Head = nullptr;
 				// return default
 				return nullptr;
 			}
@@ -770,8 +770,8 @@ class dataQueue
 
 		void Init ()
 		{
-			m_Head = NULL;
-			m_Tail = NULL;
+			m_Head = nullptr;
+			m_Tail = nullptr;
 		}
 
 		void Destroy ()
@@ -787,11 +787,11 @@ class dataQueue
 				tempNode->_delete();
 				delete tempNode;
 
-				tempNode = NULL;
+				tempNode = nullptr;
 			}
 
-			m_Head = NULL;
-			m_Tail = NULL;
+			m_Head = nullptr;
+			m_Tail = nullptr;
 		}
 
 		bool IsEmpty ()
@@ -862,8 +862,8 @@ class dataQueue
 				// problem
 				//BugMessage(NULL,"Bad pointer in queue, (Resetting queue) Memory may have been lost");
 
-				m_Head = NULL;
-				m_Tail = NULL;
+				m_Head = nullptr;
+				m_Tail = nullptr;
 				// return default
 				return T();
 			}
@@ -887,8 +887,8 @@ class dataQueue
 				// problem
 				//BugMessage(NULL,"Bad pointer in queue, (Resetting tasks) Memory may have been lost");
 
-				m_Head = NULL;
-				m_Tail = NULL;
+				m_Head = nullptr;
+				m_Tail = nullptr;
 				// return default
 				return nullptr;
 			}
@@ -901,7 +901,7 @@ class dataQueue
 			if ( m_Head == nullptr)
 			{
 				// just set tail to null incase
-				m_Tail = NULL;
+				m_Tail = nullptr;
 				// already empty
 				return;
 			}
@@ -912,8 +912,8 @@ class dataQueue
 				
 				if ( m_Tail == m_Head )
 				{
-					m_Tail = NULL;
-					m_Head = NULL;
+					m_Tail = nullptr;
+					m_Head = nullptr;
 				}
 				else 
 					m_Head = m_Head->m_Next;
@@ -925,8 +925,8 @@ class dataQueue
 			
 			catch ( ... )
 			{
-				m_Head = NULL;
-				m_Tail = NULL;
+				m_Head = nullptr;
+				m_Tail = nullptr;
 
 //				BugMessage(NULL,"Bad pointer in queue, (Resetting queue) Memory may have been lost");
 			}
@@ -941,7 +941,7 @@ class dataQueue
 				if ( tempNode->m_NodeData == pObj )
 				{
 					// dont want program to free tempNode, already used in stack.
-					tempNode = NULL;
+					tempNode = nullptr;
 
 					return true;
 				}
@@ -963,8 +963,8 @@ class dataQueue
 			{
 				if ( m_Head == m_Tail )
 				{
-					m_Tail = NULL;
-					m_Head = NULL;
+					m_Tail = nullptr;
+					m_Head = nullptr;
 				}
 				else
 				{
@@ -974,7 +974,7 @@ class dataQueue
 				tempNode->_delete();
 				delete tempNode;
 
-				tempNode = NULL;
+				tempNode = nullptr;
 
 				return true;
 			}
@@ -988,15 +988,15 @@ class dataQueue
 					if ( deleteNode == m_Tail )
 					{
 						m_Tail = tempNode;
-						tempNode->m_Next = NULL;
+						tempNode->m_Next = nullptr;
 					}
 					else
 						tempNode->m_Next = deleteNode->m_Next;
 
 					delete deleteNode;
 					
-					tempNode = NULL;
-					deleteNode = NULL;
+					tempNode = nullptr;
+					deleteNode = nullptr;
 
 					return true;
 				}
@@ -1022,12 +1022,12 @@ class dataQueue
 				}
 				else
 				{
-					m_Head = NULL;
-					m_Tail = NULL;
+					m_Head = nullptr;
+					m_Tail = nullptr;
 				}
 
 				delete tempNode;
-				tempNode = NULL;
+				tempNode = nullptr;
 
 				return true;
 			}
@@ -1041,7 +1041,7 @@ class dataQueue
 					if ( deleteNode == m_Tail )
 					{
 						m_Tail = tempNode;
-						tempNode->m_Next = NULL;
+						tempNode->m_Next = nullptr;
 					}
 					else
 						tempNode->m_Next = deleteNode->m_Next;
@@ -1049,8 +1049,8 @@ class dataQueue
 					deleteNode->_delete();
 					delete deleteNode;
 
-					tempNode = NULL;
-					deleteNode = NULL;
+					tempNode = nullptr;
+					deleteNode = nullptr;
 
 					return true;
 				}

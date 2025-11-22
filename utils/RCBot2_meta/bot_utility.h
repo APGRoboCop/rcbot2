@@ -222,9 +222,9 @@ private:
 };
 
 #define ADD_UTILITY_WEAPON_DATA_VECTOR(utilname,condition,utility,weapon,data,vector) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,weapon,data,vector)); } }
-#define ADD_UTILITY_DATA_VECTOR(utilname,condition,utility,data,vector) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,NULL,data,vector)); } }
+#define ADD_UTILITY_DATA_VECTOR(utilname,condition,utility,data,vector) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,nullptr,data,vector)); } }
 #define ADD_UTILITY_WEAPON_DATA(utilname,condition,utility,weapon,data) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,weapon,data)); } }
-#define ADD_UTILITY_DATA(utilname,condition,utility,data) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,NULL,data)); } }
+#define ADD_UTILITY_DATA(utilname,condition,utility,data) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,nullptr,data)); } }
 #define ADD_UTILITY_WEAPON(utilname,condition,utility,weapon) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility,weapon)); } }
 #define ADD_UTILITY(utilname,condition,utility) if ( m_fUtilTimes[utilname] < engine->Time()) { if ( condition ) { utils.addUtility(CBotUtility(this,utilname,true,utility)); } }
 

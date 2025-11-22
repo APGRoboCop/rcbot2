@@ -147,7 +147,7 @@ CBotTFEngiBuild :: CBotTFEngiBuild (const CBot *pBot, const eEngiBuild iObject, 
 	CFindPathTask *pathtask = new CFindPathTask(CWaypoints::getWaypointIndex(pWaypoint));
 	addTask(pathtask); // first
 
-	pathtask->setInterruptFunction(new CBotTF2EngineerInterrupt(pBot));
+	pathtask->setInterruptFunction(std::make_unique<CBotTF2EngineerInterrupt>(pBot));
 
 	addTask(new CBotTFEngiBuildTask(iObject,pWaypoint)); // second
 }
@@ -238,11 +238,11 @@ CBotTFEngiUpgrade :: CBotTFEngiUpgrade (const CBot *pBot, edict_t *pBuilding)
 
 	if ( !CTeamFortress2Mod::isSentryGun(pBuilding) )
 	{
-		pathtask->setInterruptFunction(new CBotTF2EngineerInterrupt(pBot));
+		pathtask->setInterruptFunction(std::make_unique<CBotTF2EngineerInterrupt>(pBot));
 
 		CBotTF2UpgradeBuilding *upgbuilding = new CBotTF2UpgradeBuilding(pBuilding);
 		addTask(upgbuilding);
-		upgbuilding->setInterruptFunction(new CBotTF2EngineerInterrupt(pBot));
+		upgbuilding->setInterruptFunction(std::make_unique<CBotTF2EngineerInterrupt>(pBot));
 
 	}
 	else
@@ -397,10 +397,10 @@ CBotUseDispSched :: CBotUseDispSched (const CBot *pBot, edict_t *pDisp)//, bool 
 	CFindPathTask *pathtask = new CFindPathTask(pDisp);
 	CBotTF2WaitHealthTask *gethealth = new CBotTF2WaitHealthTask(CBotGlobals::entityOrigin(pDisp));
 	addTask(pathtask);
-	pathtask->setInterruptFunction(new CBotTF2EngineerInterrupt(pBot));
+	pathtask->setInterruptFunction(std::make_unique<CBotTF2EngineerInterrupt>(pBot));
 
 	addTask(gethealth); // second
-	gethealth->setInterruptFunction(new CBotTF2EngineerInterrupt(pBot));
+	gethealth->setInterruptFunction(std::make_unique<CBotTF2EngineerInterrupt>(pBot));
 
 	//if ( bNest )
 	//	addTask(new CBotNest()); // third

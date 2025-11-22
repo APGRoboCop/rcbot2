@@ -517,9 +517,9 @@ void CBotSynergy::getTasks(unsigned iIgnore)
 	bCheckCurrent = true; // important for checking current schedule
 
 	// Utilities
-	ADD_UTILITY(BOT_UTIL_PICKUP_WEAPON, m_pNearbyWeapon.get() != NULL, 0.75f) // New weapons are interesting, high priority
-	ADD_UTILITY(BOT_UTIL_GETHEALTHKIT, m_pNearbyHealthKit.get() != NULL, 1.0f - getHealthPercent())	// Pick up health kits
-	ADD_UTILITY(BOT_UTIL_HL2DM_FIND_ARMOR, m_pNearbyBattery.get() != NULL, 1.0f - getArmorPercent()) // Pick up armor batteries
+	ADD_UTILITY(BOT_UTIL_PICKUP_WEAPON, m_pNearbyWeapon.get() != nullptr, 0.75f) // New weapons are interesting, high priority
+	ADD_UTILITY(BOT_UTIL_GETHEALTHKIT, m_pNearbyHealthKit.get() != nullptr, 1.0f - getHealthPercent())	// Pick up health kits
+	ADD_UTILITY(BOT_UTIL_HL2DM_FIND_ARMOR, m_pNearbyBattery.get() != nullptr, 1.0f - getArmorPercent()) // Pick up armor batteries
 	ADD_UTILITY(BOT_UTIL_FIND_NEAREST_HEALTH, hasSomeConditions(CONDITION_NEED_HEALTH), 1.0f - getHealthPercent()) // Search for health kits
 	ADD_UTILITY(BOT_UTIL_FIND_NEAREST_AMMO, hasSomeConditions(CONDITION_NEED_AMMO), 0.15f) // Search for ammo
 	ADD_UTILITY(BOT_UTIL_ATTACK_POINT, true, 0.01f) // Go to waypoints with 'goal' flag
@@ -636,7 +636,7 @@ bool CBotSynergy::executeAction(const eBotAction iAction)
 				{
 					const int iRoute = CWaypoints::getWaypointIndex(pRoute); // Route waypoint
 					pFindPath = new CFindPathTask(iRoute, LOOK_WAYPOINT);
-					pFindPath->setInterruptFunction(new CBotSYNRoamInterrupt());
+					pFindPath->setInterruptFunction(std::make_unique<CBotSYNRoamInterrupt>());
 					pSched->addTask(pFindPath);
 					pSched->addTask(new CMoveToTask(pRoute->getOrigin()));
 					m_pSchedules->add(pSched);
@@ -646,7 +646,7 @@ bool CBotSynergy::executeAction(const eBotAction iAction)
 
 			const int iWaypoint = CWaypoints::getWaypointIndex(pWaypoint);
 			pFindPath = new CFindPathTask(iWaypoint, LOOK_WAYPOINT);
-			pFindPath->setInterruptFunction(new CBotSYNRoamInterrupt());
+			pFindPath->setInterruptFunction(std::make_unique<CBotSYNRoamInterrupt>());
 			pSched->addTask(pFindPath);
 			pSched->addTask(new CMoveToTask(pWaypoint->getOrigin()));
 			m_pSchedules->add(pSched);
@@ -679,7 +679,7 @@ bool CBotSynergy::executeAction(const eBotAction iAction)
 				{
 					const int iRoute = CWaypoints::getWaypointIndex(pRoute); // Route waypoint
 					pFindPath = new CFindPathTask(iRoute, LOOK_WAYPOINT);
-					pFindPath->setInterruptFunction(new CBotSYNRoamInterrupt());
+					pFindPath->setInterruptFunction(std::make_unique<CBotSYNRoamInterrupt>());
 					pSched->addTask(pFindPath);
 					pSched->addTask(new CMoveToTask(pRoute->getOrigin()));
 					m_pSchedules->add(pSched);
@@ -689,7 +689,7 @@ bool CBotSynergy::executeAction(const eBotAction iAction)
 
 			const int iWaypoint = CWaypoints::getWaypointIndex(pWaypoint);
 			pFindPath = new CFindPathTask(iWaypoint, LOOK_WAYPOINT);
-			pFindPath->setInterruptFunction(new CBotSYNRoamInterrupt());
+			pFindPath->setInterruptFunction(std::make_unique<CBotSYNRoamInterrupt>());
 			pSched->addTask(pFindPath);
 			pSched->addTask(new CMoveToTask(pWaypoint->getOrigin()));
 			m_pSchedules->add(pSched);
@@ -734,21 +734,21 @@ void CBotSynergy::touchedWpt(CWaypoint* pWaypoint, const int iNextWaypoint, cons
 					}
 				}
 				/* 				pDoor = CClassInterface::FindEntityByClassnameNearest(getOrigin(), "prop_door_rotating", rcbot_syn_use_search_range.GetFloat());
-								if(pDoor != NULL && !CSynergyMod::IsEntityLocked(pDoor))
+								if(pDoor != nullptr && !CSynergyMod::IsEntityLocked(pDoor))
 								{
 									m_pSchedules->addFront(new CSynOpenDoorSched(pDoor));
 								}
 								else
 								{
 									pDoor = CClassInterface::FindEntityByClassnameNearest(getOrigin(), "func_door", rcbot_syn_use_search_range.GetFloat());
-									if(pDoor != NULL && !CSynergyMod::IsEntityLocked(pDoor))
+									if(pDoor != nullptr && !CSynergyMod::IsEntityLocked(pDoor))
 									{
 										m_pSchedules->addFront(new CSynOpenDoorSched(pDoor));
 									}
 									else
 									{
 										pDoor = CClassInterface::FindEntityByClassnameNearest(getOrigin(), "func_door_rotating", rcbot_syn_use_search_range.GetFloat());
-										if(pDoor != NULL && !CSynergyMod::IsEntityLocked(pDoor))
+										if(pDoor != nullptr && !CSynergyMod::IsEntityLocked(pDoor))
 										{
 											m_pSchedules->addFront(new CSynOpenDoorSched(pDoor));
 										}

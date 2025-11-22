@@ -183,8 +183,8 @@ bool CDODBot::canGotoWaypoint(const Vector& vPrevWaypoint, CWaypoint* pWaypoint,
 
 #define UPDATE_VISIBLE_OBJECT(visobj,pent) if ( !(visobj).get() || (distanceFrom(pent)<distanceFrom(visobj)) ) { (visobj) = pent; }
 #define UPDATE_VISIBLE_OBJECT_CONDITION(visobj,pent,condition)  if ( !(visobj).get() || (distanceFrom(pent)<distanceFrom(visobj)) ) { if ( condition ) { (visobj) = pent; }  }
-#define NULLIFY_VISIBLE(visobj,pent,distance)  if ( (visobj) == (pent) ) { if ( !bValid || (distanceFrom(visobj)>(distance)) ) { (visobj) = NULL; } }
-#define NULLIFY_VISIBLE_CONDITION(visobj,pent,distance,condition) if ( (visobj) == (pent) ) { if ( !bValid || (distanceFrom(visobj)>(distance)) || (condition) ) { (visobj) = NULL; } }
+#define NULLIFY_VISIBLE(visobj,pent,distance)  if ( (visobj) == (pent) ) { if ( !bValid || (distanceFrom(visobj)>(distance)) ) { (visobj) = nullptr; } }
+#define NULLIFY_VISIBLE_CONDITION(visobj,pent,distance,condition) if ( (visobj) == (pent) ) { if ( !bValid || (distanceFrom(visobj)>(distance)) || (condition) ) { (visobj) = nullptr; } }
 
 bool CDODBot :: setVisible ( edict_t *pEntity, const bool bVisible )
 {
@@ -523,7 +523,7 @@ void CDODBot :: seeFriendlyDie ( edict_t *pDied, edict_t *pKiller, CWeapon *pWea
 				{
 					CWaypoint *pWpt = CWaypoints::getPinchPointFromWaypoint(getOrigin(),CWaypoints::getWaypoint(iWpt)->getOrigin());
 
-					if ( pWpt != NULL )
+					if ( pWpt != nullptr )
 					{
 						m_pSchedules->removeSchedule(SCHED_CROUCH_AND_HIDE);
 						m_pSchedules->addFront(new CCrouchHideSched(pKiller));
@@ -3078,7 +3078,7 @@ void CDODBot :: getTasks (unsigned iIgnore)
 	ADD_UTILITY(BOT_UTIL_ROAM,true,0.01f)
 
 	// I had an enemy a minute ago
-	ADD_UTILITY(BOT_UTIL_FIND_LAST_ENEMY,wantToFollowEnemy() && !m_bLookedForEnemyLast && (m_pLastEnemy.get()!=NULL) && CBotGlobals::entityIsValid(m_pLastEnemy) && CBotGlobals::entityIsAlive(m_pLastEnemy),getHealthPercent()*0.89f)
+	ADD_UTILITY(BOT_UTIL_FIND_LAST_ENEMY,wantToFollowEnemy() && !m_bLookedForEnemyLast && (m_pLastEnemy.get()!=nullptr) && CBotGlobals::entityIsValid(m_pLastEnemy) && CBotGlobals::entityIsAlive(m_pLastEnemy),getHealthPercent()*0.89f)
 
 	// flag capture map
 	if ( CDODMod::isFlagMap() && (CDODMod::m_Flags.getNumFlags() > 0) && !rcbot_nocapturing.GetBool() )

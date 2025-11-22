@@ -452,7 +452,7 @@ public:
 		addMenuItem(new CMakeTFVSRCBotGame());
 		addMenuItem(new CWaypointYawMenuItem());
 
-		addMenuItem(new CBotGotoMenuItem("Exit",NULL));
+		addMenuItem(new CBotGotoMenuItem("Exit",nullptr));
 	}
 
 	//CWaypointFlagMenu ( int iShow );

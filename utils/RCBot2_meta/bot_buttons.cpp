@@ -59,24 +59,24 @@ void CBotButton :: hold (float fFrom, const float fFor, const float fLetGoTime)
 
 CBotButtons :: CBotButtons()
 {
-	add(new CBotButton(IN_ATTACK));
-	add(new CBotButton(IN_ATTACK2));
-	add(new CBotButton(IN_DUCK));
-	add(new CBotButton(IN_JUMP));
-	add(new CBotButton(IN_RELOAD));
-	add(new CBotButton(IN_SPEED)); // for sprint
-	add(new CBotButton(IN_FORWARD)); // for ladders
-	add(new CBotButton(IN_USE)); // for chargers
-	add(new CBotButton(IN_ALT1)); // for proning
-	add(new CBotButton(IN_RUN)); // ????
+	add(std::make_unique<CBotButton>(IN_ATTACK));
+	add(std::make_unique<CBotButton>(IN_ATTACK2));
+	add(std::make_unique<CBotButton>(IN_DUCK));
+	add(std::make_unique<CBotButton>(IN_JUMP));
+	add(std::make_unique<CBotButton>(IN_RELOAD));
+	add(std::make_unique<CBotButton>(IN_SPEED)); // for sprint
+	add(std::make_unique<CBotButton>(IN_FORWARD)); // for ladders
+	add(std::make_unique<CBotButton>(IN_USE)); // for chargers
+	add(std::make_unique<CBotButton>(IN_ALT1)); // for proning
+	add(std::make_unique<CBotButton>(IN_RUN)); // ????
 
 	m_bLetGoAll = false;
 }
 
 void CBotButtons :: holdButton (const int iButtonId, const float fFrom, const float fFor, const float fLetGoTime) const
 {
-	for (CBotButton* const m_theButton : m_theButtons)
-	{			
+	for (const auto& m_theButton : m_theButtons)
+	{
 		if (m_theButton->getID() == iButtonId )
 		{
 			m_theButton->hold(fFrom,fFor,fLetGoTime);
@@ -87,8 +87,8 @@ void CBotButtons :: holdButton (const int iButtonId, const float fFrom, const fl
 
 void CBotButtons :: letGo (const int iButtonId) const
 {
-	for (CBotButton* const m_theButton : m_theButtons)
-	{			
+	for (const auto& m_theButton : m_theButtons)
+	{
 		if (m_theButton->getID() == iButtonId )
 		{
 			m_theButton->letGo();
@@ -105,7 +105,7 @@ int CBotButtons :: getBitMask () const
 
 	const float fTime = engine->Time();
 
-	for (CBotButton* const m_theButton : m_theButtons)
+	for (const auto& m_theButton : m_theButtons)
 	{
 		if (m_theButton->held(fTime) )
 		{
@@ -119,22 +119,22 @@ int CBotButtons :: getBitMask () const
 
 bool CBotButtons :: canPressButton (const int iButtonId) const
 {
-	for (const CBotButton* m_theButton : m_theButtons)
-	{			
+	for (const auto& m_theButton : m_theButtons)
+	{
 		if (m_theButton->getID() == iButtonId )
 			return m_theButton->canPress(engine->Time());
 	}
-	return false;		
+	return false;
 }
 
-void CBotButtons :: add ( CBotButton *theButton )
+void CBotButtons :: add ( std::unique_ptr<CBotButton> theButton )
 {
-	m_theButtons.emplace_back(theButton);
+	m_theButtons.emplace_back(std::move(theButton));
 }
 
 bool CBotButtons :: holdingButton (const int iButtonId) const
 {
-	for (const CBotButton* m_theButton : m_theButtons)
+	for (const auto& m_theButton : m_theButtons)
 	{
 		if (m_theButton->getID() == iButtonId )
 			return m_theButton->held(engine->Time());
@@ -145,7 +145,7 @@ bool CBotButtons :: holdingButton (const int iButtonId) const
 
 void CBotButtons :: tap (const int iButtonId) const
 {
-	for (CBotButton* const m_theButton : m_theButtons)
+	for (const auto& m_theButton : m_theButtons)
 	{
 		if (m_theButton->getID() == iButtonId )
 		{

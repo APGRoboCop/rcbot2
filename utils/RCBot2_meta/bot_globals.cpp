@@ -1143,7 +1143,7 @@ void CBotGlobals :: buildFileName ( char *szOutput, const char *szFile, const ch
 #if defined(HOMEFOLDER) && defined(__linux__)
 		char *lhome = getenv ("HOME");
 
-		if (lhome != NULL) 
+		if (lhome != nullptr) 
 		{
 			std::strncpy(home,lhome,511);
 			home[511] = 0; 
@@ -1328,7 +1328,7 @@ static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &ent
 	{
 		if ( newVelocity )
 		{
-			pPhys->SetVelocity( newVelocity, NULL );
+			pPhys->SetVelocity( newVelocity, nullptr );
 		}
 		const QAngle *rotAngles = &pTeleport->GetAbsAngles();
 		// don't rotate physics on players or bbox entities

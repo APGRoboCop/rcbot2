@@ -196,7 +196,7 @@ void CTeamFortress2Mod ::modFrame ()
 		else
 			CTeamFortress2Mod::m_ObjectiveResource.think();
 		/*
-		if (m_pGameRules.get() == NULL)
+		if (m_pGameRules.get() == nullptr)
 		{
 			//m_pGameRules = CClassInterface::FindEntityByClassnameNearest(Vector(0, 0, 0), "tf_gamerules_data", 99999.0f, NULL);
 			m_pGameRules = CClassInterface::FindEntityByNetClass(gpGlobals->maxClients + 1, "CTFGameRulesProxy");
@@ -1062,7 +1062,7 @@ void CTeamFortress2Mod:: clientCommand ( edict_t *pEntity, const int argc, const
 		{
 			CClient *pClient = CClients::get(pEntity);
 
-			if ( pClient != NULL )
+			if ( pClient != nullptr )
 			{
 				pClient->monitorHighFive();
 			}

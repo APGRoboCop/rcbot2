@@ -274,9 +274,9 @@ bool CWaypointNavigator :: randomDangerPath (Vector *vec)
 
 	float fTotal = 0.0f;
 
-	for ( i = 0; i < pWpt->numPaths(); i ++ )
+	for (const int iPathIndex : *pWpt)
 	{
-		pNext = CWaypoints::getWaypoint(pWpt->getPath(i));
+		pNext = CWaypoints::getWaypoint(iPathIndex);
 		fBelief = getBelief(CWaypoints::getWaypointIndex(pNext));
 
 		if ( pNext == pOnRouteTo )
@@ -292,9 +292,9 @@ bool CWaypointNavigator :: randomDangerPath (Vector *vec)
 
 	const float fRand = randomFloat(0, fTotal);
 
-	for ( i = 0; i < pWpt->numPaths(); i ++ )
+	for (const int iPathIndex : *pWpt)
 	{
-		pNext = CWaypoints::getWaypoint(pWpt->getPath(i));
+		pNext = CWaypoints::getWaypoint(iPathIndex);
 		fBelief = getBelief(CWaypoints::getWaypointIndex(pNext));
 
 		if ( pNext == pOnRouteTo )
@@ -984,13 +984,10 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 
 		const Vector vOrigin = currWpt->getOrigin();
 
-		const int iMaxPaths = currWpt->numPaths();
-
 		succ = nullptr;
 
-		for ( int iPath = 0; iPath < iMaxPaths; iPath ++ )
+		for (const int iSucc : *currWpt)
 		{
-			const int iSucc = currWpt->getPath(iPath);
 
 			if ( iSucc == iLastNode )
 				continue;
@@ -1954,10 +1951,10 @@ void CWaypoint :: save (std::fstream &bfp )
 	int iPaths = numPaths();
 	bfp.write(reinterpret_cast<char*>(&iPaths), sizeof(int));
 
-	for ( int n = 0; n < iPaths; n ++ )
-	{			
-		int iPath = getPath(n);
-		bfp.write(reinterpret_cast<char*>(&iPath), sizeof(int));
+	for (const int iPath : *this)
+	{
+		int iPathCopy = iPath;
+		bfp.write(reinterpret_cast<char*>(&iPathCopy), sizeof(int));
 	}
 
 	if ( CWaypoints::WAYPOINT_VERSION >= 2 )
@@ -2213,12 +2210,8 @@ void CWaypoints :: deletePathsTo (const int iWpt)
 		pathsTo.emplace_back(pWaypoint->getPathToThisWaypoint(static_cast<int>(i)));
 	}
 
-	iNumPathsTo = static_cast<int>(pathsTo.size());
-
-	for (std::size_t i = 0; i < static_cast<std::size_t>(iNumPathsTo); i++)
+	for (const int iOther : pathsTo)
 	{
-		const int iOther = pathsTo[i];
-
 		CWaypoint* pOther = getWaypoint(iOther);
 
 		pOther->removePathTo(iWpt);
@@ -2534,9 +2527,8 @@ CWaypoint *CWaypoints::getNextCoverPoint ( CBot *pBot, CWaypoint *pCurrent, CWay
 	float fMaxDist = 0.0f;
 	float fDist = 0.0f;
 
-	for ( int i = 0; i < pCurrent->numPaths(); i ++ )
+	for (const int iNext : *pCurrent)
 	{
-		const int iNext = pCurrent->getPath(i);
 		CWaypoint* pNext = CWaypoints::getWaypoint(iNext);
 
 		if ( pNext == pBlocking )
