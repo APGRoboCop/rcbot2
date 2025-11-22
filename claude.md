@@ -3,14 +3,19 @@
 ## Project Overview
 
 RCBot2 is a bot plugin for Source Engine games, providing AI-controlled players for:
+- **Half-Life 2: Deathmatch (HL2:DM)** - Primary development and ML target
 - Team Fortress 2 (TF2)
-- Half-Life 2: Deathmatch (HL2:DM)
 - Day of Defeat: Source (DOD:S)
 - Counter-Strike: Source (CSS)
 - Black Mesa
 - Other Source Engine games
 
-This is a fork of the official RCBot2 plugin by Cheeseh, with significant enhancements for build systems, mod compatibility, and game support.
+This is a fork of the official RCBot2 plugin by Cheeseh, with significant enhancements for:
+- **ML/AI Infrastructure** (ONNX Runtime integration, HL2DM-first approach)
+- **Comprehensive SourceMod Integration** (70+ natives across 7 implementation phases)
+- **Enhanced Waypoint System** (weapon pickups, interactive objects, NPC combat)
+- **Build Systems** (AMBuild, multi-SDK support)
+- **Game Compatibility** (extensive mod support and detection)
 
 **License**: GNU Affero General Public License (AGPL-3.0)
 
@@ -29,16 +34,28 @@ This is a fork of the official RCBot2 plugin by Cheeseh, with significant enhanc
 rcbot2/
 ├── utils/RCBot2_meta/     # Main bot implementation (C++)
 │   ├── bot*.cpp/h         # Core bot AI, behavior, and game logic
-│   └── [game]_*.cpp/h     # Game-specific implementations
+│   ├── [game]_*.cpp/h     # Game-specific implementations
+│   └── ml/                # ML/AI infrastructure (Phase 0)
+│       ├── bot_ml_onnx.h      # ONNX Runtime integration
+│       ├── bot_ml_features.h  # Feature extraction (HL2DM-first)
+│       ├── bot_ml_controller.h # ML controller and hybrid AI
+│       ├── bot_ml_recorder.h  # Gameplay recording
+│       └── bot_ml_cvars.h     # ML console commands
 ├── rcbot/                 # Shared utilities and helpers
 │   ├── entprops.cpp/h     # Entity property management
 │   ├── helper.cpp/h       # Helper functions
 │   ├── logging.cpp/h      # Logging system (BSD-0 license)
 │   └── tf2/               # TF2-specific utilities
 ├── loader/                # Plugin loader shim
-├── sm_ext/                # SourceMod extension natives
-├── scripting/             # SourcePawn scripts
+├── sm_ext/                # SourceMod extension natives (70+ natives)
+├── scripting/             # SourcePawn scripts and examples
 ├── package/               # Installation files and configs
+├── roadmaps/              # Development roadmaps
+│   ├── roadmap.md             # Main feature roadmap
+│   ├── roadmap-intelligence.md # AI/ML roadmap
+│   ├── roadmap-sourcemod.md   # SourceMod integration roadmap
+│   └── IMPLEMENTATION_NOTES.md # Implementation details
+├── docs/                  # Comprehensive documentation
 ├── alliedmodders/         # AlliedModders build infrastructure
 ├── hl2sdk-manifests/      # HL2SDK configuration
 ├── versioning/            # Build versioning
@@ -83,6 +100,145 @@ rcbot2/
 - `bot_mods.cpp/h` - Game mod detection
 - `bot_menu.cpp/h` - Menu system
 - `bot_profile.cpp/h` - Bot profiles and personalities
+
+### ML/AI Infrastructure (utils/RCBot2_meta/ml/)
+
+**Status**: Architecture defined, implementation pending (Phase 0)
+**Primary Target**: **HL2DM** (Half-Life 2: Deathmatch) - simplest game, fastest iteration
+
+#### Why HL2DM First?
+
+The ML/AI roadmap takes an **HL2DM-first approach** for pragmatic reasons:
+- ✅ **Simplest Game**: Pure deathmatch, no classes, no complex objectives
+- ✅ **Smallest Codebase**: `bot_hldm_bot.cpp` only 884 lines vs TF2's 8,485 lines
+- ✅ **Fewer Features**: 48-64 features vs TF2's 96+ features
+- ✅ **Faster Training**: Simpler state/action space = faster ML convergence
+- ✅ **Quick Iteration**: Simple game = quick testing cycles, easier debugging
+- ✅ **Foundation for Expansion**: Once working, ~70-80% code reuse for TF2/DOD/CS:S
+
+**Expansion Path**: HL2DM (Phase 0) → TF2 (Phase 0.5) → DOD:S/CS:S (Phase 0.5) → Advanced ML (Phase 1+)
+
+#### ML Module Components
+
+- **`bot_ml_onnx.h/cpp`** - ONNX Runtime wrapper for model inference
+  - `CONNXModel` - Load and run ONNX models (<1ms inference target)
+  - `CModelManager` - Manage multiple models for different games
+
+- **`bot_ml_features.h/cpp`** - Feature extraction system
+  - `IFeatureExtractor` - Base interface for all games
+  - **`CHL2DMFeatureExtractor`** - HL2DM features (48-64 floats) - **PRIMARY TARGET**
+  - `CTF2FeatureExtractor` - TF2 features (96 floats) - Phase 0.5
+  - `CDODFeatureExtractor` - DOD:S features (~64 floats) - Phase 0.5
+  - `CFeatureStatistics` - Track feature min/max/mean for normalization
+
+- **`bot_ml_recorder.h/cpp`** - Gameplay recording for training data
+  - `CBotRecorder` - Record bot/human gameplay states and actions
+  - `CDemoParser` - Parse SourceTV demos for human data
+  - `CDataAugmenter` - Augment training data (flip maps, vary speeds)
+
+- **`bot_ml_controller.h/cpp`** - ML controller and hybrid AI
+  - `CMLController` - Per-bot ML coordination
+  - `CMLManager` - Global ML management
+  - `CHybridAI` - Blend ML predictions with rule-based AI
+
+- **`bot_ml_cvars.h/cpp`** - Console commands and variables
+  - `rcbot_ml_load_model` - Load ONNX model
+  - `rcbot_record_start/stop` - Record gameplay
+  - `rcbot_ml_features_dump` - Debug feature extraction
+
+#### ML Approaches Supported
+
+1. **Behavior Cloning** (Phase 0 - HL2DM)
+   - Train neural network to imitate human HL2DM players
+   - Simplest approach, works on HL2DM first
+   - Input: 48-64 feature vector → Output: 10 action values
+
+2. **Reinforcement Learning** (Phase 1+)
+   - DQN, PPO for autonomous learning
+   - Requires Phase 0 infrastructure first
+
+3. **Hybrid AI** (All phases)
+   - ML for movement/aiming, rules for tactics
+   - Graceful fallback to rule-based AI
+
+For complete details, see:
+- **[AI/ML Roadmap](roadmaps/roadmap-intelligence.md)** - Comprehensive ML strategy
+- **[ML Implementation Plan](IMPLEMENTATION_PLAN.md)** - Week-by-week implementation guide
+- **[ML Module README](utils/RCBot2_meta/ml/README.md)** - Architecture and usage
+
+### SourceMod Integration (sm_ext/)
+
+This fork includes **70+ SourceMod natives** across 7 implementation phases, providing complete programmatic control over bots:
+
+**Phase 1: Enhanced Bot Command & Control**
+- Direct bot movement, targeting, actions
+- Weapon selection, forced attacks, reload control
+
+**Phase 2: TF2-Specific Extensions**
+- Class-specific behavior control
+- Building placement and management
+- MvM upgrade control
+
+**Phase 3: Navigation & Pathfinding**
+- Waypoint queries and path management
+- Stuck detection and recovery
+- Custom navigation goals
+
+**Phase 4: Event System & Callbacks**
+- Forward hooks for bot actions
+- Event-driven bot control
+- Real-time bot state monitoring
+
+**Phase 5: Squad & Team Coordination**
+- Squad creation and leadership
+- Tactical commands and formations
+- Team-wide behavior control
+
+**Phase 6: Advanced Bot Management**
+- Bot enumeration and filtering
+- Lifecycle control and statistics
+- Performance monitoring
+
+**Phase 7: Perception & AI Configuration**
+- FOV control and visibility queries
+- Condition management
+- AI tuning and difficulty scaling
+
+**Example Scripts**: See `scripting/` directory for comprehensive examples demonstrating all phases
+
+For complete API details, see:
+- **[SourceMod Integration Roadmap](roadmaps/roadmap-sourcemod.md)** - Complete native reference
+- **[API Documentation](docs/api.md)** - Usage examples and integration guide
+
+### Waypoint System Enhancements
+
+Recent enhancements to the waypoint system add support for:
+
+**Weapon Pickups** (HL2DM focus):
+- Waypoint flags for weapon locations (pistol, shotgun, SMG, AR2, etc.)
+- Ammo crate locations
+- Health and armor pickups
+- Bots intelligently navigate to needed weapons/items
+
+**Interactive Objects**:
+- Buttons, doors, elevators
+- Map-specific interactive elements
+- Waypoint flags for contextual actions
+
+**NPC Combat System** (HL2DM cooperative maps):
+- NPC threat detection and prioritization
+- Combine soldier, zombie, headcrab recognition
+- Cooperative tactics for NPC encounters
+- Health/ammo management during NPC fights
+
+**Implementation Files**:
+- `bot_waypoint.cpp/h` - Core waypoint system
+- `bot_waypoint_locations.cpp/h` - Location management
+- `bot_hldm_bot.cpp` - HL2DM-specific waypoint usage with NPC combat
+
+For waypoint creation and usage, see:
+- **[Waypoint Guide](docs/waypoints.md)** - Creating and managing waypoints
+- **[Waypoint System Enhancements PR #17](https://github.com/ethanbissbort/rcbot2/pull/17)** - Implementation details
 
 ## Build System
 
@@ -149,35 +305,55 @@ python configure.py \
 
 ## Game-Specific Notes
 
+### Half-Life 2: Deathmatch ⭐ PRIMARY ML/AI TARGET
+
+- **Primary development focus** for ML/AI features (Phase 0)
+- Pure deathmatch gameplay - no classes, no complex objectives
+- Physics weapon support (gravity gun, crossbow)
+- **Enhanced Features**:
+  - ✅ Comprehensive NPC combat system for cooperative maps
+  - ✅ Weapon pickup waypoint system (pistol, shotgun, SMG, AR2, RPG, etc.)
+  - ✅ Interactive object support (buttons, doors)
+  - ✅ Health/ammo management during NPC encounters
+  - ✅ SourceMod integration with Gravity Gun API
+  - ✅ Event system for pickups, weapon changes, NPC kills
+- **NPC Types Supported**: Combine soldiers, zombies, headcrabs, antlions
+- **Codebase**: `bot_hldm_bot.cpp` (884 lines) - smallest, simplest game
+- **ML Features**: 48-64 feature vector (simpler than TF2's 96)
+- **Why HL2DM First?**: Fastest iteration, easiest debugging, foundation for TF2/DOD/CS:S expansion
+
 ### Team Fortress 2
 
-- **Most actively maintained** game support
+- **Second most maintained** game support (after HL2DM focus shift)
 - Complex class-specific behaviors (9 classes)
 - MvM (Mann vs Machine) support being improved
 - Multiple game modes: Payload, CTF, CP, KOTH, etc.
 - Bots can build sentries (Engineer), heal (Medic), backstab (Spy)
-- Known issues with:
-  - New zombie infection maps (Scream Fortress XV)
-  - Robot Destruction mode
+- **Recent Fixes**:
+  - ✅ Engineer bot sentry placement orientation (bot_fortress.cpp:1149)
+  - ✅ Class change implementation (CBotTF2::changeClass)
+  - ✅ Demoman sticky jumping (fully functional with waypoint flags)
+- **Partial Implementations**:
+  - 🔶 Zombie Infection map detection (AI needs work)
+  - 🔶 Robot Destruction mode detection (core collection needs work)
+  - 🔶 Basic Medic uber deployment (advanced sentry coordination pending)
+- **Known Issues**:
+  - MvM upgrade menu support (stub exists)
   - Kart minigames from sd_doomsday_event
-  - Engineer bot sentry placement orientation
 
 ### Day of Defeat: Source
 
 - Historical warfare gameplay
 - Capture point mechanics
 - Limited bot classes compared to TF2
-
-### Half-Life 2: Deathmatch
-
-- Standard deathmatch gameplay
-- Physics weapon support (gravity gun)
+- **ML Expansion**: Phase 0.5 (after HL2DM working)
 
 ### Counter-Strike: Source
 
 - Buy menu support needed
 - Bomb planting/defusing logic
 - Economy system awareness
+- **ML Expansion**: Phase 0.5 (after HL2DM working)
 
 ## Testing and Debugging
 
@@ -202,20 +378,66 @@ python configure.py \
 - Bot navigation debugging
 - Hook info updater (from official release)
 
-## Important To-Do Items
+## Development Priorities and Roadmaps
 
-Current development priorities (from README.md):
+### Current Status Summary
 
-1. **MVM Upgrades**: Allow bots to use buy menu for MVM upgrades
-2. **Game Detection**: Improve detection for non-listed Source gamemods
-3. **TF2 Zombie Infection**: Support new maps from Scream Fortress XV
-4. **Robot Destruction**: Prevent bot destruction when not ubered
-5. **Engineer Bots**: Fix sentry turret orientation issues
-6. **Demo Sticky Jumps**: Re-enable sticky jumping (check v1.7-beta)
-7. **Medic/Spy AI**: Improve interaction with sentries
-8. **Kart Minigames**: Fix bot behavior in kart game modes
-9. **Class Changes**: Implement `CBotTF2::changeClass()` properly
-10. **New Game Support**: TF2C, Black Mesa, CSS, Synergy, Dystopia
+**Completed (Enhanced Branch)**:
+- ✅ Engineer sentry orientation fix (bot_fortress.cpp:1149)
+- ✅ Class change implementation (CBotTF2::changeClass)
+- ✅ Demoman sticky jumping (fully functional)
+- ✅ SourceMod integration (70+ natives, 7 phases)
+- ✅ Waypoint system enhancements (weapons, interactables)
+- ✅ NPC combat system for HL2DM cooperative maps
+- ✅ HL2DM performance optimizations
+- ✅ Enhanced game detection system
+
+**In Progress**:
+- 🔶 ML/AI infrastructure (Phase 0 - HL2DM first)
+- 🔶 Advanced Medic uber coordination vs sentries
+- 🔶 Zombie Infection full AI (detection complete)
+- 🔶 Robot Destruction core collection AI
+
+**High Priority (Next Steps)**:
+1. **ML/AI Phase 0** - HL2DM behavior cloning (see roadmaps/roadmap-intelligence.md)
+   - Data collection and ONNX integration
+   - Feature extraction for HL2DM (48-64 features)
+   - Behavior cloning model training and deployment
+2. **MvM Upgrade Menu** - Bot upgrade purchasing in MvM
+3. **Complete Zombie Infection AI** - Full AI for Scream Fortress maps
+4. **Complete Robot Destruction** - Core collection behavior
+
+**Future Priorities**:
+- ML expansion to TF2, DOD:S, CS:S (Phase 0.5)
+- Reinforcement learning (Phase 1+)
+- Advanced game mode support (Kart minigames)
+- Additional game support (TF2C, enhanced CS:S/Black Mesa)
+
+### Development Roadmaps
+
+The project has comprehensive roadmaps in `roadmaps/`:
+
+1. **[roadmap.md](roadmaps/roadmap.md)** - Main feature roadmap (8 phases)
+   - Core bot improvements and game mode support
+   - TF2-specific features and fixes
+
+2. **[roadmap-intelligence.md](roadmaps/roadmap-intelligence.md)** - AI/ML roadmap
+   - **Phase 0**: HL2DM behavior cloning (foundation)
+   - **Phase 0.5**: Expand to TF2, DOD:S, CS:S
+   - **Phase 1+**: Reinforcement learning, advanced ML
+   - HL2DM-first approach with expansion strategy
+
+3. **[roadmap-sourcemod.md](roadmaps/roadmap-sourcemod.md)** - SourceMod integration
+   - 7 phases, 70+ natives (100% complete)
+   - Comprehensive bot control API
+
+4. **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - ML implementation guide
+   - Week-by-week plan for Phase 0
+   - Technical architecture and setup
+
+5. **[IMPLEMENTATION_NOTES.md](roadmaps/IMPLEMENTATION_NOTES.md)** - Detailed notes
+   - Implementation details and decisions
+   - Code references and examples
 
 ## Integration Points
 
@@ -399,6 +621,41 @@ ambuild
 
 ---
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22
+**Branch**: enhanced
 **Project**: RCBot2 for Source Engine Games
 **Repository**: ethanbissbort/rcbot2
+
+## Recent Enhancements (Enhanced Branch)
+
+**November 2025 - Major Updates**:
+
+1. **SourceMod Integration** (100% Complete)
+   - 70+ natives across 7 implementation phases
+   - Comprehensive bot control, navigation, squad coordination
+   - TF2-specific and HL2DM-specific features
+   - Example scripts in `scripting/`
+
+2. **ML/AI Infrastructure** (Architecture Complete)
+   - HL2DM-first approach for fastest iteration
+   - ONNX Runtime integration designed
+   - Feature extraction, recording, hybrid AI planned
+   - Comprehensive roadmaps and implementation guides
+
+3. **Waypoint System Enhancements**
+   - Weapon pickup support (HL2DM focus)
+   - Interactive object waypoints
+   - NPC combat system for cooperative maps
+   - Health/ammo management
+
+4. **HL2DM Enhancements**
+   - NPC threat detection and prioritization
+   - Gravity Gun API integration
+   - Event system for pickups, weapon changes, NPC kills
+   - Performance optimizations
+
+5. **TF2 Core Fixes**
+   - Engineer sentry orientation (bot_fortress.cpp:1149)
+   - Class change system (CBotTF2::changeClass)
+   - Demoman sticky jumping
+   - Enhanced game mode detection
