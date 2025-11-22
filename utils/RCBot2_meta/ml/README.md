@@ -1,6 +1,8 @@
-# RCBot2 Machine Learning Module
+# RCBot2 Machine Learning Module (HL2DM First)
 
 This directory contains the ML infrastructure for RCBot2, implementing Phase 0 of the AI/ML roadmap.
+
+**Target Game**: **HL2DM (Half-Life 2: Deathmatch)** - Start simple, then expand to TF2/DOD/CS:S
 
 ## Overview
 
@@ -10,6 +12,15 @@ The ML module provides:
 - **Gameplay Recording**: Record bot/human gameplay for training data
 - **ML Controller**: Coordinate inference and action execution
 - **Hybrid AI**: Blend ML predictions with rule-based AI
+
+## Why HL2DM First?
+
+Phase 0 targets HL2DM exclusively:
+- ✅ Simplest game (pure deathmatch, no classes, no objectives)
+- ✅ Only 64 features (vs TF2's 96 features)
+- ✅ Smaller codebase (`bot_hldm_bot.cpp`: 884 lines vs TF2's 8,485)
+- ✅ Faster iteration and debugging
+- ✅ Once working, ~70-80% code reuse for TF2/DOD/CS:S expansion
 
 ## Architecture
 
@@ -48,8 +59,9 @@ The ML module provides:
 
 - **bot_ml_features.h**: Feature extraction
   - `IFeatureExtractor`: Base interface
-  - `CTF2FeatureExtractor`: TF2-specific features
-  - `CDODFeatureExtractor`: DOD:S-specific features
+  - **`CHL2DMFeatureExtractor`**: HL2DM-specific features (Phase 0 - PRIMARY)
+  - `CTF2FeatureExtractor`: TF2-specific features (Phase 0.5)
+  - `CDODFeatureExtractor`: DOD:S-specific features (Phase 0.5)
   - `CFeatureStatistics`: Track feature statistics
 
 - **bot_ml_recorder.h**: Gameplay recording
@@ -68,22 +80,27 @@ The ML module provides:
 
 ### Implementation Files (To Be Created)
 
+**Phase 0 (HL2DM Only)**:
 - `bot_ml_onnx.cpp`: ONNX wrapper implementation
-- `bot_ml_features.cpp`: Feature extraction implementation
-- `bot_ml_features_tf2.cpp`: TF2-specific features
-- `bot_ml_features_dod.cpp`: DOD:S-specific features
+- `bot_ml_features.cpp`: Base feature extraction
+- **`bot_ml_features_hl2dm.cpp`**: HL2DM-specific features (64 features)
 - `bot_ml_recorder.cpp`: Recording system
 - `bot_ml_controller.cpp`: ML controller
 - `bot_ml_cvars.cpp`: Console commands
 
+**Phase 0.5 (Game Expansion)**:
+- `bot_ml_features_tf2.cpp`: TF2-specific features (96 features)
+- `bot_ml_features_dod.cpp`: DOD:S-specific features (~64 features)
+- `bot_ml_features_css.cpp`: CS:S-specific features (~80 features)
+
 ## Usage
 
-### Basic Usage (Behavior Cloning)
+### Basic Usage (Behavior Cloning - HL2DM)
 
 ```cpp
-// In bot initialization
+// In bot initialization (bot_hldm_bot.cpp)
 CMLController* pMLController = CMLManager::GetInstance()->CreateController(pBot);
-pMLController->LoadModel("models/behavior_clone_tf2.onnx");
+pMLController->LoadModel("models/behavior_clone_hl2dm.onnx");  // HL2DM model!
 pMLController->SetMode(ML_MODE_BEHAVIOR_CLONE);
 
 // In bot Think() loop
@@ -91,9 +108,9 @@ if (pMLController->IsModeActive()) {
     MLAction action;
     if (pMLController->GetMLAction(action)) {
         // Apply ML action
-        SetMovement(action.movement);
-        SetAim(action.aim_delta);
-        SetButtons(action.buttons);
+        SetMovement(action.movement);  // Forward/back/strafe
+        SetAim(action.aim_delta);      // Aim adjustments
+        SetButtons(action.buttons);    // Jump, crouch, fire, etc.
         return; // Skip rule-based AI
     }
 }

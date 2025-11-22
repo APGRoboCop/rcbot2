@@ -2,10 +2,35 @@
   "version": "1.0",
   "description": "Machine Learning model configurations for RCBot2",
   "last_updated": "2025-11-22",
+  "priority_game": "hl2dm",
+  "note": "Phase 0 focuses on HL2DM only. TF2/DOD/CS:S models for Phase 0.5 expansion.",
 
   "models": {
-    "behavior_clone_tf2_general": {
+    "behavior_clone_hl2dm": {
       "enabled": true,
+      "priority": "highest",
+      "path": "models/behavior_clone_hl2dm.onnx",
+      "type": "behavior_cloning",
+      "input_size": 64,
+      "output_size": 10,
+      "game": "hl2dm",
+      "description": "HL2DM behavior cloning model (Phase 0 - PRIMARY MODEL)",
+      "training_data": {
+        "hours_recorded": 10,
+        "num_demos": 20,
+        "skill_level": "intermediate",
+        "maps": ["dm_lockdown", "dm_overwatch", "dm_resistance"]
+      },
+      "performance": {
+        "target_accuracy": 0.85,
+        "target_inference_ms": 0.3,
+        "target_memory_mb": 4
+      }
+    },
+
+    "behavior_clone_tf2_general": {
+      "enabled": false,
+      "priority": "phase_0_5",
       "path": "models/behavior_clone_tf2.onnx",
       "type": "behavior_cloning",
       "input_size": 96,

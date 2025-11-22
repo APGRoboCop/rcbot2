@@ -1,8 +1,21 @@
-# RCBot2 AI/ML Implementation Plan
+# RCBot2 AI/ML Implementation Plan (HL2DM First)
 
 **Last Updated**: 2025-11-22
 **Status**: Phase 0 - Foundation (Not Started)
-**Next Milestone**: Deploy first ML feature (behavior cloning)
+**Target Game**: **HL2DM ONLY** (expand to TF2/DOD/CS:S later)
+**Next Milestone**: Deploy first ML feature (behavior cloning on HL2DM)
+
+---
+
+## 🎯 Why HL2DM First?
+
+**Start with the simplest game, then expand:**
+- HL2DM is pure deathmatch - no classes, no complex objectives
+- `bot_hldm_bot.cpp` is only 884 lines (vs TF2's 8,485 lines)
+- Faster iteration, easier debugging, clearer metrics
+- Once HL2DM works, expansion to TF2/DOD/CS:S is straightforward (~70-80% code reuse)
+
+**Expansion Path**: HL2DM (Phase 0) → TF2 (Phase 0.5) → DOD:S/CS:S (Phase 0.5) → Advanced ML (Phase 1+)
 
 ---
 
@@ -14,37 +27,43 @@ If you're ready to start implementing ML features, follow this priority order:
 1. ✅ Read this document and `roadmap-intelligence.md` Phase 0
 2. ✅ Set up development environment (see `docs/building.md`)
 3. ✅ Build RCBot2 successfully on your platform
-4. ✅ Run TF2 with bots to understand current behavior
-5. ✅ Review existing code: `bot.cpp`, `bot_fortress.cpp`, `bot_perceptron.cpp`
+4. ✅ **Run HL2DM with bots** to understand current behavior
+5. ✅ Review existing code: `bot.cpp`, **`bot_hldm_bot.cpp`** (only 884 lines!), `bot_perceptron.cpp`
 
 ### Week 3-4: Data Collection (PRIORITY #1)
 6. ✅ Implement replay recording format (see Section 2.1 below)
 7. ✅ Hook recording into `CBot::Think()` loop
 8. ✅ Add console commands for recording control
-9. ✅ Record 5+ hours of bot gameplay data
+9. ✅ **Record 5+ hours of HL2DM gameplay data**
 10. ✅ Test data export to JSON/CSV
 
 ### Week 5-6: ONNX Integration (PRIORITY #2)
 11. ✅ Add ONNX Runtime to build system
 12. ✅ Create `CONNXModel` wrapper class
 13. ✅ Create dummy test model and verify inference works
-14. ✅ Benchmark inference performance (<1ms target)
+14. ✅ Benchmark inference performance (<0.5ms target for HL2DM's simpler features)
 
-### Week 7-9: Feature Extraction (PRIORITY #3)
-15. ✅ Design feature vector (64-128 floats)
+### Week 7-8: Feature Extraction (PRIORITY #3) - HL2DM Focused
+15. ✅ Design **HL2DM feature vector (48-64 floats)** - simpler than TF2's 96
 16. ✅ Implement `CFeatureExtractor` base class
-17. ✅ Implement TF2-specific features
+17. ✅ **Implement `CHL2DMFeatureExtractor`** (self state, enemies, pickups, nav)
 18. ✅ Add debugging console commands
-19. ✅ Validate features are sensible
+19. ✅ Validate features are sensible on HL2DM maps
 
-### Week 10-12: Behavior Cloning (PRIORITY #4)
-20. ✅ Record 10+ hours of human player demos
-21. ✅ Create Python training pipeline
-22. ✅ Train behavior cloning model
-23. ✅ Export to ONNX and deploy in-game
-24. ✅ A/B test vs rule-based bot
+### Week 9-11: Behavior Cloning (PRIORITY #4) - HL2DM Only
+20. ✅ **Record 10+ hours of human HL2DM player demos**
+21. ✅ Create Python training pipeline (`tools/train_hl2dm_behavior_clone.py`)
+22. ✅ Train behavior cloning model (64 input → 128 → 64 → 32 → 10 output)
+23. ✅ Export to ONNX and deploy in **HL2DM** game
+24. ✅ A/B test vs rule-based HL2DM bot
+25. ✅ Test on multiple HL2DM maps (dm_lockdown, dm_overwatch, etc.)
 
-**After Week 12**: You should have a working ML bot that imitates human behavior!
+**After Week 11**: You should have a working **HL2DM** ML bot that imitates human behavior!
+
+### Week 12: Prepare for Game Expansion
+26. ✅ Document HL2DM implementation
+27. ✅ Identify TF2 expansion requirements
+28. ✅ **Begin Phase 0.5: TF2 Expansion**
 
 ---
 
@@ -62,7 +81,7 @@ If you're ready to start implementing ML features, follow this priority order:
 - Python for training scripts (PyTorch/TensorFlow)
 - Experience with ONNX or other ML inference libraries
 - Game AI programming experience
-- TF2 gameplay knowledge
+- HL2DM gameplay knowledge (or TF2 for later expansion)
 
 ### 1.2 Required Tools
 
@@ -78,7 +97,8 @@ If you're ready to start implementing ML features, follow this priority order:
 - NumPy, Pandas for data processing
 
 **Testing**:
-- Team Fortress 2 (for testing)
+- **Half-Life 2: Deathmatch** (primary testing game for Phase 0)
+- Team Fortress 2 (for Phase 0.5 expansion)
 - MetaMod:Source and SourceMod (optional)
 
 ### 1.3 Development Environment Setup
