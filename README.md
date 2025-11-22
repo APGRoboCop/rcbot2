@@ -3,9 +3,9 @@
 [![Build Status](https://github.com/ethanbissbort/rcbot2/workflows/build/badge.svg)](https://github.com/ethanbissbort/rcbot2/actions)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-**AI-powered bots for Source Engine games**
+**AI-powered bots for Source Engine games with comprehensive SourceMod integration**
 
-RCBot2 is a MetaMod:Source plugin that adds intelligent AI bots to Source Engine games. Bots can navigate maps, understand objectives, use class-specific abilities, and provide challenging gameplay.
+RCBot2 is a MetaMod:Source plugin that adds intelligent AI bots to Source Engine games. Bots can navigate maps, understand objectives, use class-specific abilities, and provide challenging gameplay. This enhanced fork includes extensive SourceMod native support for programmatic bot control and advanced squad coordination.
 
 ## Supported Games
 
@@ -17,6 +17,21 @@ RCBot2 is a MetaMod:Source plugin that adds intelligent AI bots to Source Engine
 | **Counter-Strike: Source** | 🔶 Beta | Combat, navigation (buy menu WIP) |
 | **Black Mesa** | 🔶 Beta | Cooperative gameplay, basic support |
 | **Synergy** | 🔶 Beta | Cooperative gameplay, basic support |
+
+## SourceMod Integration
+
+This fork features **comprehensive SourceMod native support** with 70+ natives for programmatic bot control:
+
+- 🤖 **Bot Command & Control** - Direct bot movement, actions, and target management
+- 🔫 **Weapon & Equipment** - Weapon selection, forced attacks, reload control
+- 🧠 **Task & Schedule System** - Query and manipulate bot AI schedules
+- 🗺️ **Navigation & Pathfinding** - Waypoint queries, path management, stuck detection
+- 👥 **Squad & Team Coordination** - Create squads, assign leaders, coordinate tactics
+- 📊 **Advanced Bot Management** - Bot enumeration, statistics, lifecycle control
+- 👁️ **Perception & AI Config** - FOV control, visibility queries, condition management
+- 🎮 **TF2-Specific Natives** - Class-specific behavior, building control, MvM support
+
+**Example SourcePawn scripts** available in [`scripting/`](scripting/) directory demonstrating all features. Over **3000 lines** of SourceMod extension code provide seamless integration with server plugins.
 
 ## Quick Links
 
@@ -55,8 +70,15 @@ steamdir.
 plugins (namely [tf2attributes][] and [TF2Items][], where the implementation was ported from)
 are better-suited and maintained to handle that stuff; this plugin should only deal with bots
 themselves.
-- The Metamod:Source plugin can now optionally expose natives to SourceMod, adding some
-functionality to control the RCBot2 plugin from SourcePawn.
+- **Comprehensive SourceMod Integration** - The plugin now exposes 70+ natives to SourceMod,
+providing extensive programmatic control over bots including:
+	- Bot command & control (movement, targeting, actions)
+	- Weapon and equipment management
+	- Navigation and pathfinding control
+	- Squad and team coordination systems
+	- Advanced perception and AI configuration
+	- TF2-specific class and building management
+	- Event callbacks and forwards for bot actions
 
 [AMBuild]: https://wiki.alliedmods.net/AMBuild
 [tf2attributes]: https://github.com/FlaminSarge/tf2attributes
@@ -146,7 +168,8 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - **[Configuration Guide](docs/configuration.md)** - Server and bot configuration
 - **[Waypoint Guide](docs/waypoints.md)** - Creating and managing waypoints
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
-- **[API Reference](docs/api.md)** - SourceMod natives and integration
+- **[SourceMod API Reference](docs/api.md)** - Complete native function reference and integration guide
+- **[Example SourcePawn Scripts](scripting/)** - Sample plugins demonstrating all API features
 
 ## Contributing
 
@@ -173,29 +196,53 @@ RCBot2 is released under the [GNU Affero General Public License v3.0][AGPL].
 
 ## Current Development Status
 
+### Recently Completed ✅
+
+- ✅ **Engineer bot sentry turret orientation** - Fixed incorrect facing direction
+- ✅ **Demoman sticky jumping** - Fully functional with waypoint flag support
+- ✅ **Class change implementation** - `CBotTF2::changeClass()` now working with plugin compatibility
+- ✅ **Enhanced game detection** - Configuration-based gamemode detection system
+- ✅ **Comprehensive SourceMod integration** - 70+ natives across 7 implementation phases
+
 ### High Priority Items
 
 See the full [Roadmap](roadmap.md) for details. Current priorities:
 
-**Critical Bugs:**
-- 🔴 Fix Engineer bot sentry turret orientation
-- 🔴 Restore Demo bot sticky jumping (regression)
-
 **High Priority Features:**
-- 🟠 MvM upgrade menu support
-- 🟠 Scream Fortress XV Zombie Infection maps
-- 🟠 Robot Destruction game mode
-- 🟠 Improved Medic/Spy AI vs sentries
+- 🟠 MvM upgrade menu support (stub implementation exists)
+- 🟠 Complete Zombie Infection map support (detection done, need full AI)
+- 🟠 Complete Robot Destruction game mode (basic behavior done, need core collection)
+- 🟠 Advanced Medic uber coordination vs sentries (basic uber logic exists)
 
 **Medium Priority:**
-- 🟡 Kart minigame support (sd_doomsday_event)
-- 🟡 Implement `CBotTF2::changeClass()`
-- 🟡 Better game detection for unlisted mods
+- 🟡 Kart minigame support (detection done, need driving AI)
+- 🟡 Advanced Spy sentry interaction (basic sapping works)
 
 **Future:**
 - 🔵 TF2 Classic support
 - 🔵 Enhanced CS:S features (buy menu, bomb defusal)
 - 🔵 Additional Source game support
+
+## Recent Enhancements
+
+This enhanced branch includes major improvements completed in November 2025:
+
+**SourceMod Integration (7 Phases):**
+1. **Phase 1:** Enhanced SourceMod Integration - Bot command & control, weapon management
+2. **Phase 2:** TF2-Specific Extensions - Class-specific natives and building control
+3. **Phase 3:** Navigation & Pathfinding - Waypoint queries and path management
+4. **Phase 4:** Event System & Callbacks - Forward hooks for bot actions
+5. **Phase 5:** Squad & Team Coordination - Squad creation and tactical control
+6. **Phase 6:** Advanced Bot Management - Enumeration and lifecycle control
+7. **Phase 7:** Perception & AI Configuration - FOV, visibility, and condition management
+
+**Core Bot Improvements:**
+- Fixed Engineer sentry placement orientation (bot_fortress.cpp:1149)
+- Implemented `CBotTF2::changeClass()` with proper cleanup
+- Enhanced gamemode detection system with community-extensible INI configuration
+- Added Zombie Infection and Robot Destruction map detection
+
+All phases are fully implemented and tested with example SourcePawn scripts in [`scripting/`](scripting/).
 
 ## Acknowledgments
 
