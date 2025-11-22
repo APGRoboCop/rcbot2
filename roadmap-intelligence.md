@@ -2,6 +2,34 @@
 
 This document outlines the research and implementation process for advancing RCBot2's artificial intelligence and machine learning capabilities.
 
+## Quick Start Guide for Developers 🚀
+
+**New to this roadmap?** Start here:
+
+1. **Immediate Priority**: Phase 0 (Foundation) - Setup infrastructure and data collection
+2. **First ML Feature**: Behavior cloning from human replays (simplest approach)
+3. **Testing Ground**: TF2 (most mature codebase, 8,485 lines)
+4. **Recommended Framework**: ONNX Runtime (flexible, cross-platform, production-ready)
+5. **Development Approach**: Incremental - each feature must work before moving to next
+
+**Timeline for First Working ML Feature**: 2-3 months from start
+
+---
+
+## 2025 AI/ML Best Practices
+
+This roadmap incorporates modern approaches:
+
+- ✅ **Imitation Learning First**: Start with behavior cloning (simpler than RL from scratch)
+- ✅ **Model Distillation**: Train large models offline, distill to small inference models
+- ✅ **ONNX Standard**: Train in PyTorch/TensorFlow, deploy via ONNX Runtime
+- ✅ **Incremental Deployment**: Each phase adds value independently
+- ✅ **Human-in-the-Loop**: Combine human demonstrations with RL fine-tuning
+- ✅ **Efficient Architectures**: Prioritize MLP/small CNNs over large transformers
+- ✅ **Quantization Ready**: Design for INT8 quantization from day one
+
+---
+
 ## Current State Analysis
 
 ### Existing AI/ML Infrastructure
@@ -21,10 +49,241 @@ This document outlines the research and implementation process for advancing RCB
 
 ---
 
+## Phase 0: Foundation and Infrastructure 🟢
+
+**Priority**: IMMEDIATE | **Status**: Not Started
+**Goal**: Establish ML infrastructure and data collection before advanced features
+**Timeline**: 2-3 months
+
+### Why Phase 0 Comes First
+
+Before implementing advanced ML features, we need:
+- ✅ A way to collect training data from gameplay
+- ✅ Infrastructure to load and run ML models
+- ✅ Base classes for ML integration
+- ✅ Performance monitoring and debugging tools
+- ✅ Proof-of-concept that ML can improve bot behavior
+
+**Success Criteria**: Deploy one simple ML feature (behavior cloning) that demonstrably improves bot behavior
+
+### 0.1 Data Collection Infrastructure
+
+**Objective**: Record gameplay data for training ML models
+
+**Implementation Tasks**:
+- [ ] Design replay recording format
+  - State snapshots (bot POV, visible entities, health, ammo, position)
+  - Action taken (movement, aim direction, weapon, buttons pressed)
+  - Outcome/reward (damage dealt, objectives, survival)
+  - Timestamp and frame information
+- [ ] Implement recording system
+  - Hook into bot Think() loop
+  - Efficient serialization (binary format, compressed)
+  - Circular buffer to manage memory
+  - Console commands: `rcbot_record_start`, `rcbot_record_stop`, `rcbot_record_save <filename>`
+- [ ] Create data export utilities
+  - Convert to training formats (CSV, JSON, numpy)
+  - Data validation and sanity checks
+  - Statistics and visualization tools
+- [ ] Record human player demonstrations
+  - SourceTV demo parsing (extract human gameplay)
+  - Convert demo data to training format
+  - Label high-skill vs low-skill players
+
+**Deliverables**:
+- Recording system integrated into bot code
+- At least 10 hours of recorded gameplay data (mix of human and bot)
+- Data export scripts and validation tools
+
+**Code Locations**:
+- New files: `bot_recorder.h/cpp`, `bot_replay_format.h`
+- `bot.cpp`: Integration into Think() loop
+- Python scripts: `tools/export_replay_data.py`
+
+**Estimated Effort**: 3-4 weeks
+
+---
+
+### 0.2 ONNX Runtime Integration
+
+**Objective**: Integrate ONNX Runtime for model inference
+
+**Implementation Tasks**:
+- [ ] Add ONNX Runtime dependency to build system
+  - Update AMBuild configuration
+  - Add ONNX Runtime C++ library (version 1.16+)
+  - Cross-platform build support (Linux/Windows)
+  - Static linking to avoid runtime dependencies
+- [ ] Create ONNX wrapper classes
+  - `CONNXModel` - Base class for model loading/inference
+  - `CONNXSession` - Manages ONNX runtime session
+  - Thread-safe inference queue
+  - Model versioning and hot-reloading
+- [ ] Implement model management
+  - Model file path configuration (ConVar: `rcbot_ml_model_path`)
+  - Load on bot spawn, cache in memory
+  - Fallback to rule-based if model fails
+  - Error handling and logging
+- [ ] Create simple test model
+  - Dummy model (takes bot state, outputs random action)
+  - Verify inference pipeline works
+  - Benchmark inference latency (<1ms target)
+
+**Deliverables**:
+- ONNX Runtime integrated and building successfully
+- Test model running in-game
+- Performance benchmarks documented
+
+**Code Locations**:
+- New files: `bot_onnx.h/cpp`, `bot_ml_inference.h/cpp`
+- `bot.cpp`: Model loading and inference calls
+- `utils/RCBot2_meta/AMBuild`: Build configuration
+
+**Estimated Effort**: 2-3 weeks
+
+---
+
+### 0.3 Feature Extraction System
+
+**Objective**: Convert game state into ML model inputs
+
+**Implementation Tasks**:
+- [ ] Design feature representation
+  - **Spatial features**: Bot position, waypoint, nearby cover (normalized)
+  - **Visual features**: Visible enemies (distance, class, health, threat level)
+  - **State features**: Bot health, ammo, class, objective status
+  - **Temporal features**: Recent damage, kills, time since spawn
+  - Total features: ~64-128 floats (keep it simple initially)
+- [ ] Implement feature extractors
+  - `CFeatureExtractor` base class
+  - Game-specific extractors (`CTF2FeatureExtractor`)
+  - Feature normalization (0-1 scaling, running mean/std)
+  - Feature caching (update once per Think() cycle)
+- [ ] Create feature configuration
+  - JSON config file: `config/ml_features.json`
+  - Enable/disable specific feature groups
+  - Feature scaling parameters
+- [ ] Add debugging tools
+  - Console command: `rcbot_ml_features_dump` (print current features)
+  - Feature visualization (HUD overlay for debugging)
+  - Feature statistics logging
+
+**Deliverables**:
+- Feature extraction system integrated
+- Configuration file with documented features
+- Debugging tools working
+
+**Code Locations**:
+- New files: `bot_features.h/cpp`, `bot_features_tf2.cpp`
+- `config/ml_features.json`
+
+**Estimated Effort**: 2-3 weeks
+
+---
+
+### 0.4 Behavior Cloning Proof-of-Concept
+
+**Objective**: Train first ML model using imitation learning from human demos
+
+**Why Behavior Cloning First?**
+- ✅ Simpler than RL (supervised learning, no reward engineering)
+- ✅ Leverages existing human expertise
+- ✅ Faster training (hours, not days)
+- ✅ Validates entire pipeline (data → training → inference → deployment)
+- ✅ Provides baseline for RL to improve upon
+
+**Implementation Tasks**:
+- [ ] **Training Pipeline** (Offline, Python)
+  - Load recorded human demonstration data
+  - Train neural network (PyTorch/TensorFlow)
+    - Architecture: MLP (128 input → 256 → 128 → 64 → action output)
+    - Loss: Cross-entropy for discrete actions, MSE for continuous
+  - Export to ONNX format
+  - Validate model accuracy on test set
+- [ ] **Action Decoder**
+  - Convert model output to bot actions
+  - Map to movement (forward/back/left/right)
+  - Map to aim adjustments (yaw/pitch deltas)
+  - Map to button presses (jump, crouch, fire, reload)
+- [ ] **Integration with Bot**
+  - Add mode selection: `rcbot_ml_mode <off|behavior_clone|hybrid>`
+  - Hybrid mode: Use ML for movement, keep rule-based for high-level strategy
+  - Smooth blending between ML and rules
+- [ ] **Evaluation**
+  - A/B test: ML bot vs rule-based bot
+  - Metrics: Survival time, K/D ratio, objective completion
+  - Collect player feedback (does it look more human-like?)
+
+**Deliverables**:
+- Trained behavior cloning model (ONNX format)
+- Training scripts and documentation
+- Working in-game ML bot
+- Performance comparison report
+
+**Code Locations**:
+- Training: `tools/train_behavior_clone.py`
+- New files: `bot_ml_behavior_clone.h/cpp`
+- `bot_fortress.cpp`: TF2 integration
+
+**Estimated Effort**: 3-4 weeks
+
+---
+
+### 0.5 Performance and Monitoring
+
+**Objective**: Ensure ML inference doesn't degrade game performance
+
+**Implementation Tasks**:
+- [ ] Add performance instrumentation
+  - Timer macros for ML code paths
+  - Per-bot inference time tracking
+  - Memory usage monitoring
+- [ ] Create performance dashboard
+  - Console command: `rcbot_ml_stats` (show inference times, memory)
+  - Log warnings if inference >1ms
+  - Automatic fallback if performance degrades
+- [ ] Optimization passes
+  - Profile hot paths
+  - Batch inference if multiple bots
+  - Move inference to separate thread (if needed)
+  - Model quantization (FP32 → INT8)
+- [ ] Establish performance budgets
+  - Target: <0.5ms per bot per Think()
+  - Target: <10MB memory per bot
+  - Target: <5% FPS impact with 32 bots
+
+**Deliverables**:
+- Performance monitoring integrated
+- Optimization report
+- Performance benchmarks documented
+
+**Code Locations**:
+- New files: `bot_ml_profiler.h/cpp`
+- `bot_cvars.cpp`: Performance-related ConVars
+
+**Estimated Effort**: 1-2 weeks
+
+---
+
+### Phase 0 Summary
+
+**Total Estimated Time**: 2-3 months
+**Outcome**: Working ML infrastructure with one deployed feature (behavior cloning)
+**Next Phase Unlock**: With data collection and inference pipeline proven, Phase 1 (advanced RL) becomes feasible
+
+**Checkpoint Questions Before Moving to Phase 1**:
+- ✅ Can we record and export gameplay data reliably?
+- ✅ Can we load and run ONNX models in-game with <1ms latency?
+- ✅ Does the behavior cloning model improve bot performance measurably?
+- ✅ Is the code modular enough to add new ML models easily?
+
+---
+
 ## Phase 1: Neural Network Improvements 🔵
 
-**Priority**: Future | **Status**: Research
+**Priority**: High (After Phase 0) | **Status**: Research
 **Current**: Basic perceptron for decision making
+**Prerequisites**: Phase 0 complete
 
 ### Research Phase (Months 1-3)
 
@@ -868,23 +1127,59 @@ This document outlines the research and implementation process for advancing RCB
 
 ## Timeline and Milestones
 
-### Year 1: Foundation and Research
-- **Q1**: Complete all research phases, select technologies
-- **Q2**: Begin neural network deep learning integration
-- **Q3**: Complete DNN integration, start RL system
-- **Q4**: Complete RL system, begin transfer learning
+### Year 1: Foundation and Core ML (2025)
+- **Q1 (Months 1-3)**: Phase 0 - Infrastructure and behavior cloning
+  - ✅ Data collection system operational
+  - ✅ ONNX Runtime integrated
+  - ✅ First ML model deployed (behavior cloning)
+- **Q2 (Months 4-6)**: Phase 1 Start - RL research and DNN integration
+  - Complete research phase
+  - Begin DQN/PPO implementation
+  - Initial RL experiments
+- **Q3 (Months 7-9)**: Phase 1 Continue - RL system implementation
+  - Complete RL training pipeline
+  - Deploy first RL-trained bot
+  - Begin transfer learning research
+- **Q4 (Months 10-12)**: Phase 1 Wrap - Transfer learning and adversarial training
+  - Cross-game transfer learning working
+  - Self-play tournaments running
+  - Performance optimization pass
 
-### Year 2: Advanced AI and Behaviors
-- **Q1**: Complete transfer learning, start adversarial training
-- **Q2**: Complete adversarial training, expand GA parameters
-- **Q3**: Implement PBT and multi-objective optimization
-- **Q4**: Begin advanced behaviors (voice, chat, emotion)
+### Year 2: Advanced AI and GA Enhancement (2026)
+- **Q1 (Months 13-15)**: Phase 2 Start - GA expansion
+  - 50+ parameter optimization
+  - PBT infrastructure
+  - Multi-objective optimization (NSGA-II)
+- **Q2 (Months 16-18)**: Phase 2 Continue - Adaptive systems
+  - Automated difficulty scaling
+  - Player skill recognition
+  - Dynamic bot personalities
+- **Q3 (Months 19-21)**: Phase 3 Start - Advanced behaviors (voice, chat)
+  - Voice recognition prototype
+  - Basic chat system
+  - Emotion state machine
+- **Q4 (Months 22-24)**: Phase 3 Continue - Playstyle adaptation
+  - Adaptive playstyle learning
+  - Player profiling system
+  - Counter-strategy generation
 
-### Year 3: Refinement and Deployment
-- **Q1**: Complete all advanced behaviors
-- **Q2**: Performance optimization and profiling
-- **Q3**: Community testing and feedback integration
-- **Q4**: Public release and ongoing support
+### Year 3: Refinement and Deployment (2027)
+- **Q1 (Months 25-27)**: Polish and optimization
+  - Complete all advanced behaviors
+  - Performance optimization across all features
+  - Comprehensive testing suite
+- **Q2 (Months 28-30)**: Community beta testing
+  - Public beta release
+  - Community feedback integration
+  - Bug fixes and stability improvements
+- **Q3 (Months 31-33)**: Documentation and tooling
+  - Complete user documentation
+  - Training guides and tutorials
+  - Model sharing infrastructure
+- **Q4 (Months 34-36)**: Production release
+  - v1.0 release with all features
+  - Ongoing support and maintenance
+  - Research publication and presentations
 
 ---
 

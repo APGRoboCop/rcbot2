@@ -1,0 +1,215 @@
+{
+  "version": "1.0",
+  "description": "Training configuration for RCBot2 ML models",
+  "last_updated": "2025-11-22",
+
+  "behavior_cloning": {
+    "description": "Imitation learning from human demonstrations",
+    "data": {
+      "training_split": 0.8,
+      "validation_split": 0.1,
+      "test_split": 0.1,
+      "min_demo_length_seconds": 30,
+      "max_demo_length_seconds": 600,
+      "augmentation": {
+        "enabled": true,
+        "horizontal_flip": false,
+        "noise_injection": 0.01,
+        "feature_dropout": 0.05
+      }
+    },
+    "model": {
+      "architecture": "MLP",
+      "hidden_layers": [256, 128, 64],
+      "activation": "relu",
+      "dropout": 0.2,
+      "batch_normalization": true
+    },
+    "training": {
+      "optimizer": "adam",
+      "learning_rate": 0.001,
+      "batch_size": 32,
+      "epochs": 50,
+      "early_stopping": {
+        "enabled": true,
+        "patience": 10,
+        "monitor": "val_loss"
+      },
+      "learning_rate_schedule": {
+        "type": "step",
+        "step_size": 20,
+        "gamma": 0.1
+      }
+    },
+    "loss": {
+      "movement_loss": "mse",
+      "button_loss": "binary_crossentropy",
+      "loss_weights": {
+        "movement": 1.0,
+        "aiming": 1.0,
+        "buttons": 0.5
+      }
+    }
+  },
+
+  "reinforcement_learning": {
+    "description": "RL training configuration (DQN, PPO, etc.)",
+    "algorithm": "DQN",
+    "environment": {
+      "game": "tf2",
+      "game_mode": "payload",
+      "map": "pl_upward",
+      "episode_max_steps": 5000,
+      "parallel_envs": 4
+    },
+    "dqn": {
+      "description": "Deep Q-Network configuration",
+      "network": {
+        "architecture": "MLP",
+        "hidden_layers": [256, 256, 128],
+        "activation": "relu",
+        "dueling": true
+      },
+      "replay_buffer": {
+        "capacity": 100000,
+        "prioritized": true,
+        "priority_alpha": 0.6,
+        "priority_beta_start": 0.4,
+        "priority_beta_end": 1.0
+      },
+      "exploration": {
+        "epsilon_start": 1.0,
+        "epsilon_end": 0.01,
+        "epsilon_decay_steps": 100000,
+        "epsilon_eval": 0.001
+      },
+      "training": {
+        "learning_rate": 0.0001,
+        "discount_factor": 0.99,
+        "batch_size": 64,
+        "target_update_interval": 1000,
+        "gradient_clip": 10.0,
+        "double_dqn": true
+      }
+    },
+    "ppo": {
+      "description": "Proximal Policy Optimization configuration",
+      "network": {
+        "architecture": "MLP",
+        "hidden_layers": [256, 256],
+        "activation": "tanh"
+      },
+      "training": {
+        "learning_rate": 0.0003,
+        "discount_factor": 0.99,
+        "gae_lambda": 0.95,
+        "clip_epsilon": 0.2,
+        "value_loss_coef": 0.5,
+        "entropy_coef": 0.01,
+        "batch_size": 64,
+        "num_epochs": 10,
+        "num_mini_batches": 4
+      }
+    },
+    "reward_shaping": {
+      "description": "Reward function design",
+      "rewards": {
+        "kill": 10.0,
+        "death": -5.0,
+        "damage_dealt": 0.01,
+        "damage_taken": -0.01,
+        "objective_progress": 5.0,
+        "objective_capture": 20.0,
+        "objective_defend": 10.0,
+        "team_win": 50.0,
+        "team_lose": -25.0,
+        "survival_per_second": 0.001,
+        "proximity_to_objective": 0.1,
+        "ammo_efficiency": 0.01,
+        "health_efficiency": 0.01
+      },
+      "normalize_rewards": true,
+      "clip_rewards": true,
+      "clip_range": [-10.0, 10.0]
+    }
+  },
+
+  "genetic_algorithm": {
+    "description": "GA for parameter optimization",
+    "population": {
+      "size": 16,
+      "initialization": "random",
+      "elitism": 2
+    },
+    "selection": {
+      "method": "tournament",
+      "tournament_size": 4,
+      "pressure": 1.5
+    },
+    "operators": {
+      "crossover": {
+        "method": "uniform",
+        "probability": 0.7
+      },
+      "mutation": {
+        "method": "gaussian",
+        "probability": 0.1,
+        "max_perturbation": 0.3,
+        "adaptive": true
+      }
+    },
+    "parameters": {
+      "reaction_time": {"min": 0.0, "max": 1.0},
+      "aim_skill": {"min": 0.0, "max": 1.0},
+      "aggression": {"min": 0.0, "max": 1.0},
+      "retreat_health_threshold": {"min": 0.1, "max": 0.5},
+      "pursuit_distance": {"min": 500.0, "max": 3000.0}
+    },
+    "fitness": {
+      "metrics": ["kills", "deaths", "objective_score", "survival_time"],
+      "weights": [0.3, -0.2, 0.4, 0.1],
+      "normalize": true
+    },
+    "termination": {
+      "max_generations": 100,
+      "convergence_threshold": 0.01,
+      "convergence_generations": 10
+    }
+  },
+
+  "transfer_learning": {
+    "description": "Transfer learning between games/modes",
+    "source_model": "models/behavior_clone_tf2_general.onnx",
+    "target_game": "dod",
+    "freeze_layers": ["layer1", "layer2"],
+    "fine_tune_layers": ["layer3", "output"],
+    "fine_tune_epochs": 20,
+    "learning_rate": 0.0001
+  },
+
+  "model_export": {
+    "format": "onnx",
+    "opset_version": 14,
+    "optimize": true,
+    "quantization": {
+      "enabled": false,
+      "method": "dynamic",
+      "precision": "int8"
+    }
+  },
+
+  "logging": {
+    "tensorboard": {
+      "enabled": true,
+      "log_dir": "logs/tensorboard"
+    },
+    "wandb": {
+      "enabled": false,
+      "project": "rcbot2-ml",
+      "entity": "your-username"
+    },
+    "checkpoint_interval": 1000,
+    "evaluation_interval": 5000,
+    "log_interval": 100
+  }
+}
