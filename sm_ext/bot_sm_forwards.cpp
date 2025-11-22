@@ -20,6 +20,12 @@ namespace RCBotForwards {
 	IForward* g_pOnBotDamaged = nullptr;
 	IForward* g_pOnBotTaskChange = nullptr;
 
+	// TF2-specific forward handles
+	IForward* g_pOnBotBuildingPlaced = nullptr;
+	IForward* g_pOnBotBuildingDestroyed = nullptr;
+	IForward* g_pOnBotUberDeployed = nullptr;
+	IForward* g_pOnBotClassChanged = nullptr;
+
 	void CreateForwards() {
 		// Create core bot event forwards
 		// forward void RCBot2_OnBotSpawn(int client);
@@ -45,6 +51,19 @@ namespace RCBotForwards {
 
 		// forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
 		g_pOnBotTaskChange = forwards->CreateForward("RCBot2_OnBotTaskChange", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// Create TF2-specific event forwards
+		// forward void RCBot2_TF2_OnBotBuildingPlaced(int client, int buildingType, int entity);
+		g_pOnBotBuildingPlaced = forwards->CreateForward("RCBot2_TF2_OnBotBuildingPlaced", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotBuildingDestroyed(int client, int buildingType, int attacker);
+		g_pOnBotBuildingDestroyed = forwards->CreateForward("RCBot2_TF2_OnBotBuildingDestroyed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotUberDeployed(int client, int target);
+		g_pOnBotUberDeployed = forwards->CreateForward("RCBot2_TF2_OnBotUberDeployed", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+
+		// forward void RCBot2_TF2_OnBotClassChanged(int client, int oldClass, int newClass);
+		g_pOnBotClassChanged = forwards->CreateForward("RCBot2_TF2_OnBotClassChanged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 	}
 
 	void DestroyForwards() {
@@ -79,6 +98,24 @@ namespace RCBotForwards {
 		if (g_pOnBotTaskChange) {
 			forwards->ReleaseForward(g_pOnBotTaskChange);
 			g_pOnBotTaskChange = nullptr;
+		}
+
+		// Destroy TF2-specific forwards
+		if (g_pOnBotBuildingPlaced) {
+			forwards->ReleaseForward(g_pOnBotBuildingPlaced);
+			g_pOnBotBuildingPlaced = nullptr;
+		}
+		if (g_pOnBotBuildingDestroyed) {
+			forwards->ReleaseForward(g_pOnBotBuildingDestroyed);
+			g_pOnBotBuildingDestroyed = nullptr;
+		}
+		if (g_pOnBotUberDeployed) {
+			forwards->ReleaseForward(g_pOnBotUberDeployed);
+			g_pOnBotUberDeployed = nullptr;
+		}
+		if (g_pOnBotClassChanged) {
+			forwards->ReleaseForward(g_pOnBotClassChanged);
+			g_pOnBotClassChanged = nullptr;
 		}
 	}
 
@@ -143,6 +180,46 @@ namespace RCBotForwards {
 			g_pOnBotTaskChange->PushCell(oldTask);
 			g_pOnBotTaskChange->PushCell(newTask);
 			g_pOnBotTaskChange->Execute(nullptr);
+		}
+	}
+}
+
+	//=============================================================================
+	// TF2-Specific Forward Firing Functions
+	//=============================================================================
+
+	void OnBotBuildingPlaced(const int client, const int buildingType, const int entity) {
+		if (g_pOnBotBuildingPlaced) {
+			g_pOnBotBuildingPlaced->PushCell(client);
+			g_pOnBotBuildingPlaced->PushCell(buildingType);
+			g_pOnBotBuildingPlaced->PushCell(entity);
+			g_pOnBotBuildingPlaced->Execute(nullptr);
+		}
+	}
+
+	void OnBotBuildingDestroyed(const int client, const int buildingType, const int attacker) {
+		if (g_pOnBotBuildingDestroyed) {
+			g_pOnBotBuildingDestroyed->PushCell(client);
+			g_pOnBotBuildingDestroyed->PushCell(buildingType);
+			g_pOnBotBuildingDestroyed->PushCell(attacker);
+			g_pOnBotBuildingDestroyed->Execute(nullptr);
+		}
+	}
+
+	void OnBotUberDeployed(const int client, const int target) {
+		if (g_pOnBotUberDeployed) {
+			g_pOnBotUberDeployed->PushCell(client);
+			g_pOnBotUberDeployed->PushCell(target);
+			g_pOnBotUberDeployed->Execute(nullptr);
+		}
+	}
+
+	void OnBotClassChanged(const int client, const int oldClass, const int newClass) {
+		if (g_pOnBotClassChanged) {
+			g_pOnBotClassChanged->PushCell(client);
+			g_pOnBotClassChanged->PushCell(oldClass);
+			g_pOnBotClassChanged->PushCell(newClass);
+			g_pOnBotClassChanged->Execute(nullptr);
 		}
 	}
 }

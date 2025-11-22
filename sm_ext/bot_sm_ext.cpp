@@ -10,6 +10,14 @@
 #include "bot_globals.h"
 #endif
 
+#ifdef DOD
+#include "bot_sm_natives_dod.h"
+#endif
+
+#ifdef HLDM
+#include "bot_sm_natives_hldm.h"
+#endif
+
 //SourceMod::IBinTools *sm_bintools = nullptr;
 SourceMod::ISDKTools *sm_sdktools = nullptr;
 //SourceMod::ISDKHooks *sm_sdkhooks = nullptr;
@@ -33,7 +41,17 @@ bool RCBotSourceModExt::OnExtensionLoad(IExtension *me, IShareSys *sys, char *er
 
 #ifdef TF2
 	// Register TF2-specific natives if running TF2
-	sharesys->AddNatives(myself, g_RCBotNativesTF2);
+	sharesys->AddNatives(myself, g_RCBotNatives_TF2);
+#endif
+
+#ifdef DOD
+	// Register DOD:S-specific natives if running DOD:S
+	sharesys->AddNatives(myself, g_RCBotNatives_DOD);
+#endif
+
+#ifdef HLDM
+	// Register HL2DM-specific natives if running HL2DM
+	sharesys->AddNatives(myself, g_RCBotNatives_HLDM);
 #endif
 
 	// Phase 4: Create event forwards
