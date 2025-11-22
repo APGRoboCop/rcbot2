@@ -569,6 +569,128 @@ native int RCBot2_GetBotByIndex(int index);
  */
 native bool RCBot2_GetBotName(int client, char[] name, int maxlength);
 
+//=============================================================================
+// Phase 7: Perception & AI Configuration
+//=============================================================================
+
+/**
+ * Bot condition flags (bit flags)
+ */
+enum RCBotCondition {
+	RCBotCond_EnemyObscured = (1 << 0),      // Bot lost sight of enemy
+	RCBotCond_NoWeapon = (1 << 1),           // Bot doesn't have a weapon
+	RCBotCond_OutOfAmmo = (1 << 2),          // Bot has no ammo
+	RCBotCond_SeeCurrentEnemy = (1 << 3),    // Bot can see current enemy
+	RCBotCond_EnemyDead = (1 << 4),          // Bot's enemy is dead
+	RCBotCond_SeeWaypoint = (1 << 5),        // Bot can see the current waypoint
+	RCBotCond_NeedAmmo = (1 << 6),           // Bot needs ammo (low)
+	RCBotCond_NeedHealth = (1 << 7),         // Bot needs health
+	RCBotCond_SeeLookVector = (1 << 8),      // Bot can see his 'look' vector
+	RCBotCond_PointCaptured = (1 << 9),      // A point has been captured recently
+	RCBotCond_Push = (1 << 10),              // Bots more likely to attack
+	RCBotCond_Lift = (1 << 11),              // Bot is on a lift
+	RCBotCond_SeePlayerToHelp = (1 << 12),   // See player to heal
+	RCBotCond_SeeLastEnemyPos = (1 << 13),   // Can see last enemy position
+	RCBotCond_Changed = (1 << 14),           // Bot wants to change action
+	RCBotCond_Covert = (1 << 15),            // Bot is being covert
+	RCBotCond_Run = (1 << 16),               // Bot needs to run (danger nearby)
+	RCBotCond_Grenade = (1 << 17),           // Bot will throw grenade
+	RCBotCond_NeedBomb = (1 << 18),          // Bot needs a bomb
+	RCBotCond_SeeEnemyHead = (1 << 19),      // Bot can aim for headshot
+	RCBotCond_Prone = (1 << 20),             // Bot needs to go prone
+	RCBotCond_Paranoid = (1 << 21),          // Bot is paranoid of spies
+	RCBotCond_SeeSquadLeader = (1 << 22),    // Bot can see squad leader
+	RCBotCond_SquadLeaderDead = (1 << 23),   // Squad leader is dead
+	RCBotCond_SquadLeaderInRange = (1 << 24),// Squad leader in range
+	RCBotCond_SquadIdle = (1 << 25),         // Squad isn't doing anything
+	RCBotCond_Defensive = (1 << 26),         // Bot told to defend
+	RCBotCond_BuildingSapped = (1 << 27),    // Engineer building sapped
+	RCBotCond_SeeEnemyGround = (1 << 28)     // Can see enemy ground for explosives
+};
+
+/**
+ * Sets the bot's field of view angle.
+ *
+ * @param client        Bot client index
+ * @param fov           Field of view in degrees (default 80.0)
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_SetBotFOV(int client, float fov);
+
+/**
+ * Gets the bot's field of view angle.
+ *
+ * @param client        Bot client index
+ * @return              Field of view in degrees
+ * @error               Invalid client index or client is not an RCBot
+ */
+native float RCBot2_GetBotFOV(int client);
+
+/**
+ * Gets all visible enemies for a bot.
+ *
+ * @param client        Bot client index
+ * @param enemies       Array to store enemy client indices
+ * @param maxsize       Maximum size of array
+ * @return              Number of enemies written to array
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetVisibleEnemies(int client, int[] enemies, int maxsize);
+
+/**
+ * Gets all nearby allies within a radius.
+ *
+ * @param client        Bot client index
+ * @param allies        Array to store ally client indices
+ * @param maxsize       Maximum size of array
+ * @param radius        Search radius in units
+ * @return              Number of allies written to array
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetNearbyAllies(int client, int[] allies, int maxsize, float radius);
+
+/**
+ * Sets a condition flag on a bot.
+ *
+ * @param client        Bot client index
+ * @param condition     RCBotCondition flag to set
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_SetCondition(int client, int condition);
+
+/**
+ * Removes a condition flag from a bot.
+ *
+ * @param client        Bot client index
+ * @param condition     RCBotCondition flag to remove
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_RemoveCondition(int client, int condition);
+
+/**
+ * Checks if a bot has a specific condition.
+ *
+ * @param client        Bot client index
+ * @param condition     RCBotCondition flag to check
+ * @return              true if condition is set, false otherwise
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_HasCondition(int client, int condition);
+
+/**
+ * Gets all active conditions for a bot.
+ *
+ * @param client        Bot client index
+ * @param conditions    Array to store active condition flags
+ * @param maxsize       Maximum size of array
+ * @return              Number of conditions written to array
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetConditions(int client, int[] conditions, int maxsize);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",
