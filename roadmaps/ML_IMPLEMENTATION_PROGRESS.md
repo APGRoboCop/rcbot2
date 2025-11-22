@@ -131,7 +131,7 @@ This document tracks the progress of implementing ML/AI features in RCBot2 accor
 
 ### Files Created/Modified
 
-**New Files** (12):
+**New Files** (15):
 1. `utils/RCBot2_meta/bot_replay_format.h` - 132 lines (Data Collection)
 2. `utils/RCBot2_meta/bot_recorder.h` - 115 lines (Data Collection)
 3. `utils/RCBot2_meta/bot_recorder.cpp` - 483 lines (Data Collection)
@@ -139,17 +139,21 @@ This document tracks the progress of implementing ML/AI features in RCBot2 accor
 5. `utils/RCBot2_meta/bot_onnx.cpp` - 462 lines (ONNX Integration)
 6. `utils/RCBot2_meta/bot_features.h` - 175 lines (Feature Extraction)
 7. `utils/RCBot2_meta/bot_features.cpp` - 380 lines (Feature Extraction)
-8. `utils/RCBot2_meta/bot_ml_commands.cpp` - 540 lines (ML Commands - All)
-9. `tools/create_test_model.py` - 236 lines (Testing Tools)
-10. `docs/ONNX_SETUP.md` - 332 lines (Documentation)
-11. `roadmaps/ML_IMPLEMENTATION_PROGRESS.md` - This file (Documentation)
+8. `utils/RCBot2_meta/bot_ml_controller.h` - 162 lines (Behavior Cloning)
+9. `utils/RCBot2_meta/bot_ml_controller.cpp` - 502 lines (Behavior Cloning)
+10. `utils/RCBot2_meta/bot_ml_commands.cpp` - 754 lines (ML Commands - All)
+11. `tools/create_test_model.py` - 236 lines (Testing Tools)
+12. `tools/train_hl2dm_behavior_clone.py` - 635 lines (Behavior Cloning)
+13. `docs/ONNX_SETUP.md` - 332 lines (Documentation)
+14. `docs/ML_TRAINING_GUIDE.md` - 587 lines (Documentation)
+15. `roadmaps/ML_IMPLEMENTATION_PROGRESS.md` - This file (Documentation)
 
 **Modified Files** (3):
 1. `utils/RCBot2_meta/bot_commands.cpp` - Added ML commands include
 2. `utils/RCBot2_meta/bot.cpp` - Added recorder hook + include
-3. `AMBuilder` - Added bot_recorder.cpp, bot_onnx.cpp, and bot_features.cpp to build
+3. `AMBuilder` - Added bot_recorder.cpp, bot_onnx.cpp, bot_features.cpp, and bot_ml_controller.cpp to build
 
-**Total Lines Added**: ~3,100+ lines of code and documentation
+**Total Lines Added**: ~5,100+ lines of code and documentation
 
 ### Features Implemented
 
@@ -181,8 +185,18 @@ This document tracks the progress of implementing ML/AI features in RCBot2 accor
 - ✅ Factory pattern for game-mode selection
 - ✅ Performance optimized (<0.1ms extraction time)
 
+**Behavior Cloning (Priority #4)**:
+- ✅ Python training pipeline (PyTorch → ONNX)
+- ✅ BehaviorCloneDataset for loading recorded gameplay
+- ✅ BehaviorCloneModel neural network architecture
+- ✅ ML bot controller system (CMLBotController, CMLBotManager)
+- ✅ Feature extraction → inference → action application pipeline
+- ✅ Action smoothing and performance monitoring
+- ✅ 5 console commands for ML bot control
+- ✅ Comprehensive training and deployment guide
+
 **Build System**:
-- ✅ AMBuilder integration for all three components
+- ✅ AMBuilder integration for all four components
 
 ---
 
@@ -252,16 +266,58 @@ This document tracks the progress of implementing ML/AI features in RCBot2 accor
 **Performance Target**:
 - <0.1ms feature extraction time (verified via `ml_features_test` command)
 
-### Priority #4: Behavior Cloning (Weeks 9-11)
+### Priority #4: Behavior Cloning (Weeks 9-11) - ✅ COMPLETED
 
-**Remaining Tasks**:
+**Completed Tasks**:
+1. ✅ Created Python training pipeline (`tools/train_hl2dm_behavior_clone.py`)
+   - BehaviorCloneDataset class for loading recorded gameplay
+   - BehaviorCloneModel neural network (56 input → 9 output)
+   - Training loop with validation and checkpointing
+   - Automatic ONNX export with verification
+   - Performance benchmarking (<0.5ms target)
+2. ✅ Created ML bot control system (`bot_ml_controller.h/cpp`)
+   - CMLBotController class for per-bot ML control
+   - CMLBotManager singleton for managing all ML bots
+   - Feature extraction → inference → action application pipeline
+   - Action smoothing to prevent jittery movement
+   - Performance tracking (inference time monitoring)
+3. ✅ Added 5 ML control console commands
+   - `ml_enable <bot_index> <model_name>` - Enable ML for specific bot
+   - `ml_disable <bot_index>` - Disable ML for specific bot
+   - `ml_status [bot_index]` - Show ML status (all bots or specific)
+   - `ml_enable_all <model_name>` - Enable ML for all bots
+   - `ml_disable_all` - Disable ML for all bots
+4. ✅ Created comprehensive training documentation (`docs/ML_TRAINING_GUIDE.md`)
+   - Complete workflow: data collection → training → deployment
+   - Training parameter tuning guide
+   - Troubleshooting common issues
+   - A/B testing methodology
+   - Advanced topics (custom architectures, transfer learning)
+
+**What Was Built**:
+- **Python Training Pipeline** (`tools/train_hl2dm_behavior_clone.py`, 635 lines):
+  - Loads JSON recordings from data collection system
+  - Implements behavior cloning (supervised learning)
+  - Trains neural network to imitate human gameplay
+  - Exports to ONNX format for in-game deployment
+  - Includes benchmarking and verification
+- **ML Bot Controller** (`bot_ml_controller.h/cpp`, 162 + 502 lines):
+  - Integrates ONNX models with bot decision-making
+  - Extracts features → runs inference → applies actions
+  - Handles movement, aim, and button inputs
+  - Graceful fallback to rule-based AI on failure
+- **Console Commands**: 5 new commands for ML bot management
+- **Documentation** (`docs/ML_TRAINING_GUIDE.md`, 587 lines):
+  - End-to-end training and deployment guide
+  - Troubleshooting and performance tuning
+  - A/B testing methodology
+
+**Remaining User Tasks** (requires human gameplay):
 1. Record 10+ hours of human HL2DM gameplay
-2. Create Python training pipeline (`tools/train_hl2dm_behavior_clone.py`)
-3. Train behavior cloning model
-4. Export to ONNX
-5. Deploy in HL2DM game
-6. A/B test vs rule-based bot
-7. Iterate on model architecture
+2. Train initial behavior cloning model
+3. Deploy in HL2DM server
+4. A/B test ML bot vs rule-based bot
+5. Iterate on model architecture based on results
 
 ---
 
@@ -362,13 +418,17 @@ This document tracks the progress of implementing ML/AI features in RCBot2 accor
 
 ## 📚 Related Documentation
 
-- Main roadmap: `roadmaps/IMPLEMENTATION_PLAN.md`
-- AI/ML roadmap: `roadmaps/roadmap-intelligence.md`
-- Code files:
-  - `utils/RCBot2_meta/bot_replay_format.h` - Data structures
-  - `utils/RCBot2_meta/bot_recorder.h` - Recorder interface
-  - `utils/RCBot2_meta/bot_recorder.cpp` - Recorder implementation
-  - `utils/RCBot2_meta/bot_ml_commands.cpp` - Console commands
+- **Training Guide**: `docs/ML_TRAINING_GUIDE.md` - Complete workflow for training and deploying ML bots
+- **ONNX Setup**: `docs/ONNX_SETUP.md` - ONNX Runtime installation and configuration
+- **Main Roadmap**: `roadmaps/IMPLEMENTATION_PLAN.md` - Full 12-week implementation plan
+- **AI/ML Roadmap**: `roadmaps/roadmap-intelligence.md` - Long-term AI/ML vision
+- **Code Files**:
+  - Data Collection: `bot_replay_format.h`, `bot_recorder.h/cpp`
+  - ONNX Integration: `bot_onnx.h/cpp`
+  - Feature Extraction: `bot_features.h/cpp`
+  - ML Control: `bot_ml_controller.h/cpp`
+  - Console Commands: `bot_ml_commands.cpp`
+  - Training Pipeline: `tools/train_hl2dm_behavior_clone.py`
 
 ---
 
@@ -418,6 +478,18 @@ Once ONNX Runtime is installed (see `docs/ONNX_SETUP.md`):
 
 ---
 
-**Phase 0 Completion Status**: ✅ Priorities #1, #2, and #3 complete!
+**Phase 0 Completion Status**: ✅ ALL PRIORITIES COMPLETE! (Priorities #1, #2, #3, and #4)
 
-Ready for **Priority #4: Behavior Cloning** (Weeks 9-11) - the final phase before deploying ML-powered bots!
+**Implementation is COMPLETE!** The ML infrastructure is ready for:
+1. Recording human gameplay (data collection)
+2. Training behavior cloning models (Python pipeline)
+3. Deploying ONNX models (in-game inference)
+4. Running ML-controlled bots (end-to-end system)
+
+Next steps require **user action**:
+- Record 10+ hours of human HL2DM gameplay
+- Train initial behavior cloning model
+- Deploy and evaluate ML bots in live servers
+- Iterate on model architecture based on performance
+
+See `docs/ML_TRAINING_GUIDE.md` for complete workflow!

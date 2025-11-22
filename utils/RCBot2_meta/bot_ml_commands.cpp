@@ -26,6 +26,7 @@
 #include "bot_recorder.h"
 #include "bot_onnx.h"
 #include "bot_features.h"
+#include "bot_ml_controller.h"
 #include "bot_globals.h"
 #include "bot.h"
 
@@ -542,3 +543,207 @@ CBotCommandInline MLFeaturesInfoCommand("ml_features_info", CMD_ACCESS_BOT | CMD
         CFeatureExtractorFactory::DestroyExtractor(pExtractor);
         return COMMAND_ACCESSED;
     });
+
+    // ========================================================================
+    // ML Control Commands
+    // ========================================================================
+
+    pCommands->AddCommand("ml_enable", [](CClient* pClient, const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) -> eCommandResult {
+        // ml_enable <bot_index> <model_name>
+        // Enable ML control for a bot using specified model
+
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!arg1 || !*arg1) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_enable <bot_index> <model_name>");
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Example: rcbot ml_enable 2 hl2dm_behavior_clone");
+            return COMMAND_ERROR;
+        }
+
+        if (!arg2 || !*arg2) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: model_name required");
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_enable <bot_index> <model_name>");
+            return COMMAND_ERROR;
+        }
+
+        int bot_index = atoi(arg1);
+        CBot* pBot = CBots::getBotPointer(bot_index);
+
+        if (!pBot) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: Invalid bot index %d", bot_index);
+            return COMMAND_ERROR;
+        }
+
+        CMLBotManager* pManager = CMLBotManager::GetInstance();
+        if (!pManager) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: ML bot manager not initialized");
+            return COMMAND_ERROR;
+        }
+
+        if (pManager->EnableMLControl(pBot, arg2)) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Enabled ML control for bot %d using model '%s'", bot_index, arg2);
+            return COMMAND_ACCESSED;
+        } else {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Failed to enable ML control for bot %d", bot_index);
+            return COMMAND_ERROR;
+        }
+    });
+
+    pCommands->AddCommand("ml_disable", [](CClient* pClient, const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) -> eCommandResult {
+        // ml_disable <bot_index>
+        // Disable ML control for a bot (revert to rule-based AI)
+
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!arg1 || !*arg1) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_disable <bot_index>");
+            return COMMAND_ERROR;
+        }
+
+        int bot_index = atoi(arg1);
+        CBot* pBot = CBots::getBotPointer(bot_index);
+
+        if (!pBot) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: Invalid bot index %d", bot_index);
+            return COMMAND_ERROR;
+        }
+
+        CMLBotManager* pManager = CMLBotManager::GetInstance();
+        if (!pManager) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: ML bot manager not initialized");
+            return COMMAND_ERROR;
+        }
+
+        pManager->DisableMLControl(pBot);
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Disabled ML control for bot %d", bot_index);
+        return COMMAND_ACCESSED;
+    });
+
+    pCommands->AddCommand("ml_status", [](CClient* pClient, const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) -> eCommandResult {
+        // ml_status [bot_index]
+        // Show ML control status for all bots or specific bot
+
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        CMLBotManager* pManager = CMLBotManager::GetInstance();
+        if (!pManager) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: ML bot manager not initialized");
+            return COMMAND_ERROR;
+        }
+
+        if (arg1 && *arg1) {
+            // Show status for specific bot
+            int bot_index = atoi(arg1);
+            CBot* pBot = CBots::getBotPointer(bot_index);
+
+            if (!pBot) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML] Error: Invalid bot index %d", bot_index);
+                return COMMAND_ERROR;
+            }
+
+            CMLBotController* pController = pManager->GetController(pBot);
+            if (!pController || !pController->IsEnabled()) {
+                CBotGlobals::botMessage(pEntity, 0, "[ML] Bot %d: ML control DISABLED (using rule-based AI)", bot_index);
+            } else {
+                CBotGlobals::botMessage(pEntity, 0, "[ML] Bot %d: ML control ENABLED", bot_index);
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Model: %s", pController->GetModelName());
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Inferences: %d", pController->GetInferenceCount());
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Avg time: %.3f ms", pController->GetAverageInferenceTime());
+                CBotGlobals::botMessage(pEntity, 0, "[ML]   Last time: %.3f ms", pController->GetLastInferenceTime());
+            }
+        } else {
+            // Show status for all bots
+            int total_bots, ml_bots;
+            float avg_time;
+            pManager->GetStatistics(total_bots, ml_bots, avg_time);
+
+            CBotGlobals::botMessage(pEntity, 0, "[ML] ML Control Status:");
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Total bots with controllers: %d", total_bots);
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   ML-controlled bots: %d", ml_bots);
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Avg inference time: %.3f ms", avg_time);
+
+            // List each bot
+            for (int i = 0; i < CBots::getBotNumber(); i++) {
+                CBot* pBot = CBots::getBotPointer(i);
+                if (pBot && pBot->InUse()) {
+                    CMLBotController* pController = pManager->GetController(pBot);
+                    if (pController && pController->IsEnabled()) {
+                        const char* name = pBot->GetPlayerInfo() ? pBot->GetPlayerInfo()->GetName() : "unknown";
+                        CBotGlobals::botMessage(pEntity, 0, "[ML]   Bot %d (%s): ML (model: %s)", 
+                            i, name, pController->GetModelName());
+                    }
+                }
+            }
+        }
+
+        return COMMAND_ACCESSED;
+    });
+
+    pCommands->AddCommand("ml_enable_all", [](CClient* pClient, const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) -> eCommandResult {
+        // ml_enable_all <model_name>
+        // Enable ML control for all bots
+
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        if (!arg1 || !*arg1) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Usage: rcbot ml_enable_all <model_name>");
+            return COMMAND_ERROR;
+        }
+
+        CMLBotManager* pManager = CMLBotManager::GetInstance();
+        if (!pManager) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: ML bot manager not initialized");
+            return COMMAND_ERROR;
+        }
+
+        int enabled_count = 0;
+        for (int i = 0; i < CBots::getBotNumber(); i++) {
+            CBot* pBot = CBots::getBotPointer(i);
+            if (pBot && pBot->InUse()) {
+                if (pManager->EnableMLControl(pBot, arg1)) {
+                    enabled_count++;
+                }
+            }
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Enabled ML control for %d bots using model '%s'", enabled_count, arg1);
+        return COMMAND_ACCESSED;
+    });
+
+    pCommands->AddCommand("ml_disable_all", [](CClient* pClient, const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) -> eCommandResult {
+        // ml_disable_all
+        // Disable ML control for all bots
+
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        CMLBotManager* pManager = CMLBotManager::GetInstance();
+        if (!pManager) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Error: ML bot manager not initialized");
+            return COMMAND_ERROR;
+        }
+
+        int disabled_count = 0;
+        for (int i = 0; i < CBots::getBotNumber(); i++) {
+            CBot* pBot = CBots::getBotPointer(i);
+            if (pBot && pBot->InUse()) {
+                if (pManager->IsMLControlled(pBot)) {
+                    pManager->DisableMLControl(pBot);
+                    disabled_count++;
+                }
+            }
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Disabled ML control for %d bots", disabled_count);
+        return COMMAND_ACCESSED;
+    });
+}
