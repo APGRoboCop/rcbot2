@@ -10,18 +10,18 @@ This roadmap outlines the plan for enhancing RCBot2's SourceMod integration, ena
 
 ### SourceMod Integration Status: ✅ **100% COMPLETE**
 
-The SourceMod integration has been **fully implemented** across all phases, with **90+ natives, 12 event forwards, and game-specific extensions** totaling over **3,500 lines** of extension code.
+The SourceMod integration has been **fully implemented** across all phases, with **110+ natives, 17 event forwards, and game-specific extensions** totaling over **4,200 lines** of extension code.
 
 **Implementation Summary:**
 - ✅ **Phase 1:** Essential Bot Control - **COMPLETE** (16 natives)
-- ✅ **Phase 2:** Game-Specific Extensions - **COMPLETE** (14 TF2 + 8 DOD + 5 HL2DM = 27 natives)
+- ✅ **Phase 2:** Game-Specific Extensions - **COMPLETE** (14 TF2 + 8 DOD + 26 HL2DM = 48 natives)
 - ✅ **Phase 3:** Navigation & Pathfinding - **COMPLETE** (10 natives)
-- ✅ **Phase 4:** Event System & Callbacks - **COMPLETE** (8 core forwards + 4 TF2 forwards = 12 total)
+- ✅ **Phase 4:** Event System & Callbacks - **COMPLETE** (8 core + 4 TF2 + 5 HL2DM = 17 forwards)
 - ✅ **Phase 5:** Squad & Team Coordination - **COMPLETE** (8 natives)
 - ✅ **Phase 6:** Advanced Bot Management - **COMPLETE** (10 natives + 5 extended = 15 total)
 - ✅ **Phase 7:** Perception & AI Configuration - **COMPLETE** (8 natives + 2 extended = 10 total)
 
-### Implemented SourceMod Natives (90+ functional)
+### Implemented SourceMod Natives (110+ functional)
 
 Located in `sm_ext/*.cpp` and exposed via `scripting/include/rcbot2*.inc`:
 
@@ -53,10 +53,15 @@ Located in `sm_ext/*.cpp` and exposed via `scripting/include/rcbot2*.inc`:
 - Communication (1)
 - Stats (1)
 
-**HL2DM-Specific Natives** (5 in rcbot2_hldm.inc):
+**HL2DM-Specific Natives** (26 in rcbot2_hldm.inc):
 - Sprint Control (3)
-- Equipment Management (1)
-- Stats (1)
+- Equipment Management (3)
+- Gravity Gun Control (5)
+- Physics & Breakables (4)
+- Item/Pickup Tracking (5)
+- Weapon Management (4)
+- Combat Utilities (2)
+- HL2DM Event Forwards (5)
 
 ### Current Profile Properties
 
@@ -255,19 +260,65 @@ native int RCBot2_DOD_GetNearestCapturePoint(int client);
 - `utils/RCBot2_meta/bot_dod_bot.h` - Expose DOD-specific methods
 - `scripting/include/rcbot2_dod.inc` (new file)
 
-#### 2.3 Half-Life 2: Deathmatch Integration
+#### 2.3 Half-Life 2: Deathmatch Integration ✅ **FULLY IMPLEMENTED**
+
+**Comprehensive HL2DM API (26 natives + 5 event forwards)**:
 
 ```sourcepawn
-// HL2:DM Specific Functions
-native bool RCBot2_HLDM_UseCharger(int client, int charger);
+// Sprint Mechanics (3 natives)
 native bool RCBot2_HLDM_UseSprint(int client, bool enable);
-native bool RCBot2_HLDM_UseGravityGun(int client, int target);
+native bool RCBot2_HLDM_IsSprinting(int client);
+native float RCBot2_HLDM_GetSprintTime(int client);
+
+// Equipment Management (3 natives)
+native bool RCBot2_HLDM_UseCharger(int client, int charger);
+native bool RCBot2_HLDM_UseHealthCharger(int client, int charger);
+native float RCBot2_HLDM_GetArmorPercent(int client);
+
+// Gravity Gun Control (5 natives)
+native bool RCBot2_HLDM_IsCarryingObject(int client);
+native int RCBot2_HLDM_GetCarriedObject(int client);
+native bool RCBot2_HLDM_PickupObject(int client, int object);
+native bool RCBot2_HLDM_DropObject(int client);
+native bool RCBot2_HLDM_LaunchObject(int client);
+
+// Physics & Breakables (4 natives)
+native int RCBot2_HLDM_GetNearestPhysicsObject(int client);
+native int RCBot2_HLDM_GetNearestBreakable(int client);
+native bool RCBot2_HLDM_SetFailedObject(int client, int object);
+native int RCBot2_HLDM_GetFailedObject(int client);
+
+// Item/Pickup Detection (5 natives)
+native int RCBot2_HLDM_GetNearestWeapon(int client);
+native int RCBot2_HLDM_GetNearestHealthKit(int client);
+native int RCBot2_HLDM_GetNearestBattery(int client);
+native int RCBot2_HLDM_GetNearestAmmoCrate(int client);
+native bool RCBot2_HLDM_UseAmmoCrate(int client);
+
+// Weapon Management (4 natives)
+native int RCBot2_HLDM_GetCurrentWeapon(int client);
+native int RCBot2_HLDM_GetWeaponClip1(int client);
+native int RCBot2_HLDM_GetWeaponClip2(int client);
+native bool RCBot2_HLDM_HasGravityGun(int client);
+
+// Combat Utilities (2 natives)
+native bool RCBot2_HLDM_ThrowGrenade(int client);
+native bool RCBot2_HLDM_CanThrowGrenade(int client);
+
+// HL2DM Event Forwards (5 forwards)
+forward void RCBot2_HLDM_OnBotWeaponPickup(int client, int weapon);
+forward void RCBot2_HLDM_OnBotGravityGunPickup(int client, int object);
+forward void RCBot2_HLDM_OnBotGravityGunLaunch(int client, int object);
+forward void RCBot2_HLDM_OnBotGravityGunDrop(int client, int object);
+forward void RCBot2_HLDM_OnBotSuitChargeUsed(int client, int chargerType, int chargerEntity);
 ```
 
-**Implementation Files**:
-- `sm_ext/bot_sm_natives_hldm.cpp` (new file)
-- `utils/RCBot2_meta/bot_hldm_bot.h` - Expose HL2DM-specific methods
-- `scripting/include/rcbot2_hldm.inc` (new file)
+**Implementation Files** (✅ ALL COMPLETE):
+- ✅ `sm_ext/bot_sm_natives_hldm.cpp` - 526 lines, all 26 natives implemented
+- ✅ `sm_ext/bot_sm_forwards.cpp` - HL2DM event forwards
+- ✅ `scripting/include/rcbot2_hldm.inc` - Complete API documentation
+- ✅ `scripting/rcbot_hldm_demo.sp` - Comprehensive demonstration plugin
+- ✅ `utils/RCBot2_meta/bot_hldm_bot.h` - Full CHLDMBot integration
 
 ---
 
@@ -627,9 +678,18 @@ Each phase must include:
    - ✅ Created `bot_sm_natives_dod.cpp` and `rcbot2_dod.inc`
    - ✅ Implemented bomb planting/defusing and movement natives
 
-4. **✅ COMPLETE: Phase 2.3: HL2DM Game-Specific Natives**
+4. **✅ COMPLETE: Phase 2.3: HL2DM Game-Specific Natives** - **ENHANCED**
    - ✅ Created `bot_sm_natives_hldm.cpp` and `rcbot2_hldm.inc`
-   - ✅ Implemented HL2DM sprint and equipment natives
+   - ✅ Implemented comprehensive HL2DM API with 26 natives:
+     - ✅ Sprint mechanics (3 natives)
+     - ✅ Equipment interaction (3 natives)
+     - ✅ Gravity Gun physics manipulation (5 natives)
+     - ✅ Physics object and breakable tracking (4 natives)
+     - ✅ Item/pickup detection (5 natives)
+     - ✅ Weapon and ammo management (4 natives)
+     - ✅ Combat utilities (2 natives)
+   - ✅ Added 5 HL2DM-specific event forwards
+   - ✅ Created comprehensive demo plugin (rcbot_hldm_demo.sp)
 
 ### ✅ Low Priority - ALL COMPLETE
 
@@ -657,7 +717,7 @@ Each phase must include:
 10. **✅ Full Multi-Game Support**
     - ✅ TF2: 14 natives + 4 forwards
     - ✅ DOD:S: 8 natives
-    - ✅ HL2DM: 5 natives
+    - ✅ HL2DM: 26 natives + 5 forwards (comprehensive API)
 
 ---
 
@@ -669,6 +729,11 @@ All SourceMod integration code follows the same licensing as RCBot2:
 
 ---
 
-**Document Version**: 3.0
+**Document Version**: 3.1
 **Last Updated**: 2025-11-22
 **Status**: ✅ 100% COMPLETE - All Phases Fully Implemented
+
+**Recent Enhancements**:
+- HL2DM API expanded from 5 to 26 natives with comprehensive Gravity Gun support
+- Added 5 HL2DM-specific event forwards
+- Total integration now includes 110+ natives and 17 event forwards
