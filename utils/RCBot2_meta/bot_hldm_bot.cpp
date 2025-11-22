@@ -51,6 +51,10 @@
 #include "bot_getprop.h"
 #include "rcbot/logging.h"
 
+#ifdef ENABLE_SOURCEMOD_INTEGRATION
+#include "../../sm_ext/bot_sm_events.h"
+#endif
+
 #include <cstring>
 
 // initialise , i.e. set everything to a default value
@@ -262,6 +266,13 @@ bool CHLDMBot :: executeAction (const eBotAction iAction)
 		return false;
 	case BOT_UTIL_PICKUP_WEAPON:
 		m_pSchedules->add(new CBotPickupSched(m_pNearbyWeapon.get()));
+#ifdef ENABLE_SOURCEMOD_INTEGRATION
+		// Notify SourceMod of weapon pickup
+		if (m_pNearbyWeapon.get())
+		{
+			RCBotEvents::HLDM::OnBotWeaponPickup(m_pEdict, m_pNearbyWeapon.get());
+		}
+#endif
 		return true;
 	case BOT_UTIL_FIND_NEAREST_HEALTH:
 		m_pSchedules->add(new CBotPickupSched(m_pHealthKit.get()));
@@ -276,25 +287,41 @@ bool CHLDMBot :: executeAction (const eBotAction iAction)
 	case BOT_UTIL_HL2DM_USE_HEALTH_CHARGER:
 		{
 			CBotSchedule *pSched = new CBotSchedule();
-			
+
 			pSched->addTask(new CFindPathTask(m_pHealthCharger));
 			pSched->addTask(new CBotHL2DMUseCharger(m_pHealthCharger,CHARGER_HEALTH));
 
 			m_pSchedules->add(pSched);
 
 			m_fUtilTimes[BOT_UTIL_HL2DM_USE_HEALTH_CHARGER] = engine->Time() + randomFloat(5.0f,10.0f);
+
+#ifdef ENABLE_SOURCEMOD_INTEGRATION
+			// Notify SourceMod of health charger usage
+			if (m_pHealthCharger.get())
+			{
+				RCBotEvents::HLDM::OnBotSuitChargeUsed(m_pEdict, 0, m_pHealthCharger.get());
+			}
+#endif
 			return true;
 		}
 	case BOT_UTIL_HL2DM_USE_CHARGER:
 		{
 			CBotSchedule *pSched = new CBotSchedule();
-			
+
 			pSched->addTask(new CFindPathTask(m_pCharger));
 			pSched->addTask(new CBotHL2DMUseCharger(m_pCharger,CHARGER_ARMOR));
 
 			m_pSchedules->add(pSched);
 
 			m_fUtilTimes[BOT_UTIL_HL2DM_USE_CHARGER] = engine->Time() + randomFloat(5.0f,10.0f);
+
+#ifdef ENABLE_SOURCEMOD_INTEGRATION
+			// Notify SourceMod of armor charger usage
+			if (m_pCharger.get())
+			{
+				RCBotEvents::HLDM::OnBotSuitChargeUsed(m_pEdict, 1, m_pCharger.get());
+			}
+#endif
 			return true;
 		}
 	case BOT_UTIL_HL2DM_GRAVIGUN_PICKUP:
@@ -616,8 +643,31 @@ void CHLDMBot :: modThink ()
 
 		if ( m_pCurrentWeapon && !std::strcmp("weapon_physcannon",m_pCurrentWeapon->GetClassName()) )
 		{
+			edict_t* pPrevCarrying = m_pCarryingObject;
 			m_pCarryingObject = CClassInterface::gravityGunObject(m_pCurrentWeapon);
 			bCarry = CClassInterface::gravityGunObject(m_pCurrentWeapon) == m_NearestPhysObj.get();
+
+#ifdef ENABLE_SOURCEMOD_INTEGRATION
+			// Track gravity gun pickup events
+			if (!pPrevCarrying && m_pCarryingObject)
+			{
+				// Bot picked up an object
+				RCBotEvents::HLDM::OnBotGravityGunPickup(m_pEdict, m_pCarryingObject);
+			}
+			else if (pPrevCarrying && !m_pCarryingObject)
+			{
+				// Bot dropped/launched object - check if it was launched or dropped
+				// If bot is attacking, it was launched; otherwise dropped
+				if (m_pButtons->holdingButton(IN_ATTACK))
+				{
+					RCBotEvents::HLDM::OnBotGravityGunLaunch(m_pEdict, pPrevCarrying);
+				}
+				else
+				{
+					RCBotEvents::HLDM::OnBotGravityGunDrop(m_pEdict, pPrevCarrying);
+				}
+			}
+#endif
 		}
 
 		if ( !bCarry && distanceFrom(pEntity) < rcbot_jump_obst_dist.GetFloat() )

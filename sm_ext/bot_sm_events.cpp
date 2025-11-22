@@ -90,4 +90,52 @@ namespace RCBotEvents {
 			RCBotForwards::OnBotTaskChange(client, oldTask, newTask);
 		}
 	}
+
+	// HL2DM-specific event implementations
+	namespace HLDM {
+		void OnBotWeaponPickup(edict_t* pBot, edict_t* pWeapon) {
+			if (!pBot || !pWeapon) return;
+			const int client = EdictToClientIndex(pBot);
+			const int weapon = EdictToClientIndex(pWeapon);
+			if (client > 0 && weapon > 0) {
+				RCBotForwards::OnBotWeaponPickup(client, weapon);
+			}
+		}
+
+		void OnBotGravityGunPickup(edict_t* pBot, edict_t* pObject) {
+			if (!pBot || !pObject) return;
+			const int client = EdictToClientIndex(pBot);
+			const int object = EdictToClientIndex(pObject);
+			if (client > 0 && object > 0) {
+				RCBotForwards::OnBotGravityGunPickup(client, object);
+			}
+		}
+
+		void OnBotGravityGunLaunch(edict_t* pBot, edict_t* pObject) {
+			if (!pBot || !pObject) return;
+			const int client = EdictToClientIndex(pBot);
+			const int object = EdictToClientIndex(pObject);
+			if (client > 0 && object > 0) {
+				RCBotForwards::OnBotGravityGunLaunch(client, object);
+			}
+		}
+
+		void OnBotGravityGunDrop(edict_t* pBot, edict_t* pObject) {
+			if (!pBot || !pObject) return;
+			const int client = EdictToClientIndex(pBot);
+			const int object = EdictToClientIndex(pObject);
+			if (client > 0 && object > 0) {
+				RCBotForwards::OnBotGravityGunDrop(client, object);
+			}
+		}
+
+		void OnBotSuitChargeUsed(edict_t* pBot, const int chargerType, edict_t* pCharger) {
+			if (!pBot || !pCharger) return;
+			const int client = EdictToClientIndex(pBot);
+			const int charger = EdictToClientIndex(pCharger);
+			if (client > 0 && charger > 0) {
+				RCBotForwards::OnBotSuitChargeUsed(client, chargerType, charger);
+			}
+		}
+	}
 }
