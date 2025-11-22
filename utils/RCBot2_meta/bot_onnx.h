@@ -106,6 +106,7 @@ private:
     std::unique_ptr<Ort::Env> m_env;
     std::unique_ptr<Ort::Session> m_session;
     std::unique_ptr<Ort::SessionOptions> m_sessionOptions;
+    std::unique_ptr<Ort::MemoryInfo> m_memoryInfo;  // Cached memory info for tensors
 #endif
 
     // Model metadata
@@ -124,6 +125,12 @@ private:
     float m_lastInferenceTimeMs;
     int m_totalInferences;
     float m_totalInferenceTimeMs;
+
+    // Cached tensors and buffers for inference (reduce allocations)
+#ifdef RCBOT_WITH_ONNX
+    std::vector<int64_t> m_inputShape;   // Cached input shape
+    std::vector<int64_t> m_outputShape;  // Cached output shape
+#endif
 
     // Helper methods
     bool InitializeONNXRuntime();
