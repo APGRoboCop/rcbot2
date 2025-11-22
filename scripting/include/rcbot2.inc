@@ -529,6 +529,46 @@ native int RCBot2_GetSquadMembers(int leader, int[] members, int maxsize);
  */
 native bool RCBot2_IsInSquad(int client);
 
+//=============================================================================
+// Phase 6: Advanced Bot Management
+//=============================================================================
+
+/**
+ * Kicks a bot from the server.
+ *
+ * @param client        Bot client index to kick
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_KickBot(int client);
+
+/**
+ * Counts the number of RCBots on the server.
+ *
+ * @param team          Team to count (-1 for all teams)
+ * @return              Number of bots
+ */
+native int RCBot2_CountBots(int team = -1);
+
+/**
+ * Gets a bot client index by iteration index.
+ *
+ * @param index         Bot index (0 to RCBot2_CountBots()-1)
+ * @return              Client index, or -1 if invalid index
+ */
+native int RCBot2_GetBotByIndex(int index);
+
+/**
+ * Gets the name of a bot.
+ *
+ * @param client        Bot client index
+ * @param name          Buffer to store name
+ * @param maxlength     Maximum buffer size
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_GetBotName(int client, char[] name, int maxlength);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",

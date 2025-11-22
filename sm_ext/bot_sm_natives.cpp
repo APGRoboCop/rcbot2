@@ -9,6 +9,7 @@
 #include "bot_waypoint_locations.h"
 #include "bot_navigator.h"
 #include "bot_squads.h"
+#include "bot_globals.h"
 
 enum RCBotProfileVar : std::uint8_t {
 	RCBotProfile_iVisionTicks,
@@ -1018,4 +1019,94 @@ cell_t sm_RCBotIsInSquad(IPluginContext *pContext, const cell_t *params) {
 	}
 
 	return pBot->inSquad();
+}
+
+//=============================================================================
+// Phase 6: Advanced Bot Management Natives
+//=============================================================================
+
+/* native bool RCBot2_KickBot(int client); */
+cell_t sm_RCBotKickBot(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	edict_t* pEdict = pBot->getEdict();
+	if (!pEdict || pEdict->IsFree()) {
+		return 0;
+	}
+
+	// Kick the bot using engine command
+	engine->ServerCommand(UTIL_VarArgs("kickid %d\n", engine->GetPlayerUserId(pEdict)));
+	return 1;
+}
+
+/* native int RCBot2_CountBots(int team = -1); */
+cell_t sm_RCBotCountBots(IPluginContext *pContext, const cell_t *params) {
+	const int team = params[1];
+
+	if (team == -1) {
+		// Count all bots
+		return CBots::numBots();
+	}
+
+	// Count bots on specific team
+	return CBotGlobals::numBotsOnTeam(team, false);
+}
+
+/* native int RCBot2_GetBotByIndex(int index); */
+cell_t sm_RCBotGetBotByIndex(IPluginContext *pContext, const cell_t *params) {
+	const int index = params[1];
+
+	if (index < 0 || index >= gpGlobals->maxClients) {
+		return -1;
+	}
+
+	int currentIndex = 0;
+	for (int i = 0; i < gpGlobals->maxClients; i++) {
+		CBot* pBot = CBots::getBot(i);
+		if (pBot && pBot->inUse()) {
+			if (currentIndex == index) {
+				return i + 1; // Return client index (1-based)
+			}
+			currentIndex++;
+		}
+	}
+
+	return -1;
+}
+
+/* native bool RCBot2_GetBotName(int client, char[] name, int maxlength); */
+cell_t sm_RCBotGetBotName(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int maxlength = params[3];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	edict_t* pEdict = pBot->getEdict();
+	if (!pEdict || pEdict->IsFree()) {
+		return 0;
+	}
+
+	const char* botName = engine->GetClientConVarValue(engine->IndexOfEdict(pEdict), "name");
+	if (!botName) {
+		return 0;
+	}
+
+	pContext->StringToLocal(params[2], maxlength, botName);
+	return 1;
 }

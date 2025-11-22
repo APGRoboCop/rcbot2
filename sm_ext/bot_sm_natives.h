@@ -60,6 +60,12 @@ cell_t sm_RCBotGetSquadMemberCount(IPluginContext *pContext, const cell_t *param
 cell_t sm_RCBotGetSquadMembers(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotIsInSquad(IPluginContext *pContext, const cell_t *params);
 
+// Phase 6: Advanced Bot Management
+cell_t sm_RCBotKickBot(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotCountBots(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotByIndex(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotName(IPluginContext *pContext, const cell_t *params);
+
 const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_IsWaypointAvailable", sm_RCBotIsWaypointAvailable },
 
@@ -115,6 +121,12 @@ const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_GetSquadMemberCount", sm_RCBotGetSquadMemberCount },
 	{ "RCBot2_GetSquadMembers", sm_RCBotGetSquadMembers },
 	{ "RCBot2_IsInSquad", sm_RCBotIsInSquad },
+
+	// Phase 6: Advanced Bot Management
+	{ "RCBot2_KickBot", sm_RCBotKickBot },
+	{ "RCBot2_CountBots", sm_RCBotCountBots },
+	{ "RCBot2_GetBotByIndex", sm_RCBotGetBotByIndex },
+	{ "RCBot2_GetBotName", sm_RCBotGetBotName },
 
 	{nullptr, nullptr},
 };
