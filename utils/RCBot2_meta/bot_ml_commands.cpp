@@ -25,10 +25,12 @@
 #include "bot_commands.h"
 #include "bot_recorder.h"
 #include "bot_onnx.h"
+#include "bot_features.h"
 #include "bot_globals.h"
 #include "bot.h"
 
 #include <sstream>
+#include <iomanip>
 
 // ML Recording Commands
 
@@ -374,5 +376,169 @@ CBotCommandInline MLModelInfoCommand("ml_model_info", CMD_ACCESS_BOT | CMD_ACCES
             CBotGlobals::botMessage(pEntity, 0, "[ML] %s", line.c_str());
         }
 
+        return COMMAND_ACCESSED;
+    });
+
+// ML Feature Extraction Commands
+
+CBotCommandInline MLFeaturesDumpCommand("ml_features_dump", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        // Get target bot index (default: first bot)
+        int botIndex = 0;
+        if (args[0] && *args[0]) {
+            botIndex = atoi(args[0]);
+        }
+
+        CBot* pBot = CBots::GetBotPointer(botIndex);
+        if (!pBot || !pBot->inUse()) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Bot %d not found or not in use", botIndex);
+            return COMMAND_ERROR;
+        }
+
+        // Create feature extractor
+        CFeatureExtractor* pExtractor = CFeatureExtractorFactory::CreateExtractor();
+        if (!pExtractor) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Failed to create feature extractor");
+            return COMMAND_ERROR;
+        }
+
+        // Extract features
+        std::vector<float> features;
+        pExtractor->Extract(pBot, features);
+
+        // Get feature names
+        std::vector<std::string> names;
+        pExtractor->GetFeatureNames(names);
+
+        // Display header
+        CBotGlobals::botMessage(pEntity, 0, "[ML] ========================================");
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Feature Dump for Bot #%d: %s",
+            botIndex, pBot->getName());
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Extractor: %s",
+            pExtractor->GetDescription());
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Features: %zu", features.size());
+        CBotGlobals::botMessage(pEntity, 0, "[ML] ========================================");
+
+        // Display features in groups
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Self State (0-11):");
+        for (size_t i = 0; i < 12 && i < features.size(); i++) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   [%2zu] %-20s = %.4f",
+                i, names[i].c_str(), features[i]);
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Enemies (12-35):");
+        for (size_t i = 12; i < 36 && i < features.size(); i++) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   [%2zu] %-20s = %.4f",
+                i, names[i].c_str(), features[i]);
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Navigation (36-47):");
+        for (size_t i = 36; i < 48 && i < features.size(); i++) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   [%2zu] %-20s = %.4f",
+                i, names[i].c_str(), features[i]);
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Pickups (48-55):");
+        for (size_t i = 48; i < 56 && i < features.size(); i++) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   [%2zu] %-20s = %.4f",
+                i, names[i].c_str(), features[i]);
+        }
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] ========================================");
+
+        CFeatureExtractorFactory::DestroyExtractor(pExtractor);
+        return COMMAND_ACCESSED;
+    });
+
+CBotCommandInline MLFeaturesTestCommand("ml_features_test", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        // Get target bot
+        int botIndex = 0;
+        if (args[0] && *args[0]) {
+            botIndex = atoi(args[0]);
+        }
+
+        CBot* pBot = CBots::GetBotPointer(botIndex);
+        if (!pBot || !pBot->inUse()) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Bot %d not found", botIndex);
+            return COMMAND_ERROR;
+        }
+
+        // Create feature extractor
+        CFeatureExtractor* pExtractor = CFeatureExtractorFactory::CreateExtractor();
+        if (!pExtractor) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Failed to create extractor");
+            return COMMAND_ERROR;
+        }
+
+        // Benchmark feature extraction
+        constexpr int iterations = 1000;
+        std::vector<float> features;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < iterations; i++) {
+            pExtractor->Extract(pBot, features);
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        float avgTimeMs = (duration.count() / static_cast<float>(iterations)) / 1000.0f;
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Feature Extraction Benchmark:");
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   Bot: %s (#%d)", pBot->getName(), botIndex);
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   Features: %zu", features.size());
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   Iterations: %d", iterations);
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   Average time: %.4f ms", avgTimeMs);
+
+        if (avgTimeMs < 0.05f) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: EXCELLENT");
+        } else if (avgTimeMs < 0.1f) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: GOOD");
+        } else if (avgTimeMs < 0.2f) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: ACCEPTABLE");
+        } else {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]   Performance: TOO SLOW (optimize!)");
+        }
+
+        CFeatureExtractorFactory::DestroyExtractor(pExtractor);
+        return COMMAND_ACCESSED;
+    });
+
+CBotCommandInline MLFeaturesInfoCommand("ml_features_info", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATED,
+    [](const CClient* pClient, const BotCommandArgs& args)
+    {
+        edict_t* pEntity = nullptr;
+        if (pClient)
+            pEntity = pClient->getPlayer();
+
+        CFeatureExtractor* pExtractor = CFeatureExtractorFactory::CreateExtractor();
+        if (!pExtractor) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML] Failed to create extractor");
+            return COMMAND_ERROR;
+        }
+
+        std::vector<std::string> names;
+        pExtractor->GetFeatureNames(names);
+
+        CBotGlobals::botMessage(pEntity, 0, "[ML] Feature Extractor Information:");
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   %s", pExtractor->GetDescription());
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   Feature count: %zu", pExtractor->GetFeatureCount());
+        CBotGlobals::botMessage(pEntity, 0, "[ML]   All features:");
+
+        for (size_t i = 0; i < names.size(); i++) {
+            CBotGlobals::botMessage(pEntity, 0, "[ML]     [%2zu] %s", i, names[i].c_str());
+        }
+
+        CFeatureExtractorFactory::DestroyExtractor(pExtractor);
         return COMMAND_ACCESSED;
     });
