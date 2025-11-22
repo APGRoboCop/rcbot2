@@ -8,6 +8,7 @@
 #include "bot_waypoint.h"
 #include "bot_waypoint_locations.h"
 #include "bot_navigator.h"
+#include "bot_squads.h"
 
 enum RCBotProfileVar : std::uint8_t {
 	RCBotProfile_iVisionTicks,
@@ -767,4 +768,254 @@ cell_t sm_RCBotIsStuck(IPluginContext *pContext, const cell_t *params) {
 	}
 
 	return bot->checkStuck();
+}
+
+//=============================================================================
+// Phase 5: Squad & Team Coordination Natives
+//=============================================================================
+
+/* native int RCBot2_CreateSquad(int leader); */
+cell_t sm_RCBotCreateSquad(IPluginContext *pContext, const cell_t *params) {
+	const int leader = params[1];
+
+	if (leader < 1 || leader > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid leader index %d", leader);
+	}
+
+	CBot* pLeaderBot = CBots::getBot(leader - 1);
+	if (!pLeaderBot) {
+		return pContext->ThrowNativeError("Leader index %d is not a RCBot", leader);
+	}
+
+	edict_t* pLeaderEdict = pLeaderBot->getEdict();
+	if (!pLeaderEdict || pLeaderEdict->IsFree()) {
+		return 0;
+	}
+
+	// Check if already a leader
+	CBotSquad* existingSquad = CBotSquads::FindSquadByLeader(pLeaderEdict);
+	if (existingSquad) {
+		return leader;
+	}
+
+	// Create new squad with leader as first member
+	CBotSquad* pSquad = CBotSquads::AddSquadMember(pLeaderEdict, pLeaderEdict);
+	if (pSquad) {
+		pLeaderBot->setSquad(pSquad);
+		return leader;
+	}
+
+	return -1;
+}
+
+/* native bool RCBot2_DestroySquad(int leader); */
+cell_t sm_RCBotDestroySquad(IPluginContext *pContext, const cell_t *params) {
+	const int leader = params[1];
+
+	if (leader < 1 || leader > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid leader index %d", leader);
+	}
+
+	CBot* pLeaderBot = CBots::getBot(leader - 1);
+	if (!pLeaderBot) {
+		return 0;
+	}
+
+	edict_t* pLeaderEdict = pLeaderBot->getEdict();
+	if (!pLeaderEdict || pLeaderEdict->IsFree()) {
+		return 0;
+	}
+
+	CBotSquad* pSquad = CBotSquads::FindSquadByLeader(pLeaderEdict);
+	if (pSquad) {
+		CBotSquads::RemoveSquad(pSquad);
+		return 1;
+	}
+
+	return 0;
+}
+
+/* native bool RCBot2_AddBotToSquad(int client, int leader); */
+cell_t sm_RCBotAddBotToSquad(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+	const int leader = params[2];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	if (leader < 1 || leader > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid leader index %d", leader);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	CBot* pLeaderBot = CBots::getBot(leader - 1);
+	if (!pLeaderBot) {
+		return pContext->ThrowNativeError("Leader index %d is not a RCBot", leader);
+	}
+
+	edict_t* pBotEdict = pBot->getEdict();
+	edict_t* pLeaderEdict = pLeaderBot->getEdict();
+
+	if (!pBotEdict || pBotEdict->IsFree() || !pLeaderEdict || pLeaderEdict->IsFree()) {
+		return 0;
+	}
+
+	CBotSquad* pSquad = CBotSquads::AddSquadMember(pLeaderEdict, pBotEdict);
+	if (pSquad) {
+		pBot->setSquad(pSquad);
+		return 1;
+	}
+
+	return 0;
+}
+
+/* native bool RCBot2_RemoveBotFromSquad(int client); */
+cell_t sm_RCBotRemoveBotFromSquad(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	if (!pBot->inSquad()) {
+		return 0;
+	}
+
+	edict_t* pBotEdict = pBot->getEdict();
+	if (!pBotEdict || pBotEdict->IsFree()) {
+		return 0;
+	}
+
+	CBotSquad* pSquad = pBot->getSquad();
+	if (pSquad) {
+		CBotSquads::removeSquadMember(pSquad, pBotEdict);
+		pBot->setSquad(nullptr);
+		return 1;
+	}
+
+	return 0;
+}
+
+/* native int RCBot2_GetBotSquadLeader(int client); */
+cell_t sm_RCBotGetBotSquadLeader(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	if (!pBot->inSquad()) {
+		return -1;
+	}
+
+	CBotSquad* pSquad = pBot->getSquad();
+	if (pSquad) {
+		edict_t* pLeader = pSquad->GetLeader();
+		if (pLeader && !pLeader->IsFree()) {
+			return engine->IndexOfEdict(pLeader);
+		}
+	}
+
+	return -1;
+}
+
+/* native int RCBot2_GetSquadMemberCount(int leader); */
+cell_t sm_RCBotGetSquadMemberCount(IPluginContext *pContext, const cell_t *params) {
+	const int leader = params[1];
+
+	if (leader < 1 || leader > gpGlobals->maxClients) {
+		return 0;
+	}
+
+	CBot* pLeaderBot = CBots::getBot(leader - 1);
+	if (!pLeaderBot) {
+		return 0;
+	}
+
+	edict_t* pLeaderEdict = pLeaderBot->getEdict();
+	if (!pLeaderEdict || pLeaderEdict->IsFree()) {
+		return 0;
+	}
+
+	CBotSquad* pSquad = CBotSquads::FindSquadByLeader(pLeaderEdict);
+	if (pSquad) {
+		return static_cast<int>(pSquad->numMembers());
+	}
+
+	return 0;
+}
+
+/* native int RCBot2_GetSquadMembers(int leader, int[] members, int maxsize); */
+cell_t sm_RCBotGetSquadMembers(IPluginContext *pContext, const cell_t *params) {
+	const int leader = params[1];
+	const int maxsize = params[3];
+
+	if (leader < 1 || leader > gpGlobals->maxClients) {
+		return 0;
+	}
+
+	if (maxsize <= 0) {
+		return 0;
+	}
+
+	CBot* pLeaderBot = CBots::getBot(leader - 1);
+	if (!pLeaderBot) {
+		return 0;
+	}
+
+	edict_t* pLeaderEdict = pLeaderBot->getEdict();
+	if (!pLeaderEdict || pLeaderEdict->IsFree()) {
+		return 0;
+	}
+
+	CBotSquad* pSquad = CBotSquads::FindSquadByLeader(pLeaderEdict);
+	if (!pSquad) {
+		return 0;
+	}
+
+	cell_t *addr;
+	pContext->LocalToPhysAddr(params[2], &addr);
+
+	const std::size_t numMembers = pSquad->numMembers();
+	int count = 0;
+
+	for (std::size_t i = 0; i < numMembers && count < maxsize; i++) {
+		edict_t* pMember = pSquad->getMember(i);
+		if (pMember && !pMember->IsFree()) {
+			addr[count++] = engine->IndexOfEdict(pMember);
+		}
+	}
+
+	return count;
+}
+
+/* native bool RCBot2_IsInSquad(int client); */
+cell_t sm_RCBotIsInSquad(IPluginContext *pContext, const cell_t *params) {
+	const int client = params[1];
+
+	if (client < 1 || client > gpGlobals->maxClients) {
+		return pContext->ThrowNativeError("Invalid client index %d", client);
+	}
+
+	CBot* pBot = CBots::getBot(client - 1);
+	if (!pBot) {
+		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
+	}
+
+	return pBot->inSquad();
 }

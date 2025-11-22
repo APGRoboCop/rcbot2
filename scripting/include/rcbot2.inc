@@ -453,6 +453,82 @@ forward void RCBot2_OnBotDamaged(int client, int attacker, int damage);
  */
 forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
 
+//=============================================================================
+// Phase 5: Squad & Team Coordination
+//=============================================================================
+
+/**
+ * Creates a new bot squad with a leader.
+ *
+ * @param leader        Client index of squad leader
+ * @return              Squad ID, or -1 on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_CreateSquad(int leader);
+
+/**
+ * Destroys a squad and removes all members.
+ *
+ * @param leader        Leader client index of squad to destroy
+ * @return              true on success, false on failure
+ */
+native bool RCBot2_DestroySquad(int leader);
+
+/**
+ * Adds a bot to a squad.
+ *
+ * @param client        Bot client index to add
+ * @param leader        Squad leader client index
+ * @return              true on success, false on failure
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_AddBotToSquad(int client, int leader);
+
+/**
+ * Removes a bot from its current squad.
+ *
+ * @param client        Bot client index
+ * @return              true on success, false if bot wasn't in a squad
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_RemoveBotFromSquad(int client);
+
+/**
+ * Gets the squad leader for a bot.
+ *
+ * @param client        Bot client index
+ * @return              Leader client index, or -1 if not in a squad
+ * @error               Invalid client index or client is not an RCBot
+ */
+native int RCBot2_GetBotSquadLeader(int client);
+
+/**
+ * Gets the number of members in a squad.
+ *
+ * @param leader        Squad leader client index
+ * @return              Number of members, or 0 if no squad
+ */
+native int RCBot2_GetSquadMemberCount(int leader);
+
+/**
+ * Gets all members of a squad.
+ *
+ * @param leader        Squad leader client index
+ * @param members       Array to store member client indices
+ * @param maxsize       Maximum size of array
+ * @return              Number of members written to array
+ */
+native int RCBot2_GetSquadMembers(int leader, int[] members, int maxsize);
+
+/**
+ * Checks if a bot is in a squad.
+ *
+ * @param client        Bot client index
+ * @return              true if in a squad, false otherwise
+ * @error               Invalid client index or client is not an RCBot
+ */
+native bool RCBot2_IsInSquad(int client);
+
 public Extension __ext_rcbot2 = {
 	name = "RCBot2",
 	file = "rcbot2.ext",

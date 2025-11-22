@@ -50,6 +50,16 @@ cell_t sm_RCBotGetGoalWaypointID(IPluginContext *pContext, const cell_t *params)
 cell_t sm_RCBotClearPath(IPluginContext *pContext, const cell_t *params);
 cell_t sm_RCBotIsStuck(IPluginContext *pContext, const cell_t *params);
 
+// Phase 5: Squad & Team Coordination
+cell_t sm_RCBotCreateSquad(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotDestroySquad(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotAddBotToSquad(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotRemoveBotFromSquad(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetBotSquadLeader(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetSquadMemberCount(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotGetSquadMembers(IPluginContext *pContext, const cell_t *params);
+cell_t sm_RCBotIsInSquad(IPluginContext *pContext, const cell_t *params);
+
 const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_IsWaypointAvailable", sm_RCBotIsWaypointAvailable },
 
@@ -95,6 +105,16 @@ const sp_nativeinfo_t g_RCBotNatives[] = {
 	{ "RCBot2_GetGoalWaypointID", sm_RCBotGetGoalWaypointID },
 	{ "RCBot2_ClearPath", sm_RCBotClearPath },
 	{ "RCBot2_IsStuck", sm_RCBotIsStuck },
+
+	// Phase 5: Squad & Team Coordination
+	{ "RCBot2_CreateSquad", sm_RCBotCreateSquad },
+	{ "RCBot2_DestroySquad", sm_RCBotDestroySquad },
+	{ "RCBot2_AddBotToSquad", sm_RCBotAddBotToSquad },
+	{ "RCBot2_RemoveBotFromSquad", sm_RCBotRemoveBotFromSquad },
+	{ "RCBot2_GetBotSquadLeader", sm_RCBotGetBotSquadLeader },
+	{ "RCBot2_GetSquadMemberCount", sm_RCBotGetSquadMemberCount },
+	{ "RCBot2_GetSquadMembers", sm_RCBotGetSquadMembers },
+	{ "RCBot2_IsInSquad", sm_RCBotIsInSquad },
 
 	{nullptr, nullptr},
 };
