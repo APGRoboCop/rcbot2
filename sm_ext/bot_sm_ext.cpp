@@ -3,6 +3,12 @@
 #include "bot_sm_ext.h"
 #include "bot_sm_natives.h"
 
+#ifdef TF2
+#include "bot_sm_natives_tf2.h"
+#include "bot_const.h"
+#include "bot_globals.h"
+#endif
+
 //SourceMod::IBinTools *sm_bintools = nullptr;
 SourceMod::ISDKTools *sm_sdktools = nullptr;
 //SourceMod::ISDKHooks *sm_sdkhooks = nullptr;
@@ -23,6 +29,12 @@ bool RCBotSourceModExt::OnExtensionLoad(IExtension *me, IShareSys *sys, char *er
 
 	sharesys->RegisterLibrary(myself, "RCBot2");
 	sharesys->AddNatives(myself, g_RCBotNatives);
+
+#ifdef TF2
+	// Register TF2-specific natives if running TF2
+	sharesys->AddNatives(myself, g_RCBotNativesTF2);
+#endif
+
 	return true;
 }
 
