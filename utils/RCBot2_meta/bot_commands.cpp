@@ -58,6 +58,9 @@ extern IVDebugOverlay* debugoverlay;
 #include "rcbot_subcmds/util.cpp"
 #include "rcbot_subcmds/waypoint.cpp"
 
+// ML/AI commands
+#include "bot_ml_commands.cpp"
+
 // temporarily declared at the bottom
 // CBotSubcommands *CBotGlobals :: m_pCommands;
 
