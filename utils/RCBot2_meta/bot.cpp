@@ -85,6 +85,9 @@
 
 #include "rcbot/logging.h"
 
+// ML/AI components
+#include "bot_recorder.h"
+
 #include <algorithm>
 #include <random>
 #include <vector>
@@ -1086,6 +1089,9 @@ void CBot :: think ()
 	}
 
 	m_fEnemyAimLerpTime = engine->Time();
+
+	// ML: Record frame for machine learning training data
+	CBotRecorder::GetInstance()->RecordFrame(this);
 }
 
 void CBot :: addVoiceCommand (const byte voiceCmd)

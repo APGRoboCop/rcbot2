@@ -1,0 +1,159 @@
+/*
+ *    This file is part of RCBot.
+ *
+ *    RCBot by Paul Murphy adapted from Botman's HPB Bot 2 template.
+ *
+ *    RCBot is free software; you can redistribute it and/or modify it
+ *    under the terms of the GNU General Public License as published by the
+ *    Free Software Foundation; either version 2 of the License, or (at
+ *    your option) any later version.
+ *
+ *    RCBot is distributed in the hope that it will be useful, but
+ *    WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with RCBot; if not, write to the Free Software Foundation,
+ *    Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifndef __BOT_FEATURES_H__
+#define __BOT_FEATURES_H__
+
+#include <vector>
+#include <string>
+
+class CBot;  // Forward declaration
+
+/**
+ * CFeatureExtractor - Base class for extracting ML features from game state
+ *
+ * Feature extractors convert the current game state into a normalized
+ * feature vector that can be fed to ML models for decision-making.
+ *
+ * Design principles:
+ * - All features normalized to [0, 1] or [-1, 1] ranges
+ * - Fixed feature vector size (consistent across frames)
+ * - Fast extraction (<0.1ms target)
+ * - Game-mode specific implementations
+ */
+class CFeatureExtractor {
+public:
+    virtual ~CFeatureExtractor() = default;
+
+    /**
+     * Extract features from current bot state
+     * @param pBot Bot to extract features from
+     * @param features Output vector (will be resized to GetFeatureCount())
+     */
+    virtual void Extract(CBot* pBot, std::vector<float>& features) = 0;
+
+    /**
+     * Get expected feature count
+     */
+    virtual size_t GetFeatureCount() const = 0;
+
+    /**
+     * Get human-readable feature names (for debugging)
+     * @param names Output vector of feature names
+     */
+    virtual void GetFeatureNames(std::vector<std::string>& names) const = 0;
+
+    /**
+     * Get feature description (what this extractor does)
+     */
+    virtual const char* GetDescription() const = 0;
+
+protected:
+    // Normalization helpers
+    static float NormalizeHealth(float health, float max_health);
+    static float NormalizeDistance(float distance, float max_distance = 4096.0f);
+    static float NormalizeAngle(float angle);  // Converts angle to [-1, 1]
+    static float NormalizeVelocity(float velocity, float max_velocity = 600.0f);
+    static void NormalizePosition(const Vector& pos, Vector& normalized);
+};
+
+/**
+ * CHL2DMFeatureExtractor - Feature extraction for Half-Life 2: Deathmatch
+ *
+ * HL2DM Feature Vector (56 features total):
+ *
+ * [0-11] Self State (12 features):
+ *   - Health (normalized 0-1)
+ *   - Armor (normalized 0-1)
+ *   - Position X, Y, Z (normalized -1 to 1)
+ *   - Velocity X, Y, Z (normalized -1 to 1)
+ *   - Current weapon ID (normalized 0-1)
+ *   - Primary ammo (normalized 0-1)
+ *   - On ground flag (0 or 1)
+ *
+ * [12-35] Nearby Enemies (24 features = 4 enemies × 6 features):
+ *   For each of 4 closest enemies:
+ *     - Relative distance (0-1, 0=far, 1=close)
+ *     - Relative angle horizontal (cos, sin) - 2 features
+ *     - Relative angle vertical (cos, sin) - 2 features
+ *     - Enemy health estimate (0-1)
+ *
+ * [36-47] Navigation (12 features):
+ *   - Distance to next waypoint (normalized)
+ *   - Waypoint direction (cos, sin) - 2 features
+ *   - Path length to goal (normalized)
+ *   - Nearest cover position (X, Y, Z normalized) - 3 features
+ *   - Distance to nearest cover (normalized)
+ *   - In cover flag (0 or 1)
+ *   - Has path flag (0 or 1)
+ *   - Stuck indicator (0-1)
+ *
+ * [48-55] Pickups (8 features):
+ *   - Nearest health pack: distance (0-1), direction (cos, sin) - 3 features
+ *   - Nearest ammo pack: distance (0-1), direction (cos, sin) - 3 features
+ *   - Nearest weapon: distance (0-1)
+ *   - Need health flag (0 or 1)
+ *
+ * Total: 56 features (within 48-64 target range)
+ */
+class CHL2DMFeatureExtractor : public CFeatureExtractor {
+public:
+    static constexpr size_t FEATURE_COUNT = 56;
+    static constexpr size_t MAX_ENEMIES = 4;
+
+    void Extract(CBot* pBot, std::vector<float>& features) override;
+    size_t GetFeatureCount() const override { return FEATURE_COUNT; }
+    void GetFeatureNames(std::vector<std::string>& names) const override;
+    const char* GetDescription() const override {
+        return "HL2DM Feature Extractor (56 features: 12 self + 24 enemies + 12 nav + 8 pickups)";
+    }
+
+private:
+    // Feature extraction sub-components
+    void ExtractSelfState(CBot* pBot, std::vector<float>& features, size_t offset);
+    void ExtractEnemies(CBot* pBot, std::vector<float>& features, size_t offset);
+    void ExtractNavigation(CBot* pBot, std::vector<float>& features, size_t offset);
+    void ExtractPickups(CBot* pBot, std::vector<float>& features, size_t offset);
+
+    // Helper methods
+    struct EnemyInfo {
+        edict_t* pEntity;
+        float distance;
+        Vector direction;
+        float health;
+    };
+
+    void GetNearestEnemies(CBot* pBot, std::vector<EnemyInfo>& enemies, size_t max_count);
+    Vector GetNearestHealthPack(CBot* pBot, float& distance);
+    Vector GetNearestAmmoPack(CBot* pBot, float& distance);
+    Vector GetNearestCover(CBot* pBot, float& distance);
+};
+
+/**
+ * Feature extractor factory
+ * Returns the appropriate feature extractor for the current game mode
+ */
+class CFeatureExtractorFactory {
+public:
+    static CFeatureExtractor* CreateExtractor();
+    static void DestroyExtractor(CFeatureExtractor* pExtractor);
+};
+
+#endif // __BOT_FEATURES_H__

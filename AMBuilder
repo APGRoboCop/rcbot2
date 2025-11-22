@@ -31,6 +31,10 @@ sourceFiles = [
   "utils/RCBot2_meta/bot_mtrand.cpp",
   #"utils/RCBot2_meta/bot_navmesh.cpp",
   "utils/RCBot2_meta/bot_perceptron.cpp",
+  "utils/RCBot2_meta/bot_recorder.cpp",  # ML data collection
+  "utils/RCBot2_meta/bot_onnx.cpp",      # ML inference (ONNX Runtime)
+  "utils/RCBot2_meta/bot_features.cpp",  # ML feature extraction
+  "utils/RCBot2_meta/bot_ml_controller.cpp",  # ML bot control
   "utils/RCBot2_meta/bot_profile.cpp",
   "utils/RCBot2_meta/bot_profiling.cpp",
   "utils/RCBot2_meta/bot_schedule.cpp",
