@@ -184,6 +184,7 @@ public:
 	bool hasPassEdict () const { return (m_bitsPass&BITS_SCHED_PASS_EDICT)>0; }
 
 	void setID (const eBotSchedule iId) { m_iSchedId = iId; }
+	eBotSchedule getID() const { return m_iSchedId; }
 
 private:
 	std::deque<CBotTask*> m_Tasks;
