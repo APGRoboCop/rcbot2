@@ -1,0 +1,341 @@
+{
+  "version": "1.0",
+  "description": "Machine Learning feature configuration for RCBot2 - HL2DM (Half-Life 2: Deathmatch)",
+  "game": "hl2dm",
+  "last_updated": "2025-11-22",
+
+  "feature_groups": {
+    "self_state": {
+      "enabled": true,
+      "description": "Bot's own state information",
+      "feature_count": 8,
+      "features": [
+        {
+          "name": "health",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Normalized health (0=dead, 1=full health 100)"
+        },
+        {
+          "name": "armor",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Normalized armor (0-100 HEV suit)"
+        },
+        {
+          "name": "weapon_slot",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "description": "Current weapon slot (0-5, one-hot encoded)"
+        },
+        {
+          "name": "ammo_primary",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Primary ammo (normalized by weapon max)"
+        },
+        {
+          "name": "velocity",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Movement speed (0-320 units/sec normalized)"
+        },
+        {
+          "name": "on_ground",
+          "type": "bool",
+          "description": "Is bot on ground (1) or airborne (0)"
+        }
+      ]
+    },
+
+    "visible_enemies": {
+      "enabled": true,
+      "description": "Information about visible enemy players",
+      "max_enemies": 3,
+      "features_per_enemy": 8,
+      "feature_count": 24,
+      "features": [
+        {
+          "name": "enemy_exists",
+          "type": "bool",
+          "description": "Is this enemy slot occupied"
+        },
+        {
+          "name": "enemy_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to enemy (0=far 4096 units, 1=close 0 units)"
+        },
+        {
+          "name": "enemy_angle_horizontal_cos",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Cosine of horizontal angle to enemy"
+        },
+        {
+          "name": "enemy_angle_horizontal_sin",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Sine of horizontal angle to enemy"
+        },
+        {
+          "name": "enemy_health_estimate",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Estimated enemy health (0-1, may be inaccurate)"
+        },
+        {
+          "name": "enemy_weapon_advantage",
+          "type": "bool",
+          "description": "Does enemy have weapon advantage (1) or not (0)"
+        },
+        {
+          "name": "enemy_is_moving",
+          "type": "bool",
+          "description": "Is enemy moving (1) or stationary (0)"
+        },
+        {
+          "name": "enemy_line_of_sight",
+          "type": "bool",
+          "description": "Direct line of sight to enemy (1) or occluded (0)"
+        }
+      ]
+    },
+
+    "environment_pickups": {
+      "enabled": true,
+      "description": "Nearby pickups and map items",
+      "feature_count": 16,
+      "features": [
+        {
+          "name": "nearest_health_pack_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest health pack (0-4096 normalized)"
+        },
+        {
+          "name": "nearest_health_pack_angle_cos",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to health pack (cosine)"
+        },
+        {
+          "name": "nearest_health_pack_angle_sin",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to health pack (sine)"
+        },
+        {
+          "name": "nearest_weapon_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest weapon pickup"
+        },
+        {
+          "name": "nearest_weapon_angle_cos",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to weapon (cosine)"
+        },
+        {
+          "name": "nearest_weapon_angle_sin",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to weapon (sine)"
+        },
+        {
+          "name": "nearest_ammo_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to nearest ammo pack"
+        },
+        {
+          "name": "nearest_ammo_angle_cos",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to ammo (cosine)"
+        },
+        {
+          "name": "nearest_ammo_angle_sin",
+          "type": "float",
+          "min": -1.0,
+          "max": 1.0,
+          "description": "Horizontal angle to ammo (sine)"
+        },
+        {
+          "name": "cover_front_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover in front"
+        },
+        {
+          "name": "cover_left_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover on left"
+        },
+        {
+          "name": "cover_right_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover on right"
+        },
+        {
+          "name": "cover_back_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to cover behind"
+        },
+        {
+          "name": "height_advantage",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Height advantage (0=low ground, 0.5=equal, 1=high ground)"
+        }
+      ]
+    },
+
+    "navigation": {
+      "enabled": true,
+      "description": "Waypoint navigation information",
+      "feature_count": 8,
+      "features": [
+        {
+          "name": "current_waypoint_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Distance to current waypoint goal"
+        },
+        {
+          "name": "path_to_item_distance",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Path distance to nearest desired item"
+        },
+        {
+          "name": "is_stuck",
+          "type": "bool",
+          "description": "Bot is stuck and needs to unstick"
+        },
+        {
+          "name": "fall_damage_risk",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Risk of fall damage if continue forward (0=safe, 1=fatal)"
+        }
+      ]
+    },
+
+    "recent_history": {
+      "enabled": true,
+      "description": "Recent performance and events",
+      "feature_count": 8,
+      "time_window_seconds": 5.0,
+      "features": [
+        {
+          "name": "damage_dealt_recent",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Damage dealt in last 5 seconds (0-500 normalized)"
+        },
+        {
+          "name": "damage_taken_recent",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Damage taken in last 5 seconds (0-200 normalized)"
+        },
+        {
+          "name": "kills_recent",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "description": "Kills in last 60 seconds"
+        },
+        {
+          "name": "deaths_recent",
+          "type": "int",
+          "min": 0,
+          "max": 5,
+          "description": "Deaths in last 60 seconds"
+        },
+        {
+          "name": "time_since_spawn",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Time since last respawn (0=just spawned, 1=120+ seconds)"
+        },
+        {
+          "name": "time_since_damage_taken",
+          "type": "float",
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Time since last took damage (0=just hit, 1=10+ seconds safe)"
+        }
+      ]
+    }
+  },
+
+  "normalization": {
+    "method": "min_max",
+    "description": "Normalization method: min_max (0-1 scaling)",
+    "running_stats": false,
+    "clip_outliers": true,
+    "outlier_threshold": 3.0
+  },
+
+  "total_features": {
+    "self_state": 8,
+    "visible_enemies": 24,
+    "environment_pickups": 16,
+    "navigation": 8,
+    "recent_history": 8,
+    "total": 64,
+    "note": "64 features total - much simpler than TF2's 96 features (no classes, no objectives)"
+  },
+
+  "hl2dm_specific_notes": {
+    "weapons": [
+      "Crowbar (melee)",
+      "Pistol",
+      "357 Magnum",
+      "SMG",
+      "Shotgun",
+      "Crossbow",
+      "Grenade",
+      "RPG",
+      "Gravity Gun",
+      "Pulse Rifle"
+    ],
+    "no_classes": "All players have identical abilities (unlike TF2)",
+    "pure_deathmatch": "No objectives, pure kill-based gameplay",
+    "simpler_than_tf2": "~33% fewer features than TF2 (64 vs 96)"
+  }
+}
