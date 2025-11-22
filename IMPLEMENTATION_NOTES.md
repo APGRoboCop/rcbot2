@@ -711,6 +711,119 @@ CHL2DMWaypointManager::getInstance().saveMetadata("dm_lockdown");
 - Teleport pathfinding
 - Respawn prediction
 
+### HL2DM NPC Combat System ✅
+
+**Additional Implementation**: Comprehensive hostile NPC detection and combat system for cooperative HL2DM maps (coop_*, js_coop_*, pve_*).
+
+#### NPC Combat Features ✅
+
+**Cooperative Mode Detection**:
+- ✅ **Automatic map detection** - Detects coop_*, js_coop_*, pve_* prefixes
+- ✅ **NPC count analysis** - Identifies coop mode by hostile NPC presence
+- ✅ **Manual override** - Can force cooperative mode
+- ✅ **Team detection** - Identifies single-team gameplay
+
+**NPC Database** (28+ hostile NPCs):
+- ✅ **Threat level classification** - 6 levels (Harmless → Boss)
+- ✅ **Combat behavior types** - Melee, Ranged, Hybrid, Vehicle, Special
+- ✅ **Detailed statistics** - Health, range, detection, priority
+- ✅ **Complete HL2 enemy roster** - All combine, zombies, antlions, synths
+
+**Threat Classification**:
+- HARMLESS (0): Scanners, friendly NPCs
+- LOW (1): Headcrabs, manhacks, zombies (Priority 20-40)
+- MEDIUM (2): Combine soldiers, antlions, fast zombies (Priority 45-60)
+- HIGH (3): Poison zombies, antlion guards, hunters (Priority 70-85)
+- CRITICAL (4): Gunships, helicopters (Priority 95)
+- BOSS (5): Striders, custom bosses (Priority 100)
+
+**NPC Tracking & Targeting**:
+- ✅ **Real-time NPC tracking** - Monitors all hostile NPCs
+- ✅ **Priority-based targeting** - Weighted scoring algorithm
+- ✅ **Threat assessment** - Distance + threat level + priority
+- ✅ **Health monitoring** - Track NPC health
+- ✅ **Position tracking** - Last known location
+- ✅ **Target selection** - Best, nearest, highest threat
+
+**Combat Intelligence**:
+- ✅ **Retreat logic** - Know when to fall back (low health vs high threat)
+- ✅ **Combat distance** - Optimal engagement range per NPC type
+- ✅ **Special tactics** - Armored/flying enemies flagged
+- ✅ **Area awareness** - Count NPCs in radius by threat level
+- ✅ **Combat zones** - Mark and track active battle areas
+
+**Waypoint Integration**:
+- ✅ **Combat position finding** - Waypoints at optimal range
+- ✅ **Cover from NPCs** - Defensive waypoints
+- ✅ **Retreat waypoints** - Safe fallback points
+- ✅ **Combat zone tracking** - Active battle area marking
+
+#### Files Created
+
+**9. `utils/RCBot2_meta/bot_npc_combat.h` (247 lines)**
+- `ENPCThreatLevel` - 6-level threat system
+- `ENPCBehavior` - Combat behavior types
+- `NPCInfo` - Complete NPC statistics
+- `TrackedNPC` - Real-time tracking data
+- `CCoopModeDetector` - Map mode detection
+- `CNPCDatabase` - 28+ NPC database
+- `CNPCCombatManager` - Tracking & targeting
+- `CNPCWaypointManager` - Waypoint integration
+
+**10. `utils/RCBot2_meta/bot_npc_combat.cpp` (671 lines)**
+- 28 NPC entries with complete stats
+- Cooperative mode detection
+- NPC tracking and cleanup
+- Target selection algorithms
+- Priority scoring system
+- Combat waypoint finding
+- Retreat and cover logic
+
+#### Usage Examples
+
+**Mode Detection**:
+```cpp
+CCoopModeDetector& detector = CCoopModeDetector::getInstance();
+if (detector.isCooperativeMode()) {
+    // Fight NPCs instead of players
+}
+```
+
+**NPC Targeting**:
+```cpp
+CNPCCombatManager& mgr = CNPCCombatManager::getInstance();
+mgr.scanForNPCs(bot.getOrigin(), 3000.0f);
+
+edict_t* pTarget = mgr.getBestNPCTarget(pBot);
+ENPCThreatLevel threat = mgr.getThreatLevel(pTarget);
+
+if (mgr.shouldRetreat(pBot, pTarget)) {
+    // Fall back!
+}
+```
+
+**Combat Waypoints**:
+```cpp
+CNPCWaypointManager& wptMgr = CNPCWaypointManager::getInstance();
+int iCombat = wptMgr.findCombatPosition(npcPos, botPos, 500.0f);
+int iCover = wptMgr.findCoverFromNPC(npcPos, botPos);
+```
+
+#### NPC Database Highlights
+
+**Boss Tier**: Strider (100), Gunship (95), Helicopter (95)
+**High Tier**: Antlion Guard (85), Hunter (80), Poison Zombie (70)
+**Medium Tier**: Combine Soldier (60), Zombine (60), Antlions (50-55)
+**Low Tier**: Metrocops (40), Manhacks (35), Zombies (30), Headcrabs (20-25)
+
+#### Benefits
+
+- ✅ Bots can play cooperative maps (coop_*, js_coop_*)
+- ✅ Intelligent NPC threat assessment
+- ✅ Proper target prioritization (Strider > Zombie)
+- ✅ Smart positioning and retreat logic
+- ✅ Extensible for new NPCs
+
 ---
 
 ## 6. Performance Optimizations 🔶 PARTIALLY COMPLETED
@@ -847,7 +960,7 @@ For SM natives and CSS buy menu:
 1. ✅ **Enhanced Game Detection System** - Fully implemented and merged (commit 38eff98)
 2. ✅ **Extended SourceMod Natives** - Phases 1-7 completed (93+ natives, commits 70d6b56-ba8839e)
 3. 🔶 **Performance Optimizations** - HL2DM optimizations completed (commit 06d60d3)
-4. ✅ **Waypoint System Enhancements** - Fully implemented (8 new files, ~2300 lines)
+4. ✅ **Waypoint System Enhancements** - Fully implemented (10 new files, ~3200 lines)
 
 **In Progress**:
 - None currently
@@ -865,6 +978,7 @@ For SM natives and CSS buy menu:
 - Enhanced branch now has production-ready SourceMod integration
 - **NEW**: Intelligent waypoint system with auto-generation, undo/redo, and compressed format
 - **NEW**: HL2DM-specific waypoint system with weapon tracking and interactable entities
+- **NEW**: Comprehensive NPC combat system for cooperative HL2DM maps
 
 **Waypoint System Highlights**:
 - Adaptive auto-waypoint spacing (50-70% better placement)
@@ -876,6 +990,9 @@ For SM natives and CSS buy menu:
 - **HL2DM**: 12 weapon types with priority system (RPG→Crowbar)
 - **HL2DM**: Button/door/teleport waypoint support
 - **HL2DM**: Metadata system for extended waypoint data
+- **HL2DM**: 28+ hostile NPCs with threat classification
+- **HL2DM**: Cooperative mode detection (coop_*, js_coop_*)
+- **HL2DM**: Intelligent NPC targeting and retreat logic
 
 **Next Priorities**:
 1. SourceMod plugin suite development (.sp files)
