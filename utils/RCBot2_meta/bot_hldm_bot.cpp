@@ -645,7 +645,7 @@ void CHLDMBot :: modThink ()
 		{
 			edict_t* pPrevCarrying = m_pCarryingObject;
 			m_pCarryingObject = CClassInterface::gravityGunObject(m_pCurrentWeapon);
-			bCarry = CClassInterface::gravityGunObject(m_pCurrentWeapon) == m_NearestPhysObj.get();
+			bCarry = m_pCarryingObject == m_NearestPhysObj.get();
 
 #ifdef ENABLE_SOURCEMOD_INTEGRATION
 			// Track gravity gun pickup events
@@ -800,36 +800,33 @@ bool CHLDMBot :: setVisible ( edict_t *pEntity, const bool bVisible )
 	fDist = distanceFrom(pEntity);
 
 	// if no draw effect it is invisible
-	if ( bValid && bVisible && !(CClassInterface::getEffects(pEntity)&EF_NODRAW) ) 
+	if ( bValid && bVisible && !(CClassInterface::getEffects(pEntity)&EF_NODRAW) )
 	{
 		const char* szClassname = pEntity->GetClassName();
 
-		if ( std::strncmp(szClassname,"item_ammo",9) == 0 && 
-			( !m_pAmmoKit.get() || fDist<distanceFrom(m_pAmmoKit.get()) ))
+		if ( std::strncmp(szClassname,"item_ammo",9) == 0 )
 		{
-			m_pAmmoKit = pEntity;
+			if ( !m_pAmmoKit.get() || fDist < distanceFrom(m_pAmmoKit.get()) )
+				m_pAmmoKit = pEntity;
 		}
-		else if ( std::strncmp(szClassname,"item_health",11) == 0 && 
-			( !m_pHealthKit.get() || fDist<distanceFrom(m_pHealthKit.get()) ))
+		else if ( std::strncmp(szClassname,"item_health",11) == 0 )
 		{
-			//if ( getHealthPercent() < 1.0f )
-			//	updateCondition(CONDITION_CHANGED);
-
-			m_pHealthKit = pEntity;
+			if ( !m_pHealthKit.get() || fDist < distanceFrom(m_pHealthKit.get()) )
+				m_pHealthKit = pEntity;
 		}
-		else if ( std::strcmp(szClassname,"item_battery") == 0 && 
-			( !m_pBattery.get() || fDist<distanceFrom(m_pBattery.get()) ))
+		else if ( std::strcmp(szClassname,"item_battery") == 0 )
 		{
-			m_pBattery = pEntity;
+			if ( !m_pBattery.get() || fDist < distanceFrom(m_pBattery.get()) )
+				m_pBattery = pEntity;
 		}
-		else if ( ( std::strcmp(szClassname,"func_breakable") == 0 || std::strncmp(szClassname,"prop_physics",12)==0 ) && CClassInterface::getPlayerHealth(pEntity)>0 &&
-			( !m_NearestBreakable.get() || fDist<distanceFrom(m_NearestBreakable.get()) ))
+		else if ( ( std::strcmp(szClassname,"func_breakable") == 0 || std::strncmp(szClassname,"prop_physics",12)==0 ) && CClassInterface::getPlayerHealth(pEntity)>0 )
 		{
-			m_NearestBreakable = pEntity;
+			if ( !m_NearestBreakable.get() || fDist < distanceFrom(m_NearestBreakable.get()) )
+				m_NearestBreakable = pEntity;
 		}
 		else if ( pEntity != m_pNearestButton && std::strcmp(szClassname,"func_button") == 0 )
 		{
-			if ( !m_pNearestButton.get() || fDist<distanceFrom(m_pNearestButton.get()) )
+			if ( !m_pNearestButton.get() || fDist < distanceFrom(m_pNearestButton.get()) )
 				m_pNearestButton = pEntity;
 		}
 		// covered above
@@ -840,62 +837,56 @@ bool CHLDMBot :: setVisible ( edict_t *pEntity, const bool bVisible )
 		}*/
 		else if ( pEntity != m_pAmmoCrate && std::strcmp(szClassname,"item_ammo_crate") == 0 )
 		{
-			if ( !m_pAmmoCrate.get() || fDist<distanceFrom(m_pAmmoCrate.get()) )
+			if ( !m_pAmmoCrate.get() || fDist < distanceFrom(m_pAmmoCrate.get()) )
 				m_pAmmoCrate = pEntity;
 		}
-		else if ( pEntity != m_FailedPhysObj && std::strncmp(szClassname,"prop_physics",12) == 0 && 
-			( !m_NearestPhysObj.get() || fDist<distanceFrom(m_NearestPhysObj.get()) ))
+		else if ( pEntity != m_FailedPhysObj && std::strncmp(szClassname,"prop_physics",12) == 0 )
 		{
-			//if ( !m_bCarryingObject )
-			//	updateCondition(CONDITION_CHANGED);
-
-			m_NearestPhysObj = pEntity;
+			if ( !m_NearestPhysObj.get() || fDist < distanceFrom(m_NearestPhysObj.get()) )
+				m_NearestPhysObj = pEntity;
 		}
-		else if ( std::strncmp(szClassname,"item_suitcharger",16) == 0 && 
-			( !m_pCharger.get() || fDist<distanceFrom(m_pCharger.get()) ))
+		else if ( std::strncmp(szClassname,"item_suitcharger",16) == 0 )
 		{
-			if ( m_pCharger.get() )
+			if ( !m_pCharger.get() || fDist < distanceFrom(m_pCharger.get()) )
 			{
-				// less juice than the current one I see
-				if ( CClassInterface::getAnimCycle(m_pCharger) < CClassInterface::getAnimCycle(pEntity) )
+				if ( m_pCharger.get() )
 				{
-					return bValid;
+					// less juice than the current one I see
+					if ( CClassInterface::getAnimCycle(m_pCharger) < CClassInterface::getAnimCycle(pEntity) )
+					{
+						return bValid;
+					}
 				}
+
+				if ( m_pPlayerInfo->GetArmorValue() < 50 )
+					updateCondition(CONDITION_CHANGED);
+
+				m_pCharger = pEntity;
 			}
-
-			if ( m_pPlayerInfo->GetArmorValue() < 50 )
-				updateCondition(CONDITION_CHANGED);
-
-			m_pCharger = pEntity;
 		}
-		else if ( std::strncmp(szClassname,"item_healthcharger",18) == 0 && 
-			( !m_pHealthCharger.get() || fDist<distanceFrom(m_pHealthCharger.get()) ))
+		else if ( std::strncmp(szClassname,"item_healthcharger",18) == 0 )
 		{
-			if ( m_pHealthCharger.get() )
+			if ( !m_pHealthCharger.get() || fDist < distanceFrom(m_pHealthCharger.get()) )
 			{
-				// less juice than the current one I see - forget it
-				if ( CClassInterface::getAnimCycle(m_pHealthCharger) < CClassInterface::getAnimCycle(pEntity) )
+				if ( m_pHealthCharger.get() )
 				{
-					return bValid;
+					// less juice than the current one I see - forget it
+					if ( CClassInterface::getAnimCycle(m_pHealthCharger) < CClassInterface::getAnimCycle(pEntity) )
+					{
+						return bValid;
+					}
 				}
+
+				if ( getHealthPercent() < 1.0f )
+					updateCondition(CONDITION_CHANGED); // update tasks
+
+				m_pHealthCharger = pEntity;
 			}
-
-			if ( getHealthPercent() < 1.0f )
-				updateCondition(CONDITION_CHANGED); // update tasks
-
-			m_pHealthCharger = pEntity;
 		}
-		else if ( std::strncmp(szClassname,"weapon_",7) == 0 && 
-			( !m_pNearbyWeapon.get() || fDist<distanceFrom(m_pNearbyWeapon.get()) ))
+		else if ( std::strncmp(szClassname,"weapon_",7) == 0 )
 		{
-			/*static CWeapon *pWeapon;
-
-			pWeapon = CWeapons::getWeapon(pEntity->GetClassName());
-
-			if ( pWeapon && !m_pWeapons->hasWeapon(pWeapon->getID()) )
-				updateCondition(CONDITION_CHANGED);*/
-
-			m_pNearbyWeapon = pEntity;
+			if ( !m_pNearbyWeapon.get() || fDist < distanceFrom(m_pNearbyWeapon.get()) )
+				m_pNearbyWeapon = pEntity;
 		}
 	}
 	else
