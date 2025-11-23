@@ -308,17 +308,19 @@ install_ambuild() {
 
     if [ "$AUTO_INSTALL" = true ] || confirm "Install AMBuild now?"; then
         # Install as root if running as root, otherwise use --user
+        # Ubuntu 24.x requires --break-system-packages for system-wide install
         if [ "$EUID" -eq 0 ]; then
-            python3 -m pip install git+https://github.com/alliedmodders/ambuild || {
+            log_info "Installing AMBuild system-wide (using --break-system-packages for Ubuntu 24.x)..."
+            python3 -m pip install --break-system-packages git+https://github.com/alliedmodders/ambuild || {
                 log_error "Failed to install AMBuild"
-                log_info "You can install manually with: python3 -m pip install git+https://github.com/alliedmodders/ambuild"
+                log_info "Try manually: python3 -m pip install --break-system-packages git+https://github.com/alliedmodders/ambuild"
                 FAILED_CHECKS+=("ambuild")
                 return 1
             }
         else
             python3 -m pip install --user git+https://github.com/alliedmodders/ambuild || {
                 log_error "Failed to install AMBuild"
-                log_info "You can install manually with: python3 -m pip install --user git+https://github.com/alliedmodders/ambuild"
+                log_info "Try manually: python3 -m pip install --user git+https://github.com/alliedmodders/ambuild"
                 FAILED_CHECKS+=("ambuild")
                 return 1
             }
@@ -371,7 +373,8 @@ install_python_ml_packages() {
         if [ "$AUTO_INSTALL" = true ] || confirm "Install missing ML packages?"; then
             log_action "Installing ML packages..."
             if [ "$EUID" -eq 0 ]; then
-                python3 -m pip install "${missing_packages[@]}" || {
+                # Ubuntu 24.x requires --break-system-packages
+                python3 -m pip install --break-system-packages "${missing_packages[@]}" || {
                     log_warning "Some ML packages failed to install (this is optional)"
                 }
             else
