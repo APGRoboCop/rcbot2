@@ -134,15 +134,50 @@ confirm() {
 
 check_root() {
     if [ "$EUID" -eq 0 ]; then
-        log_error "This script should not be run as root. It will use sudo when needed."
-        exit 1
+        log_warning "Running as root. Files will be owned by root."
+
+        # Get the actual user if running via sudo
+        if [ -n "$SUDO_USER" ]; then
+            ACTUAL_USER="$SUDO_USER"
+            ACTUAL_UID=$(id -u "$SUDO_USER")
+            ACTUAL_GID=$(id -g "$SUDO_USER")
+            log_info "Will set ownership to user: $ACTUAL_USER (${ACTUAL_UID}:${ACTUAL_GID})"
+        else
+            ACTUAL_USER=""
+            ACTUAL_UID=""
+            ACTUAL_GID=""
+            log_warning "Running as root directly (not via sudo). Files will be owned by root."
+        fi
+    else
+        ACTUAL_USER="$USER"
+        ACTUAL_UID=$(id -u)
+        ACTUAL_GID=$(id -g)
     fi
 }
 
 create_directories() {
     log_action "Creating build directories..."
-    mkdir -p "$BUILD_LOGS_DIR"
-    mkdir -p "$DEPS_DIR"
+
+    # Create directories with proper error handling
+    if ! mkdir -p "$BUILD_LOGS_DIR" 2>/dev/null; then
+        log_error "Failed to create build-logs directory: $BUILD_LOGS_DIR"
+        log_error "Try running with sudo: sudo ./build-linux.sh --auto"
+        exit 1
+    fi
+
+    if ! mkdir -p "$DEPS_DIR" 2>/dev/null; then
+        log_error "Failed to create dependencies directory: $DEPS_DIR"
+        log_error "Try running with sudo: sudo ./build-linux.sh --auto"
+        exit 1
+    fi
+
+    # Fix ownership if running as sudo
+    if [ "$EUID" -eq 0 ] && [ -n "$ACTUAL_USER" ]; then
+        chown -R "${ACTUAL_UID}:${ACTUAL_GID}" "$BUILD_LOGS_DIR" 2>/dev/null || true
+        chown -R "${ACTUAL_UID}:${ACTUAL_GID}" "$DEPS_DIR" 2>/dev/null || true
+        log_info "Set ownership to $ACTUAL_USER"
+    fi
+
     log_success "Directories created"
 }
 
@@ -177,10 +212,19 @@ install_base_dependencies() {
     fi
 
     log_action "Updating package lists..."
-    sudo apt-get update -qq || {
-        log_error "Failed to update package lists"
-        exit 1
-    }
+
+    # Use sudo only if not already root
+    if [ "$EUID" -eq 0 ]; then
+        apt-get update -qq || {
+            log_error "Failed to update package lists"
+            exit 1
+        }
+    else
+        sudo apt-get update -qq || {
+            log_error "Failed to update package lists"
+            exit 1
+        }
+    fi
 
     local packages=(
         build-essential
@@ -206,10 +250,17 @@ install_base_dependencies() {
             log_success "$package: Already installed"
         else
             log_action "Installing $package..."
-            sudo apt-get install -y -qq "$package" || {
-                log_error "Failed to install $package"
-                FAILED_CHECKS+=("$package")
-            }
+            if [ "$EUID" -eq 0 ]; then
+                apt-get install -y -qq "$package" || {
+                    log_error "Failed to install $package"
+                    FAILED_CHECKS+=("$package")
+                }
+            else
+                sudo apt-get install -y -qq "$package" || {
+                    log_error "Failed to install $package"
+                    FAILED_CHECKS+=("$package")
+                }
+            fi
         fi
     done
 
@@ -256,12 +307,22 @@ install_ambuild() {
     log_action "Installing AMBuild from GitHub..."
 
     if [ "$AUTO_INSTALL" = true ] || confirm "Install AMBuild now?"; then
-        python3 -m pip install --user git+https://github.com/alliedmodders/ambuild || {
-            log_error "Failed to install AMBuild"
-            log_info "You can install manually with: python3 -m pip install --user git+https://github.com/alliedmodders/ambuild"
-            FAILED_CHECKS+=("ambuild")
-            return 1
-        }
+        # Install as root if running as root, otherwise use --user
+        if [ "$EUID" -eq 0 ]; then
+            python3 -m pip install git+https://github.com/alliedmodders/ambuild || {
+                log_error "Failed to install AMBuild"
+                log_info "You can install manually with: python3 -m pip install git+https://github.com/alliedmodders/ambuild"
+                FAILED_CHECKS+=("ambuild")
+                return 1
+            }
+        else
+            python3 -m pip install --user git+https://github.com/alliedmodders/ambuild || {
+                log_error "Failed to install AMBuild"
+                log_info "You can install manually with: python3 -m pip install --user git+https://github.com/alliedmodders/ambuild"
+                FAILED_CHECKS+=("ambuild")
+                return 1
+            }
+        fi
 
         log_success "AMBuild installed successfully"
         DEPENDENCY_STATUS[ambuild]="installed"
@@ -309,9 +370,15 @@ install_python_ml_packages() {
 
         if [ "$AUTO_INSTALL" = true ] || confirm "Install missing ML packages?"; then
             log_action "Installing ML packages..."
-            python3 -m pip install --user "${missing_packages[@]}" || {
-                log_warning "Some ML packages failed to install (this is optional)"
-            }
+            if [ "$EUID" -eq 0 ]; then
+                python3 -m pip install "${missing_packages[@]}" || {
+                    log_warning "Some ML packages failed to install (this is optional)"
+                }
+            else
+                python3 -m pip install --user "${missing_packages[@]}" || {
+                    log_warning "Some ML packages failed to install (this is optional)"
+                }
+            fi
         else
             log_info "Skipped ML package installation (only needed for training)"
         fi
@@ -635,6 +702,11 @@ build_project() {
     local error_log="${BUILD_LOGS_DIR}/errors-${config}-${TIMESTAMP}.log"
     local summary_log="${BUILD_LOGS_DIR}/summary-${config}-${TIMESTAMP}.txt"
 
+    # Fix ownership of build directory if running as sudo
+    if [ "$EUID" -eq 0 ] && [ -n "$ACTUAL_USER" ]; then
+        chown -R "${ACTUAL_UID}:${ACTUAL_GID}" "$build_dir" 2>/dev/null || true
+    fi
+
     log_info "Build log: $build_log"
     log_info "Error log: $error_log"
 
@@ -717,6 +789,13 @@ PYTHON_SCRIPT
     } > "$summary_log"
 
     cat "$summary_log"
+
+    # Fix ownership of all created files if running as sudo
+    if [ "$EUID" -eq 0 ] && [ -n "$ACTUAL_USER" ]; then
+        chown -R "${ACTUAL_UID}:${ACTUAL_GID}" "$BUILD_LOGS_DIR" 2>/dev/null || true
+        chown -R "${ACTUAL_UID}:${ACTUAL_GID}" "$build_dir" 2>/dev/null || true
+        log_info "Set ownership of build artifacts to $ACTUAL_USER"
+    fi
 
     cd "$SCRIPT_DIR"
 
