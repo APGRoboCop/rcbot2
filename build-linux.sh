@@ -617,18 +617,20 @@ configure_build() {
 
     log_section "Configuring ${config} Build"
 
-    # Set paths
-    local hl2sdk_root="${DEPS_DIR}/hl2sdk"
-    local mms_path="${DEPS_DIR}/metamod-source"
+    # Use git submodules paths instead of separate dependencies directory
+    local hl2sdk_root="${SCRIPT_DIR}/alliedmodders"
+    local mms_path="${SCRIPT_DIR}/alliedmodders/metamod-source"
 
     # Check if paths exist
     if [ ! -d "$hl2sdk_root" ]; then
-        log_error "HL2SDK not found: $hl2sdk_root"
+        log_error "AlliedModders submodules directory not found: $hl2sdk_root"
+        log_error "Run: git submodule update --init --recursive"
         return 1
     fi
 
     if [ ! -d "$mms_path" ]; then
         log_error "Metamod:Source not found: $mms_path"
+        log_error "Run: git submodule update --init alliedmodders/metamod-source"
         return 1
     fi
 
