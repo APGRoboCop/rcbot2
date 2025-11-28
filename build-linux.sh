@@ -473,6 +473,65 @@ download_metamod() {
     log_success "Metamod:Source ready"
 }
 
+download_hl2sdk_manifests() {
+    log_section "Checking HL2SDK Manifests"
+
+    local manifests_dir="${SCRIPT_DIR}/hl2sdk-manifests"
+    local sdkhelpers_file="${manifests_dir}/SdkHelpers.ambuild"
+
+    # Check if manifests are already available
+    if [ -f "$sdkhelpers_file" ]; then
+        # Validate it's not an HTML error page
+        if grep -q "404: Not Found\|<html>\|<HTML>" "$sdkhelpers_file" 2>/dev/null; then
+            log_error "SdkHelpers.ambuild contains HTML error page (corrupted)"
+            log_warning "Removing corrupted file and re-downloading..."
+            rm -f "$sdkhelpers_file"
+        else
+            log_success "HL2SDK manifests already present: $manifests_dir"
+            DEPENDENCY_STATUS[hl2sdk_manifests]="existing:$manifests_dir"
+            return 0
+        fi
+    fi
+
+    log_warning "HL2SDK manifests not found or corrupted"
+    log_info "Manifests are required for SDK detection (SdkHelpers.ambuild)"
+
+    # Try git submodule first
+    if [ -d "${SCRIPT_DIR}/.git" ]; then
+        log_action "Attempting to initialize git submodule..."
+
+        if git submodule update --init hl2sdk-manifests 2>&1; then
+            if [ -f "$sdkhelpers_file" ]; then
+                log_success "Manifests initialized via git submodule"
+                DEPENDENCY_STATUS[hl2sdk_manifests]="submodule:$manifests_dir"
+                return 0
+            fi
+        else
+            log_warning "Git submodule initialization failed"
+        fi
+    fi
+
+    # Fallback to download script
+    log_info "Using download script as fallback..."
+
+    if [ -f "${SCRIPT_DIR}/download-manifests.sh" ]; then
+        if "${SCRIPT_DIR}/download-manifests.sh"; then
+            log_success "Manifests downloaded successfully"
+            DEPENDENCY_STATUS[hl2sdk_manifests]="downloaded:$manifests_dir"
+            return 0
+        else
+            log_error "Failed to download manifests"
+            FAILED_CHECKS+=("hl2sdk_manifests")
+            return 1
+        fi
+    else
+        log_error "download-manifests.sh script not found"
+        log_error "Please run: git submodule update --init hl2sdk-manifests"
+        FAILED_CHECKS+=("hl2sdk_manifests")
+        return 1
+    fi
+}
+
 download_onnx_runtime() {
     log_section "Downloading ONNX Runtime (for ML Features)"
 
@@ -719,22 +778,27 @@ build_project() {
     local build_start=$(date +%s)
     log_action "Starting build..."
 
-    # Run AMBuild with verbose output
-    {
-        python3 << 'PYTHON_SCRIPT'
-import sys
-import ambuild2
+    # Run AMBuild using the correct modern API
+    # Modern AMBuild2 uses the 'ambuild' command directly from the build directory
+    # The build directory must contain the .ambuild2 folder created during configuration
+    if [ ! -d ".ambuild2" ]; then
+        log_error "Build not configured! Missing .ambuild2 directory"
+        log_error "Run configuration first: configure_build $config"
+        cd "$SCRIPT_DIR"
+        return 1
+    fi
 
-# Run the build
-try:
-    ambuild2.run.Build()
-    sys.exit(0)
-except Exception as e:
-    print(f"Build failed: {e}", file=sys.stderr)
-    sys.exit(1)
-PYTHON_SCRIPT
-    } 2>&1 | tee "$build_log"
+    # Check if ambuild command is available
+    if ! command -v ambuild &> /dev/null; then
+        log_error "ambuild command not found!"
+        log_error "Ensure AMBuild is installed and in PATH"
+        log_error "Try: python3 -m pip install --user git+https://github.com/alliedmodders/ambuild"
+        cd "$SCRIPT_DIR"
+        return 1
+    fi
 
+    log_info "Running: ambuild"
+    ambuild 2>&1 | tee "$build_log"
     local build_result=${PIPESTATUS[0]}
     local build_end=$(date +%s)
     local build_duration=$((build_end - build_start))
@@ -828,11 +892,14 @@ main() {
         check_python
         install_ambuild
         install_python_ml_packages
+        download_hl2sdk_manifests  # Must be before SDK detection
         download_hl2sdk
         download_metamod
         download_onnx_runtime
     else
         log_warning "Skipping dependency installation (--skip-deps)"
+        # Even when skipping deps, we need manifests for build to work
+        download_hl2sdk_manifests
     fi
 
     verify_dependencies
