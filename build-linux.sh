@@ -114,6 +114,16 @@ confirm() {
         return 0
     fi
 
+    # Check if running in non-interactive mode (no TTY)
+    if [ ! -t 0 ]; then
+        local default="${2:-n}"
+        log_info "Non-interactive mode detected, using default: $default"
+        case "$default" in
+            [yY]) return 0 ;;
+            *) return 1 ;;
+        esac
+    fi
+
     local prompt="$1"
     local default="${2:-n}"
 
@@ -393,6 +403,18 @@ install_python_ml_packages() {
 download_hl2sdk() {
     log_section "Downloading HL2SDK"
 
+    # NOTE: This project uses git submodules for SDKs (in alliedmodders/ directory)
+    # This function is for environments where submodules cannot be used
+
+    # First check if git submodules are available
+    local submodule_root="${SCRIPT_DIR}/alliedmodders"
+    if [ -d "${submodule_root}/hl2sdk-hl2dm" ] || [ -d "${submodule_root}/hl2sdk-tf2" ]; then
+        log_success "Using HL2SDK from git submodules: $submodule_root"
+        log_info "Skipping separate SDK download (submodules take precedence)"
+        DEPENDENCY_STATUS[hl2sdk]="submodule:$submodule_root"
+        return 0
+    fi
+
     local hl2sdk_root="${DEPS_DIR}/hl2sdk"
     local sdks=("hl2dm" "tf2" "css" "dods")
 
@@ -403,14 +425,15 @@ download_hl2sdk() {
         local existing_count=0
         for sdk in "${sdks[@]}"; do
             if [ -d "${hl2sdk_root}/hl2sdk-${sdk}" ]; then
-                ((existing_count++))
+                existing_count=$((existing_count + 1))
             fi
         done
 
         if [ $existing_count -gt 0 ]; then
             log_success "Found $existing_count existing SDK(s)"
 
-            if ! confirm "Re-download SDKs?"; then
+            if ! confirm "Re-download SDKs?" "n"; then
+                log_info "Keeping existing SDKs"
                 DEPENDENCY_STATUS[hl2sdk]="existing:$hl2sdk_root"
                 return 0
             fi
@@ -446,12 +469,25 @@ download_hl2sdk() {
 download_metamod() {
     log_section "Downloading Metamod:Source"
 
+    # NOTE: This project uses git submodules for Metamod (in alliedmodders/ directory)
+    # This function is for environments where submodules cannot be used
+
+    # First check if git submodule is available
+    local submodule_mms="${SCRIPT_DIR}/alliedmodders/metamod-source"
+    if [ -d "$submodule_mms" ]; then
+        log_success "Using Metamod:Source from git submodule: $submodule_mms"
+        log_info "Skipping separate download (submodule takes precedence)"
+        DEPENDENCY_STATUS[metamod]="submodule:$submodule_mms"
+        return 0
+    fi
+
     local mms_dir="${DEPS_DIR}/metamod-source"
 
     if [ -d "$mms_dir" ]; then
         log_info "Metamod:Source directory exists: $mms_dir"
 
-        if ! confirm "Re-download Metamod:Source?"; then
+        if ! confirm "Re-download Metamod:Source?" "n"; then
+            log_info "Keeping existing Metamod:Source"
             DEPENDENCY_STATUS[metamod]="existing:$mms_dir"
             return 0
         fi
