@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/usr/local/bin/ambuild", line 8, in <module>
+    sys.exit(cli_run())
+             ^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/run.py", line 192, in cli_run
+    if not Build(os.path.abspath(folder), options, argv):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/run.py", line 133, in Build
+    with Context(buildPath, options, argv) as cx:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/context.py", line 40, in __init__
+    with open(os.path.join(self.cacheFolder, 'vars'), 'rb') as fp:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/var/repos/rcbot2/build-debug/.ambuild2/vars'

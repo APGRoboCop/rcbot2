@@ -1,0 +1,31 @@
+================================================================================
+
+BUILD SUMMARY - release
+================================================================================
+Configuration: release
+Result: FAILED
+Duration: 0s (00:00)
+Timestamp: Fri Nov 28 06:04:27 PM UTC 2025
+================================================================================
+
+BUILD FAILED
+============
+
+Error log: /var/repos/rcbot2/build-logs/errors-release-20251128-180340.log
+Full build log: /var/repos/rcbot2/build-logs/build-release-20251128-180340.log
+
+Common issues:
+  1. Missing dependencies - run with --verbose to see details
+  2. SDK path issues - verify HL2SDK and Metamod paths
+  3. Architecture mismatch - ensure 32-bit libraries are installed
+
+To analyze with Claude:
+  1. Upload: /var/repos/rcbot2/build-logs/errors-release-20251128-180340.log
+  2. Upload: /var/repos/rcbot2/build-logs/summary-release-20251128-180340.txt (this file)
+  3. Prompt: 'Analyze these build errors and suggest fixes'
+
+Log files:
+  Build: /var/repos/rcbot2/build-logs/build-release-20251128-180340.log
+  Errors: /var/repos/rcbot2/build-logs/errors-release-20251128-180340.log
+  Summary: /var/repos/rcbot2/build-logs/summary-release-20251128-180340.txt
+
