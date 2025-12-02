@@ -1,6 +1,7 @@
 #pragma once
 
 #include <IExtensionSys.h>
+#include <IForwardSys.h>
 
 using namespace SourceMod;
 
