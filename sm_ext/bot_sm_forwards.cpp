@@ -8,6 +8,7 @@
 
 #include "bot_sm_forwards.h"
 #include "bot_sm_ext.h"
+#include <smsdk_ext.h>
 
 namespace RCBotForwards {
 	// Global forward handles
@@ -36,130 +37,130 @@ namespace RCBotForwards {
 	void CreateForwards() {
 		// Create core bot event forwards
 		// forward void RCBot2_OnBotSpawn(int client);
-		g_pOnBotSpawn = forwards->CreateForward("RCBot2_OnBotSpawn", ET_Ignore, 1, nullptr, Param_Cell);
+		g_pOnBotSpawn = ::forwards->CreateForward("RCBot2_OnBotSpawn", ET_Ignore, 1, nullptr, Param_Cell);
 
 		// forward void RCBot2_OnBotDeath(int client, int attacker);
-		g_pOnBotDeath = forwards->CreateForward("RCBot2_OnBotDeath", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotDeath = ::forwards->CreateForward("RCBot2_OnBotDeath", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_OnBotKill(int client, int victim);
-		g_pOnBotKill = forwards->CreateForward("RCBot2_OnBotKill", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotKill = ::forwards->CreateForward("RCBot2_OnBotKill", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_OnBotThink(int client);
-		g_pOnBotThink = forwards->CreateForward("RCBot2_OnBotThink", ET_Ignore, 1, nullptr, Param_Cell);
+		g_pOnBotThink = ::forwards->CreateForward("RCBot2_OnBotThink", ET_Ignore, 1, nullptr, Param_Cell);
 
 		// forward void RCBot2_OnBotEnemyFound(int client, int enemy);
-		g_pOnBotEnemyFound = forwards->CreateForward("RCBot2_OnBotEnemyFound", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotEnemyFound = ::forwards->CreateForward("RCBot2_OnBotEnemyFound", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_OnBotEnemyLost(int client, int enemy);
-		g_pOnBotEnemyLost = forwards->CreateForward("RCBot2_OnBotEnemyLost", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotEnemyLost = ::forwards->CreateForward("RCBot2_OnBotEnemyLost", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_OnBotDamaged(int client, int attacker, int damage);
-		g_pOnBotDamaged = forwards->CreateForward("RCBot2_OnBotDamaged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotDamaged = ::forwards->CreateForward("RCBot2_OnBotDamaged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_OnBotTaskChange(int client, int oldTask, int newTask);
-		g_pOnBotTaskChange = forwards->CreateForward("RCBot2_OnBotTaskChange", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotTaskChange = ::forwards->CreateForward("RCBot2_OnBotTaskChange", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 
 		// Create TF2-specific event forwards
 		// forward void RCBot2_TF2_OnBotBuildingPlaced(int client, int buildingType, int entity);
-		g_pOnBotBuildingPlaced = forwards->CreateForward("RCBot2_TF2_OnBotBuildingPlaced", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotBuildingPlaced = ::forwards->CreateForward("RCBot2_TF2_OnBotBuildingPlaced", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_TF2_OnBotBuildingDestroyed(int client, int buildingType, int attacker);
-		g_pOnBotBuildingDestroyed = forwards->CreateForward("RCBot2_TF2_OnBotBuildingDestroyed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotBuildingDestroyed = ::forwards->CreateForward("RCBot2_TF2_OnBotBuildingDestroyed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_TF2_OnBotUberDeployed(int client, int target);
-		g_pOnBotUberDeployed = forwards->CreateForward("RCBot2_TF2_OnBotUberDeployed", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotUberDeployed = ::forwards->CreateForward("RCBot2_TF2_OnBotUberDeployed", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_TF2_OnBotClassChanged(int client, int oldClass, int newClass);
-		g_pOnBotClassChanged = forwards->CreateForward("RCBot2_TF2_OnBotClassChanged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotClassChanged = ::forwards->CreateForward("RCBot2_TF2_OnBotClassChanged", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 
 		// Create HL2DM-specific event forwards
 		// forward void RCBot2_HLDM_OnBotWeaponPickup(int client, int weapon);
-		g_pOnBotWeaponPickup = forwards->CreateForward("RCBot2_HLDM_OnBotWeaponPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotWeaponPickup = ::forwards->CreateForward("RCBot2_HLDM_OnBotWeaponPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_HLDM_OnBotGravityGunPickup(int client, int object);
-		g_pOnBotGravityGunPickup = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotGravityGunPickup = ::forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunPickup", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_HLDM_OnBotGravityGunLaunch(int client, int object);
-		g_pOnBotGravityGunLaunch = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunLaunch", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotGravityGunLaunch = ::forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunLaunch", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_HLDM_OnBotGravityGunDrop(int client, int object);
-		g_pOnBotGravityGunDrop = forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunDrop", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
+		g_pOnBotGravityGunDrop = ::forwards->CreateForward("RCBot2_HLDM_OnBotGravityGunDrop", ET_Ignore, 2, nullptr, Param_Cell, Param_Cell);
 
 		// forward void RCBot2_HLDM_OnBotSuitChargeUsed(int client, int chargerType, int chargerEntity);
-		g_pOnBotSuitChargeUsed = forwards->CreateForward("RCBot2_HLDM_OnBotSuitChargeUsed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
+		g_pOnBotSuitChargeUsed = ::forwards->CreateForward("RCBot2_HLDM_OnBotSuitChargeUsed", ET_Ignore, 3, nullptr, Param_Cell, Param_Cell, Param_Cell);
 	}
 
 	void DestroyForwards() {
 		if (g_pOnBotSpawn) {
-			forwards->ReleaseForward(g_pOnBotSpawn);
+			::forwards->ReleaseForward(g_pOnBotSpawn);
 			g_pOnBotSpawn = nullptr;
 		}
 		if (g_pOnBotDeath) {
-			forwards->ReleaseForward(g_pOnBotDeath);
+			::forwards->ReleaseForward(g_pOnBotDeath);
 			g_pOnBotDeath = nullptr;
 		}
 		if (g_pOnBotKill) {
-			forwards->ReleaseForward(g_pOnBotKill);
+			::forwards->ReleaseForward(g_pOnBotKill);
 			g_pOnBotKill = nullptr;
 		}
 		if (g_pOnBotThink) {
-			forwards->ReleaseForward(g_pOnBotThink);
+			::forwards->ReleaseForward(g_pOnBotThink);
 			g_pOnBotThink = nullptr;
 		}
 		if (g_pOnBotEnemyFound) {
-			forwards->ReleaseForward(g_pOnBotEnemyFound);
+			::forwards->ReleaseForward(g_pOnBotEnemyFound);
 			g_pOnBotEnemyFound = nullptr;
 		}
 		if (g_pOnBotEnemyLost) {
-			forwards->ReleaseForward(g_pOnBotEnemyLost);
+			::forwards->ReleaseForward(g_pOnBotEnemyLost);
 			g_pOnBotEnemyLost = nullptr;
 		}
 		if (g_pOnBotDamaged) {
-			forwards->ReleaseForward(g_pOnBotDamaged);
+			::forwards->ReleaseForward(g_pOnBotDamaged);
 			g_pOnBotDamaged = nullptr;
 		}
 		if (g_pOnBotTaskChange) {
-			forwards->ReleaseForward(g_pOnBotTaskChange);
+			::forwards->ReleaseForward(g_pOnBotTaskChange);
 			g_pOnBotTaskChange = nullptr;
 		}
 
 		// Destroy TF2-specific forwards
 		if (g_pOnBotBuildingPlaced) {
-			forwards->ReleaseForward(g_pOnBotBuildingPlaced);
+			::forwards->ReleaseForward(g_pOnBotBuildingPlaced);
 			g_pOnBotBuildingPlaced = nullptr;
 		}
 		if (g_pOnBotBuildingDestroyed) {
-			forwards->ReleaseForward(g_pOnBotBuildingDestroyed);
+			::forwards->ReleaseForward(g_pOnBotBuildingDestroyed);
 			g_pOnBotBuildingDestroyed = nullptr;
 		}
 		if (g_pOnBotUberDeployed) {
-			forwards->ReleaseForward(g_pOnBotUberDeployed);
+			::forwards->ReleaseForward(g_pOnBotUberDeployed);
 			g_pOnBotUberDeployed = nullptr;
 		}
 		if (g_pOnBotClassChanged) {
-			forwards->ReleaseForward(g_pOnBotClassChanged);
+			::forwards->ReleaseForward(g_pOnBotClassChanged);
 			g_pOnBotClassChanged = nullptr;
 		}
 
 		// Destroy HL2DM-specific forwards
 		if (g_pOnBotWeaponPickup) {
-			forwards->ReleaseForward(g_pOnBotWeaponPickup);
+			::forwards->ReleaseForward(g_pOnBotWeaponPickup);
 			g_pOnBotWeaponPickup = nullptr;
 		}
 		if (g_pOnBotGravityGunPickup) {
-			forwards->ReleaseForward(g_pOnBotGravityGunPickup);
+			::forwards->ReleaseForward(g_pOnBotGravityGunPickup);
 			g_pOnBotGravityGunPickup = nullptr;
 		}
 		if (g_pOnBotGravityGunLaunch) {
-			forwards->ReleaseForward(g_pOnBotGravityGunLaunch);
+			::forwards->ReleaseForward(g_pOnBotGravityGunLaunch);
 			g_pOnBotGravityGunLaunch = nullptr;
 		}
 		if (g_pOnBotGravityGunDrop) {
-			forwards->ReleaseForward(g_pOnBotGravityGunDrop);
+			::forwards->ReleaseForward(g_pOnBotGravityGunDrop);
 			g_pOnBotGravityGunDrop = nullptr;
 		}
 		if (g_pOnBotSuitChargeUsed) {
-			forwards->ReleaseForward(g_pOnBotSuitChargeUsed);
+			::forwards->ReleaseForward(g_pOnBotSuitChargeUsed);
 			g_pOnBotSuitChargeUsed = nullptr;
 		}
 	}
@@ -227,7 +228,6 @@ namespace RCBotForwards {
 			g_pOnBotTaskChange->Execute(nullptr);
 		}
 	}
-}
 
 	//=============================================================================
 	// TF2-Specific Forward Firing Functions

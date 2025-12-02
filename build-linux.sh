@@ -715,6 +715,7 @@ configure_build() {
     # Use git submodules paths instead of separate dependencies directory
     local hl2sdk_root="${SCRIPT_DIR}/alliedmodders"
     local mms_path="${SCRIPT_DIR}/alliedmodders/metamod-source"
+    local sm_path="${SCRIPT_DIR}/alliedmodders/sourcemod"
 
     # Check if paths exist
     if [ ! -d "$hl2sdk_root" ]; then
@@ -729,6 +730,12 @@ configure_build() {
         return 1
     fi
 
+    if [ ! -d "$sm_path" ]; then
+        log_error "SourceMod not found: $sm_path"
+        log_error "Run: git submodule update --init alliedmodders/sourcemod"
+        return 1
+    fi
+
     # Create build directory
     mkdir -p "$build_dir"
     cd "$build_dir"
@@ -736,12 +743,14 @@ configure_build() {
     log_info "Build directory: $build_dir"
     log_info "HL2SDK root: $hl2sdk_root"
     log_info "Metamod:Source: $mms_path"
+    log_info "SourceMod: $sm_path"
 
     # Build configure command
     local config_args=(
         "${SCRIPT_DIR}/configure.py"
         "--hl2sdk-root=${hl2sdk_root}"
         "--mms-path=${mms_path}"
+        "--sm-path=${sm_path}"
         "--sdks=hl2dm,tf2"
     )
 

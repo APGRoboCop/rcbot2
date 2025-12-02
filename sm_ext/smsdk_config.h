@@ -55,7 +55,7 @@ void SM_UnsetInterfaces();
  * Enable interfaces you want to use here by uncommenting lines.
  * These interfaces are all part of SourceMod's core.
  */
-//#define SMEXT_ENABLE_FORWARDSYS
+#define SMEXT_ENABLE_FORWARDSYS
 //#define SMEXT_ENABLE_HANDLESYS
 #define SMEXT_ENABLE_PLAYERHELPERS
 //#define SMEXT_ENABLE_DBMANAGER

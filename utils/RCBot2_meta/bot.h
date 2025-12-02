@@ -52,7 +52,9 @@
 #include "shake.h"    //bir3yk
 #endif
 #include "IEngineTrace.h" // for traceline functions
+#ifndef SM_EXT
 #include "IEffects.h"
+#endif
 #include "vplane.h"
 #include "eiface.h"
 #ifdef __linux__
@@ -87,7 +89,9 @@ extern IPlayerInfoManager *playerinfomanager;  // game dll interface to interact
 extern IServerPluginHelpers *helpers;  // special 3rd party plugin helpers from the engine
 extern IServerGameClients* gameclients;
 extern IEngineTrace *enginetrace;
+#ifndef SM_EXT
 extern IEffects *g_pEffects; //Redundant? [APG]RoboCopCL]
+#endif
 extern IBotManager *g_pBotManager;
 extern CGlobalVars *gpGlobals;
 
