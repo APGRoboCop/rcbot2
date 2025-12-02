@@ -231,7 +231,7 @@ public:
 		m_iNumAlliesBombsOnMap = 0;
 		std::memset(m_bBombPlanted,0,sizeof(bool)*MAX_DOD_FLAGS);
 		std::memset(m_pFlags,0,sizeof(edict_t*)*MAX_DOD_FLAGS);
-		std::memset(m_pBombs,0,sizeof(edict_t*)*MAX_DOD_FLAGS*2);
+		std::memset(m_pBombs,0,sizeof(edict_t*)*MAX_DOD_FLAGS*8);
 
 		for (int& i : m_iWaypoint)
 		{
