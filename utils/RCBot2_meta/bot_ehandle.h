@@ -81,7 +81,7 @@ public:
 		return m_pEnt;
 	}
 
-	operator edict_t * const ()
+	operator edict_t * const () const
 	{ // same as get function (inlined for speed)
 		if ( m_iSerialNumber && m_pEnt )
 		{
@@ -124,7 +124,7 @@ public:
 	}
 private:
 	int m_iSerialNumber;
-	edict_t *m_pEnt;
+	mutable edict_t *m_pEnt;
 };
 
 #endif

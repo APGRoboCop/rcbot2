@@ -393,7 +393,7 @@ public:
 	virtual void died ( edict_t *pKiller, const char *pszWeapon );
 	virtual void killed ( edict_t *pVictim, char *weapon );
 
-	virtual int getTeam ();
+	virtual int getTeam () const;
 
 	float getCreateTime() const
 	{
@@ -518,7 +518,7 @@ public:
 	virtual bool canAvoid ( edict_t *pEntity );
 
     bool hasEnemy () { return m_pEnemy && hasSomeConditions(CONDITION_SEE_CUR_ENEMY); }
-    edict_t *getEnemy () { return m_pEnemy; }
+    edict_t *getEnemy () const { return m_pEnemy; }
 
 
     void setMoveTo ( const Vector& vNew )
@@ -662,7 +662,7 @@ public:
 
 	void selectWeaponName ( const char *szWeaponName ) const;
 
-	virtual CBotWeapon *getCurrentWeapon();
+	virtual CBotWeapon *getCurrentWeapon() const;
 
 	void kill () const;
 
@@ -1093,6 +1093,7 @@ public:
 	static void kickRandomBot (unsigned count = 1);
 	static void kickChosenBotOnTeam ( int team );
 	static void kickRandomBotOnTeam ( int team );
+	static void kickBot (edict_t *pEdict);
 
 	static void mapInit ();
 

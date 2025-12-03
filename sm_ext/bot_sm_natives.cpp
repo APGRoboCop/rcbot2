@@ -6,6 +6,18 @@
 #include "bot.h"
 #include "bot_profile.h"
 #include "bot_waypoint.h"
+#include "bot_navigator.h"
+#include "bot_weapons.h"
+#include "bot_schedule.h"
+#include "bot_waypoint_locations.h"
+#include "bot_squads.h"
+
+// Forward declarations from CBotGlobals to avoid cbase.h conflicts
+class CBotGlobals {
+public:
+	static int numBotsOnTeam(int team, bool bAliveOnly);
+	static Vector entityOrigin(edict_t *pEntity);
+};
 
 enum RCBotProfileVar : std::uint8_t {
 	RCBotProfile_iVisionTicks,
