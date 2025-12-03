@@ -1,6 +1,8 @@
 # Build outputs
 build/
 build_linux/
+build-debug/
+build-logs/
 premake_build/
 
 utils/RCBot2_meta/Debug
