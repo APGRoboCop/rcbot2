@@ -12,11 +12,16 @@
 #include "bot_waypoint_locations.h"
 #include "bot_squads.h"
 
-// Forward declarations from CBotGlobals to avoid cbase.h conflicts
+// Forward declarations to avoid cbase.h conflicts
 class CBotGlobals {
 public:
 	static int numBotsOnTeam(int team, bool bAliveOnly);
 	static Vector entityOrigin(edict_t *pEntity);
+};
+
+class CBotVisibles {
+public:
+	bool isVisible(edict_t *pEntity);
 };
 
 enum RCBotProfileVar : std::uint8_t {
@@ -1200,29 +1205,6 @@ cell_t sm_RCBotIsInSquad(IPluginContext *pContext, const cell_t *params) {
 // Phase 6: Advanced Bot Management Natives
 //=============================================================================
 
-/* native bool RCBot2_KickBot(int client); */
-cell_t sm_RCBotKickBot(IPluginContext *pContext, const cell_t *params) {
-	const int client = params[1];
-
-	if (client < 1 || client > gpGlobals->maxClients) {
-		return pContext->ThrowNativeError("Invalid client index %d", client);
-	}
-
-	CBot* pBot = CBots::getBot(client - 1);
-	if (!pBot) {
-		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
-	}
-
-	edict_t* pEdict = pBot->getEdict();
-	if (!pEdict || pEdict->IsFree()) {
-		return 0;
-	}
-
-	// Kick the bot using engine command
-	engine->ServerCommand(UTIL_VarArgs("kickid %d\n", engine->GetPlayerUserId(pEdict)));
-	return 1;
-}
-
 /* native int RCBot2_CountBots(int team = -1); */
 cell_t sm_RCBotCountBots(IPluginContext *pContext, const cell_t *params) {
 	const int team = params[1];
@@ -1304,7 +1286,7 @@ cell_t sm_RCBotSetBotFOV(IPluginContext *pContext, const cell_t *params) {
 		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
 	}
 
-	pBot->m_fFov = fov;
+	pBot->setFov(fov);
 	return 1;
 }
 
@@ -1321,7 +1303,7 @@ cell_t sm_RCBotGetBotFOV(IPluginContext *pContext, const cell_t *params) {
 		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
 	}
 
-	return sp_ftoc(pBot->m_fFov);
+	return sp_ftoc(pBot->getFov());
 }
 
 /* native int RCBot2_GetVisibleEnemies(int client, int[] enemies, int maxsize); */
@@ -1338,7 +1320,7 @@ cell_t sm_RCBotGetVisibleEnemies(IPluginContext *pContext, const cell_t *params)
 		return pContext->ThrowNativeError("Client index %d is not a RCBot", client);
 	}
 
-	if (!pBot->m_pVisibles) {
+	if (!pBot->getVisibles()) {
 		return 0;
 	}
 
@@ -1371,7 +1353,7 @@ cell_t sm_RCBotGetVisibleEnemies(IPluginContext *pContext, const cell_t *params)
 		}
 
 		// Check if visible
-		if (pBot->m_pVisibles->isVisible(pEdict)) {
+		if (pBot->getVisibles()->isVisible(pEdict)) {
 			enemiesArray[count++] = i + 1; // Store 1-based client index
 		}
 	}

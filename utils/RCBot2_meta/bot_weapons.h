@@ -785,6 +785,13 @@ public:
 
 	CWeapon* getWeaponInfo() const { return m_pWeaponInfo; }
 
+	const char* getWeaponName() const
+	{
+		if (m_pWeaponInfo)
+			return m_pWeaponInfo->getWeaponName();
+		return nullptr;
+	}
+
 	int getWeaponIndex() const { return m_iWeaponIndex; }
 
 	void setWeaponIndex(const int iIndex) { m_iWeaponIndex = iIndex; } // Entity Index

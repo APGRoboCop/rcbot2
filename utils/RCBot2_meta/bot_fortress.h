@@ -504,7 +504,7 @@ public:
 	virtual bool isDisguised () { return false; }
 
 
-	CBotWeapon *getCurrentWeapon() override
+	CBotWeapon *getCurrentWeapon() const override
 	{
 		return CBot::getCurrentWeapon();
 	}
@@ -784,10 +784,10 @@ class CBotTF2 : public CBotFortress
 {
 public:
 
-	// 
+	//
 	CBotTF2();
 
-	CBotWeapon *getCurrentWeapon() override;
+	CBotWeapon *getCurrentWeapon() const override;
 
 	void onInventoryApplication() override;
 

@@ -670,6 +670,14 @@ public:
 
     CBotProfile *getProfile () const { return m_pProfile; }
 
+	IPlayerInfo* getPlayerInfo() const { return m_pPlayerInfo; }
+
+	float getFov() const { return m_fFov; }
+
+	void setFov(float fov) { m_fFov = fov; }
+
+	CBotVisibles* getVisibles() const { return m_pVisibles; }
+
 	virtual bool canGotoWaypoint (const Vector& vPrevWaypoint, CWaypoint* pWaypoint, CWaypoint* pPrev = nullptr);
 	
 	void updatePosition() const;
@@ -805,6 +813,11 @@ public:
     void setSquad ( CBotSquad *pSquad )
 	{
 		m_pSquad = pSquad;
+	}
+
+	CBotSquad* getSquad() const
+	{
+		return m_pSquad;
 	}
 
 	void SquadInPosition ( );

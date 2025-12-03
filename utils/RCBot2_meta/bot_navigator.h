@@ -78,6 +78,9 @@ public:
 
 	virtual bool getNextRoutePoint ( Vector *vPoint ) = 0;
 
+	// Simplified navigation to origin (for SourceMod natives)
+	virtual void gotoOrigin(const Vector& vOrigin) = 0;
+
 	Vector getPreviousPoint () { return m_vPreviousPoint; }
 
 	virtual bool hasNextPoint () = 0;
@@ -405,6 +408,13 @@ public:
 
 	bool getNextRoutePoint ( Vector *vPoint ) override;
 
+	void gotoOrigin(const Vector& vOrigin) override
+	{
+		if (!m_pBot) return;
+		bool bFail = false;
+		workRoute(m_pBot->getOrigin(), vOrigin, &bFail, true, false);
+	}
+
 	void clear () override;
 
 	Vector getNextPoint () override;
@@ -529,6 +539,8 @@ public:
 
 	bool workRoute (const Vector& vFrom, const Vector& vTo, bool* bFail, bool bRestart = true, bool bNoInterruptions = false, int iGoalId =
 		                -1, int iConditions = 0, int iDangerId = -1) override;
+
+	void gotoOrigin(const Vector& vOrigin) override {}
 
 	Vector getNextPoint () override;
 
