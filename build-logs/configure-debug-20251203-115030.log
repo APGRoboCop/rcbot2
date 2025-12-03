@@ -1,0 +1,34 @@
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/frontend/v2_2/prep.py", line 161, in Configure
+    if not cm.generate(options.generator):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/frontend/context_manager.py", line 93, in generate
+    self.parseBuildScripts()
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/frontend/v2_2/context_manager.py", line 50, in parseBuildScripts
+    self.execContext(cx)
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/frontend/v2_2/context_manager.py", line 149, in execContext
+    exec(code, scriptGlobals)
+  File "/var/repos/rcbot2/AMBuildScript", line 269, in <module>
+    MMS.detectSDKs()
+  File "/var/repos/rcbot2/AMBuildScript", line 229, in detectSDKs
+    SdkHelpers.findSdks(builder, self.all_targets, sdk_list)
+  File "/var/repos/rcbot2/hl2sdk-manifests/SdkHelpers.ambuild", line 80, in findSdks
+    for sdk_name, sdk in SdkHelpers.getSdks(builder):
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/repos/rcbot2/hl2sdk-manifests/SdkHelpers.ambuild", line 179, in getSdks
+    for sdk_manifest in os.listdir(sdk_manifest_dir):
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/var/repos/rcbot2/hl2sdk-manifests/manifests'
+Configure failed: [Errno 2] No such file or directory: '/var/repos/rcbot2/hl2sdk-manifests/manifests'
+Checking CC compiler (vendor test gcc)... ['clang', '-m32', 'test.c', '-o', 'test-c']
+Compiler clang for CC failed: [Errno 2] No such file or directory: 'clang'
+Checking CC compiler (vendor test gcc)... ['gcc', '-m32', 'test.c', '-o', 'test-c']
+found gcc version 13.3, x86
+Checking CXX compiler (vendor test gcc)... ['g++', '-m32', 'test.cpp', '-o', 'test-cxx']
+found gcc version 13.3, x86
+Checking CC compiler (vendor test gcc)... ['clang', '-m64', 'test.c', '-o', 'test-c']
+Compiler clang for CC failed: [Errno 2] No such file or directory: 'clang'
+Checking CC compiler (vendor test gcc)... ['gcc', '-m64', 'test.c', '-o', 'test-c']
+found gcc version 13.3, x86_64
+Checking CXX compiler (vendor test gcc)... ['g++', '-m64', 'test.cpp', '-o', 'test-cxx']
+found gcc version 13.3, x86_64

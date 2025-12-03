@@ -1,0 +1,16 @@
+RCBot2 Dependency Report
+========================
+Date: Wed Dec  3 11:50:43 AM UTC 2025
+System: Ubuntu 24.04.3 LTS
+
+Dependencies:
+  metamod: submodule:/var/repos/rcbot2/alliedmodders/metamod-source
+  python: installed:3.12.3
+  ambuild: installed:unknown
+  hl2sdk: submodule:/var/repos/rcbot2/alliedmodders
+  onnxruntime: installed:/var/repos/rcbot2/dependencies/onnxruntime
+  hl2sdk_manifests: existing:/var/repos/rcbot2/hl2sdk-manifests
+  base_packages: installed
+
+Failed Checks:
+  - linux-libc-dev:i386

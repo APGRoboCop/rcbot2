@@ -1,0 +1,15 @@
+There does not appear to be a build configured here.
+Traceback (most recent call last):
+  File "/usr/local/bin/ambuild", line 8, in <module>
+    sys.exit(cli_run())
+             ^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/run.py", line 192, in cli_run
+    if not Build(os.path.abspath(folder), options, argv):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/run.py", line 133, in Build
+    with Context(buildPath, options, argv) as cx:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/ambuild2/context.py", line 42, in __init__
+    self.vars = util.pickle.load(fp)
+                ^^^^^^^^^^^^^^^^^^^^
+EOFError: Ran out of input
