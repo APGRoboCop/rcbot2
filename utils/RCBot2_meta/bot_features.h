@@ -19,6 +19,8 @@ public:
     virtual ~CFeatureExtractor() = default;
     virtual void Extract(CBot* pBot, std::vector<float>& features) { (void)pBot; (void)features; }
     virtual size_t GetFeatureCount() const { return 0; }
+    virtual std::vector<const char*> GetFeatureNames() const { return std::vector<const char*>(); }
+    virtual const char* GetDescription() const { return "Stub Feature Extractor"; }
 };
 
 // Stub factory

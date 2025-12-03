@@ -607,7 +607,7 @@ public:
 
 	bool wantToNest ();
 
-	bool overrideAmmoTypes () override { return false; }
+	bool overrideAmmoTypes () const override { return false; }
 
 	bool wantToCloak();
 

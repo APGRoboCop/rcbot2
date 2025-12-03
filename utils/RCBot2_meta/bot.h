@@ -470,6 +470,7 @@ public:
 	}
 
 	edict_t *getEdict () const;
+	const char *getName() const { return m_pEdict ? m_pEdict->GetClassName() : "Bot"; }
 
 	void setEdict ( edict_t *pEdict);
 
@@ -789,7 +790,7 @@ public:
 
 	void letGoOfButton ( int button ) const;
 
-	virtual bool overrideAmmoTypes () { return true; }
+	virtual bool overrideAmmoTypes () const { return true; }
 
 	virtual void debugBot ( char *msg );
 
@@ -1093,6 +1094,7 @@ public:
 
 	static CBot *getBotPointer (const edict_t *pEdict );
 	static CBot *getBot ( int slot );
+	static CBot *GetBotPointer ( int slot ) { return getBot(slot); }
 
 	static void freeMapMemory ();
 	static void freeAllMemory ();
