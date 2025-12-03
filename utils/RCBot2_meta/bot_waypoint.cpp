@@ -1445,12 +1445,14 @@ void CWaypoint :: drawPathBeam (CWaypoint *to, const unsigned short int iDrawTyp
 
 	switch ( iDrawType )
 	{
+#ifndef SM_EXT
 	case DRAWTYPE_EFFECTS:
-		g_pEffects->Beam( m_vOrigin, to->getOrigin(), CWaypoints::waypointTexture(), 
+		g_pEffects->Beam( m_vOrigin, to->getOrigin(), CWaypoints::waypointTexture(),
 		0, 0, 1,
-		1, PATHWAYPOINT_WIDTH, PATHWAYPOINT_WIDTH, 255, 
-		1, r, g, b, 200, 10);	
+		1, PATHWAYPOINT_WIDTH, PATHWAYPOINT_WIDTH, 255,
+		1, r, g, b, 200, 10);
 		break;
+#endif
 #ifndef __linux__
 	case DRAWTYPE_DEBUGENGINE3:
 	case DRAWTYPE_DEBUGENGINE2:
@@ -1637,17 +1639,19 @@ void CWaypoint :: draw ( edict_t *pEdict, const bool bDrawPaths, const unsigned 
 		}
 #endif
 		break;
+#ifndef SM_EXT
 	case DRAWTYPE_EFFECTS:
-		g_pEffects->Beam( m_vOrigin - Vector(0,0,fHeight), m_vOrigin + Vector(0,0,fHeight), CWaypoints::waypointTexture(), 
+		g_pEffects->Beam( m_vOrigin - Vector(0,0,fHeight), m_vOrigin + Vector(0,0,fHeight), CWaypoints::waypointTexture(),
 			0, 0, 1,
-			1, WAYPOINT_WIDTH, WAYPOINT_WIDTH, 255, 
+			1, WAYPOINT_WIDTH, WAYPOINT_WIDTH, 255,
 			1, r, g, b, a, 10);//*/
 
-		/*g_pEffects->Beam( m_vOrigin + Vector(0,0,fHeight/2), m_vOrigin + Vector(0,0,fHeight/2) + vAim*48 CWaypoints::waypointTexture(), 
+		/*g_pEffects->Beam( m_vOrigin + Vector(0,0,fHeight/2), m_vOrigin + Vector(0,0,fHeight/2) + vAim*48 CWaypoints::waypointTexture(),
 			0, 0, 1,
-			1, WAYPOINT_WIDTH/2, WAYPOINT_WIDTH/2, 255, 
+			1, WAYPOINT_WIDTH/2, WAYPOINT_WIDTH/2, 255,
 			1, r, g, b, a, 10);//*/
 		break;
+#endif
 
 	}
 

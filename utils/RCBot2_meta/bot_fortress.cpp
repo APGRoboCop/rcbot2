@@ -8482,7 +8482,7 @@ bool CBotFortress :: getIgnoreBox ( Vector *vLoc, float *fSize )
 	return false;
 }
 
-CBotWeapon *CBotTF2::getCurrentWeapon()
+CBotWeapon *CBotTF2::getCurrentWeapon() const
 {
 	edict_t *pWeapon = CClassInterface::TF2_getActiveWeapon(m_pEdict);
 

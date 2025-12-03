@@ -65,7 +65,7 @@ float CCounterStrikeSourceMod::m_fRoundStartTime = 0.0f;
 float CCounterStrikeSourceMod::m_fBombPlantedTime = 0.0f;
 bool CCounterStrikeSourceMod::m_bIsBombPlanted = false;
 bool CCounterStrikeSourceMod::m_bBombWasFound = false;
-CBaseHandle CCounterStrikeSourceMod::m_hBomb = nullptr;
+CBaseHandle CCounterStrikeSourceMod::m_hBomb;
 std::vector<CBaseHandle> CCounterStrikeSourceMod::m_hHostages;
 
 void CCounterStrikeSourceMod::initMod()

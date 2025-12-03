@@ -504,7 +504,7 @@ public:
 	virtual bool isDisguised () { return false; }
 
 
-	CBotWeapon *getCurrentWeapon() override
+	CBotWeapon *getCurrentWeapon() const override
 	{
 		return CBot::getCurrentWeapon();
 	}
@@ -607,7 +607,7 @@ public:
 
 	bool wantToNest ();
 
-	bool overrideAmmoTypes () override { return false; }
+	bool overrideAmmoTypes () const override { return false; }
 
 	bool wantToCloak();
 
@@ -784,10 +784,10 @@ class CBotTF2 : public CBotFortress
 {
 public:
 
-	// 
+	//
 	CBotTF2();
 
-	CBotWeapon *getCurrentWeapon() override;
+	CBotWeapon *getCurrentWeapon() const override;
 
 	void onInventoryApplication() override;
 

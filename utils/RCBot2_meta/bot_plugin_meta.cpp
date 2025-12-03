@@ -27,12 +27,18 @@
 #include "interface.h"
 #include "IStaticPropMgr.h"
 
+#ifndef SM_EXT
+#include "IEffects.h"
+#endif
+
 #ifdef __linux__
 #include "shake.h"    //bir3yk
 #endif
 
+#ifndef SM_EXT
 #include "ndebugoverlay.h"
 #include "irecipientfilter.h"
+#endif
 
 #include "bot_cvars.h"
 
@@ -102,10 +108,14 @@ IPlayerInfoManager *playerinfomanager = nullptr;  // game dll interface to inter
 IServerPluginHelpers *helpers = nullptr;  // special 3rd party plugin helpers from the engine
 IServerGameClients* gameclients = nullptr;
 IEngineTrace *enginetrace = nullptr;
+#ifndef SM_EXT
 IEffects *g_pEffects = nullptr;
+#endif
 IBotManager *g_pBotManager = nullptr;
 CGlobalVars *gpGlobals = nullptr;
+#ifndef SM_EXT
 IVDebugOverlay *debugoverlay = nullptr;
+#endif
 IServerGameEnts *servergameents = nullptr; // for accessing the server game entities
 IServerGameDLL *servergamedll = nullptr;
 IServerTools *servertools = nullptr;
@@ -150,6 +160,7 @@ CON_COMMAND(rcbotd, "access the bot commands on a server")
 	}
 }
 
+#ifndef SM_EXT
 class CBotRecipientFilter : public IRecipientFilter
 {
 public:
@@ -202,10 +213,12 @@ private:
 	int m_iMaxCount;
 	int m_iPlayerSlot[RCBOT_MAXPLAYERS];
 };
+#endif
 
 ///////////////
 // hud message
 ///////////////
+#ifndef SM_EXT
 void RCBotPluginMeta::HudTextMessage(const edict_t* pEntity, const char* szMessage)
 {
 	int msgid = 0;
@@ -288,6 +301,7 @@ void RCBotPluginMeta::BroadcastTextMessage(const char* szMessage)
 		engine->MessageEnd();
 	}
 }
+#endif
 
 void RCBotPluginMeta::Hook_PlayerRunCmd(CUserCmd *ucmd, IMoveHelper *moveHelper)
 {
@@ -355,11 +369,13 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	GET_V_IFACE_ANY(GetServerFactory, gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS)
 	GET_V_IFACE_ANY(GetServerFactory, playerinfomanager, IPlayerInfoManager, INTERFACEVERSION_PLAYERINFOMANAGER)
 
+#ifndef SM_EXT
 	GET_V_IFACE_ANY(GetServerFactory, g_pEffects, IEffects, IEFFECTS_INTERFACE_VERSION)
+#endif
 	GET_V_IFACE_ANY(GetServerFactory, g_pBotManager, IBotManager, INTERFACEVERSION_PLAYERBOTMANAGER)
 	GET_V_IFACE_ANY(GetServerFactory, servertools, IServerTools, VSERVERTOOLS_INTERFACE_VERSION)
 
-#ifndef __linux__
+#if !defined(SM_EXT) && !defined(__linux__)
 	GET_V_IFACE_CURRENT(GetEngineFactory,debugoverlay, IVDebugOverlay, VDEBUG_OVERLAY_INTERFACE_VERSION)
 #endif
 	GET_V_IFACE_ANY(GetServerFactory, servergamedll, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL)

@@ -732,7 +732,7 @@ void CBot :: currentlyDead ()
 	m_fSpawnTime = engine->Time();
 }
 
-CBotWeapon *CBot::getCurrentWeapon()
+CBotWeapon *CBot::getCurrentWeapon() const
 {
 	return m_pWeapons->getActiveWeapon(m_pPlayerInfo->GetWeaponName());
 }
@@ -1740,7 +1740,7 @@ bool CBot :: isAlive ()
 	return !m_pPlayerInfo->IsDead();
 }
 
-int CBot :: getTeam ()
+int CBot :: getTeam () const
 {
 	return m_pPlayerInfo->GetTeamIndex();
 }
@@ -3674,6 +3674,22 @@ void CBots :: kickRandomBot (const unsigned count)
 		
 		botList.pop_back();
 	}
+
+	m_flAddKickBotTime = engine->Time() + 2.0f;
+}
+
+void CBots::kickBot(edict_t *pEdict)
+{
+	if (!pEdict)
+		return;
+
+	CBot* bot = getBotPointer(pEdict);
+	if (!bot || !bot->inUse())
+		return;
+
+	char szCommand[512];
+	snprintf(szCommand, sizeof(szCommand), "kickid %d\n", bot->getPlayerID());
+	engine->ServerCommand(szCommand);
 
 	m_flAddKickBotTime = engine->Time() + 2.0f;
 }

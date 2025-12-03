@@ -21,8 +21,7 @@
 #ifndef __BOT_REPLAY_FORMAT_H__
 #define __BOT_REPLAY_FORMAT_H__
 
-#include "vector.h"
-#include "QAngle.h"
+#include "mathlib/vector.h"
 
 // Replay data format for ML training
 // Designed to capture bot state, observations, and actions for supervised learning

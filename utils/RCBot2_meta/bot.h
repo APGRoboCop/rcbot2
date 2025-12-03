@@ -393,7 +393,7 @@ public:
 	virtual void died ( edict_t *pKiller, const char *pszWeapon );
 	virtual void killed ( edict_t *pVictim, char *weapon );
 
-	virtual int getTeam ();
+	virtual int getTeam () const;
 
 	float getCreateTime() const
 	{
@@ -470,6 +470,7 @@ public:
 	}
 
 	edict_t *getEdict () const;
+	const char *getName() const { return m_pEdict ? m_pEdict->GetClassName() : "Bot"; }
 
 	void setEdict ( edict_t *pEdict);
 
@@ -518,7 +519,7 @@ public:
 	virtual bool canAvoid ( edict_t *pEntity );
 
     bool hasEnemy () { return m_pEnemy && hasSomeConditions(CONDITION_SEE_CUR_ENEMY); }
-    edict_t *getEnemy () { return m_pEnemy; }
+    edict_t *getEnemy () const { return m_pEnemy; }
 
 
     void setMoveTo ( const Vector& vNew )
@@ -662,13 +663,32 @@ public:
 
 	void selectWeaponName ( const char *szWeaponName ) const;
 
-	virtual CBotWeapon *getCurrentWeapon();
+	virtual CBotWeapon *getCurrentWeapon() const;
 
 	void kill () const;
 
 	bool isUsingProfile (const CBotProfile *pProfile ) const;
 
     CBotProfile *getProfile () const { return m_pProfile; }
+
+	IPlayerInfo* getPlayerInfo() const { return m_pPlayerInfo; }
+
+	float getFov() const { return m_fFov; }
+
+	void setFov(float fov) { m_fFov = fov; }
+
+	CBotVisibles* getVisibles() const { return m_pVisibles; }
+
+	// ML Controller helper methods
+	QAngle GetViewAngles() const { return m_vViewAngles; }
+	void SetViewAngles(const QAngle& angles) { m_vViewAngles = angles; }
+	void SetMovementVector(const Vector& v) { setMoveTo(v); }
+	CBotButtons* GetButtons() { return m_pButtons; }
+
+	// SourceMod natives helper methods
+	void SetLookAt(const Vector& vNew) { setLookAt(vNew); }
+	CBotSchedules* GetSchedules() { return m_pSchedules; }
+	CBotWeapons* GetWeapons() { return m_pWeapons; }
 
 	virtual bool canGotoWaypoint (const Vector& vPrevWaypoint, CWaypoint* pWaypoint, CWaypoint* pPrev = nullptr);
 	
@@ -770,7 +790,7 @@ public:
 
 	void letGoOfButton ( int button ) const;
 
-	virtual bool overrideAmmoTypes () { return true; }
+	virtual bool overrideAmmoTypes () const { return true; }
 
 	virtual void debugBot ( char *msg );
 
@@ -805,6 +825,11 @@ public:
     void setSquad ( CBotSquad *pSquad )
 	{
 		m_pSquad = pSquad;
+	}
+
+	CBotSquad* getSquad() const
+	{
+		return m_pSquad;
 	}
 
 	void SquadInPosition ( );
@@ -1069,6 +1094,7 @@ public:
 
 	static CBot *getBotPointer (const edict_t *pEdict );
 	static CBot *getBot ( int slot );
+	static CBot *GetBotPointer ( int slot ) { return getBot(slot); }
 
 	static void freeMapMemory ();
 	static void freeAllMemory ();
@@ -1093,6 +1119,7 @@ public:
 	static void kickRandomBot (unsigned count = 1);
 	static void kickChosenBotOnTeam ( int team );
 	static void kickRandomBotOnTeam ( int team );
+	static void kickBot (edict_t *pEdict);
 
 	static void mapInit ();
 

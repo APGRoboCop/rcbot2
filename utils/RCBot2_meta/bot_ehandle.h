@@ -76,12 +76,23 @@ public:
 		return nullptr;
 	}
 
+	edict_t *get () const
+	{
+		if ( m_iSerialNumber && m_pEnt )
+		{
+			if ( !m_pEnt->IsFree() && m_iSerialNumber == m_pEnt->m_NetworkSerialNumber )
+				return m_pEnt;
+		}
+
+		return nullptr;
+	}
+
 	edict_t *get_old () const
 	{
 		return m_pEnt;
 	}
 
-	operator edict_t * const ()
+	operator edict_t * const () const
 	{ // same as get function (inlined for speed)
 		if ( m_iSerialNumber && m_pEnt )
 		{
@@ -124,7 +135,7 @@ public:
 	}
 private:
 	int m_iSerialNumber;
-	edict_t *m_pEnt;
+	mutable edict_t *m_pEnt;
 };
 
 #endif

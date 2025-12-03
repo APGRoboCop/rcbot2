@@ -588,10 +588,12 @@ CBotCommandInline WaypointShowCommand("show", CMD_ACCESS_WAYPOINT, [](const CCli
 
 		if ( CWaypoint *pWpt = CWaypoints::getWaypoint(wpt) )
 		{
-			g_pEffects->Beam( CBotGlobals::entityOrigin(pClient->getPlayer()), pWpt->getOrigin(), CWaypoints::waypointTexture(), 
+#ifndef SM_EXT
+			g_pEffects->Beam( CBotGlobals::entityOrigin(pClient->getPlayer()), pWpt->getOrigin(), CWaypoints::waypointTexture(),
 				0, 0, 1,
-				5, 12, 12, 255, 
-				10, 255, 255, 255, 200, 10);	
+				5, 12, 12, 255,
+				10, 255, 255, 255, 200, 10);
+#endif
 
 			//pClient->setShowWpt(wpt);
 

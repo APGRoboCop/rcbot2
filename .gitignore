@@ -1,7 +1,11 @@
 # Build outputs
 build/
 build_linux/
+build-debug/
+build-logs/
 premake_build/
+objdir/
+*.log
 
 utils/RCBot2_meta/Debug
 utils/RCBot2_meta/.vs
