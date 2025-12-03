@@ -1,6 +1,6 @@
 RCBot2 Dependency Report
 ========================
-Date: Wed Dec  3 11:52:06 AM UTC 2025
+Date: Wed Dec  3 08:17:31 PM UTC 2025
 System: Ubuntu 24.04.3 LTS
 
 Dependencies:
@@ -13,4 +13,3 @@ Dependencies:
   base_packages: installed
 
 Failed Checks:
-  - linux-libc-dev:i386

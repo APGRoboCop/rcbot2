@@ -1,0 +1,64 @@
+[create] mkdir -p includes
+[create] mkdir -p includes/version
+[create] mkdir -p rcbot.2.tf2
+[create] mkdir -p rcbot.2.tf2/linux-x86
+[create] mkdir -p rcbot.2.tf2/linux-x86_64
+[create] mkdir -p rcbot.2.hl2dm
+[create] mkdir -p rcbot.2.hl2dm/linux-x86
+[create] mkdir -p rcbot.2.hl2dm/linux-x86_64
+[create] mkdir -p loader
+[create] mkdir -p loader/RCBot2Meta_i486
+[create] mkdir -p loader/RCBot2Meta_i486/linux-x86
+[create] mkdir -p loader/RCBot2Meta.x64
+[create] mkdir -p loader/RCBot2Meta.x64/linux-x86_64
+[create] mkdir -p package
+[create] mkdir -p package/addons
+[create] mkdir -p package/addons/metamod
+[create] mkdir -p package/addons/rcbot2
+[create] mkdir -p package/addons/rcbot2/aux_data
+[create] mkdir -p package/addons/rcbot2/bin
+[create] mkdir -p package/addons/rcbot2/config
+[create] mkdir -p package/addons/rcbot2/profiles
+[create] mkdir -p package/addons/rcbot2/waypoints
+[create] mkdir -p package/addons/rcbot2/bin/x64
+Spawned worker (pid: 48893)
+Spawned worker (pid: 48894)
+Spawned worker (pid: 48895)
+Spawned worker (pid: 48896)
+Spawned worker (pid: 48897)
+Spawned worker (pid: 48898)
+Spawned worker (pid: 48899)
+Spawned worker (pid: 48900)
+Spawned worker (pid: 48901)
+Spawned worker (pid: 48902)
+Spawned worker (pid: 48903)
+Spawned worker (pid: 48904)
+Spawned worker (pid: 48905)
+Spawned worker (pid: 48906)
+Spawned worker (pid: 48907)
+[48899] cp "/var/repos/rcbot2/package/config/attack_util.csv" "./package/addons/rcbot2/config/attack_util.csv"
+[48906] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/lib/public/linux64/libtier0_srv.so" "./rcbot.2.hl2dm/linux-x86_64/libtier0_srv.so"
+[48896] cp "/var/repos/rcbot2/package/config/config.ini" "./package/addons/rcbot2/config/config.ini"
+[48893] cp "/var/repos/rcbot2/package/config/weapons.ini" "./package/addons/rcbot2/config/weapons.ini"
+[48898] cp "/var/repos/rcbot2/package/config/bot_mods.ini" "./package/addons/rcbot2/config/bot_mods.ini"
+[48897] cp "/var/repos/rcbot2/package/config/bot_quota.ini" "./package/addons/rcbot2/config/bot_quota.ini"
+[48894] cp "/var/repos/rcbot2/package/config/normal_util.csv" "./package/addons/rcbot2/config/normal_util.csv"
+[48899] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/lib/public/linux/libvstdlib_srv.so" "./rcbot.2.hl2dm/linux-x86/libvstdlib_srv.so"
+[48896] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-tf2/lib/public/linux64/libvstdlib_srv.so" "./rcbot.2.tf2/linux-x86_64/libvstdlib_srv.so"
+[48900] cp "/var/repos/rcbot2/package/config/accessclients.ini" "./package/addons/rcbot2/config/accessclients.ini"
+[48898] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-tf2/lib/public/linux/libvstdlib_srv.so" "./rcbot.2.tf2/linux-x86/libvstdlib_srv.so"
+[48901] cp "/var/repos/rcbot2/package/rcbot2.vdf" "./package/addons/metamod/rcbot2.vdf"
+[48904] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/lib/public/linux64/libvstdlib_srv.so" "./rcbot.2.hl2dm/linux-x86_64/libvstdlib_srv.so"
+[48897] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-tf2/lib/public/linux/libtier0_srv.so" "./rcbot.2.tf2/linux-x86/libtier0_srv.so"
+[48906] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/lib/public/linux/libtier0_srv.so" "./rcbot.2.hl2dm/linux-x86/libtier0_srv.so"
+[48893] ln -s "/var/repos/rcbot2/alliedmodders/hl2sdk-tf2/lib/public/linux64/libtier0_srv.so" "./rcbot.2.tf2/linux-x86_64/libtier0_srv.so"
+[48895] cp "/var/repos/rcbot2/package/config/hookinfo.ini" "./package/addons/rcbot2/config/hookinfo.ini"
+[48894] /usr/bin/python3 /var/repos/rcbot2/versioning/generate.py /var/repos/rcbot2 /var/repos/rcbot2/build-release/includes
+[48899] g++ -m32 -pipe -fno-strict-aliasing -Wall -Werror -Wno-uninitialized -Wno-sign-compare -Wno-unused -Wno-switch -Wno-unknown-pragmas -Wno-dangling-else -Wno-null-dereference -msse -fPIC -std=c++17 -fvisibility=hidden -mfpmath=sse -O3 -fno-omit-frame-pointer -march=pentium4 -march=core2 -msse2 -mfpmath=sse -fvisibility-inlines-hidden -fexceptions -fno-rtti -fno-threadsafe-statics -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-register -Wno-delete-non-virtual-dtor -DHAVE_STDINT_H -DGNUC -DNDEBUG -DLINUX -D_LINUX -DPOSIX -D_FILE_OFFSET_BITS=64 -DSE_CS2=25 -DSE_DARKMESSIAH=2 -DSE_EYE=5 -DSE_DOI=21 -DSE_MOCK=26 -DSE_BMS=11 -DSE_INSURGENCY=20 -DSE_ORANGEBOX=3 -DSE_MCV=22 -DSE_NUCLEARDAWN=14 -DSE_PVKII=10 -DSE_CSGO=23 -DSE_CONTAGION=15 -DSE_PORTAL2=18 -DSE_TF2=12 -DSE_DOTA=24 -DSE_SDK2013=9 -DSE_BLADE=19 -DSE_BLOODYGOODTIME=4 -DSE_DODS=8 -DSE_EPISODEONE=1 -DSE_LEFT4DEAD=13 -DSE_HL2DM=7 -DSE_CSS=6 -DSE_LEFT4DEAD2=16 -DSE_DEADLOCK=27 -DSE_ALIENSWARM=17 -DSOURCE_ENGINE=7 -DGAME_DLL -DCOMPILER_GCC -DNO_HOOK_MALLOC -DNO_MALLOC_OVERRIDE -DSM_EXT -DENABLE_SOURCEMOD_INTEGRATION -DRCBOT_MAXPLAYERS=101 -I /var/repos/rcbot2 -I /var/repos/rcbot2/sourcehook -I /var/repos/rcbot2/loader -I /var/repos/rcbot2/alliedmodders/metamod-source/core -I /var/repos/rcbot2/alliedmodders/metamod-source/core/sourcehook -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/engine -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/mathlib -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/vstdlib -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/tier0 -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/tier1 -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/toolframework -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/game/server -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/game/shared -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/common -I /var/repos/rcbot2/utils/RCBot2_meta -I /var/repos/rcbot2/alliedmodders/sourcemod/sourcepawn/include -I /var/repos/rcbot2/alliedmodders/sourcemod/public/amtl -I /var/repos/rcbot2/alliedmodders/sourcemod/public/amtl/amtl -I /var/repos/rcbot2/alliedmodders/sourcemod/public/extensions -I /var/repos/rcbot2/alliedmodders/sourcemod/public -I /var/repos/rcbot2/sm_ext -I /var/repos/rcbot2/versioning -I /var/repos/rcbot2/build-release/includes -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/game/server -MD -MF _var_repos_rcbot2_versioning_build_info.d -c /var/repos/rcbot2/versioning/build_info.cpp -o _var_repos_rcbot2_versioning_build_info.o
+[48900] g++ -m32 -pipe -fno-strict-aliasing -Wall -Werror -Wno-uninitialized -Wno-sign-compare -Wno-unused -Wno-switch -Wno-unknown-pragmas -Wno-dangling-else -Wno-null-dereference -msse -fPIC -std=c++17 -fvisibility=hidden -mfpmath=sse -O3 -fno-omit-frame-pointer -march=pentium4 -march=core2 -msse2 -mfpmath=sse -fvisibility-inlines-hidden -fexceptions -fno-rtti -fno-threadsafe-statics -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-register -Wno-delete-non-virtual-dtor -DHAVE_STDINT_H -DGNUC -DNDEBUG -DLINUX -D_LINUX -DPOSIX -D_FILE_OFFSET_BITS=64 -DSE_CS2=25 -DSE_DARKMESSIAH=2 -DSE_EYE=5 -DSE_DOI=21 -DSE_MOCK=26 -DSE_BMS=11 -DSE_INSURGENCY=20 -DSE_ORANGEBOX=3 -DSE_MCV=22 -DSE_NUCLEARDAWN=14 -DSE_PVKII=10 -DSE_CSGO=23 -DSE_CONTAGION=15 -DSE_PORTAL2=18 -DSE_TF2=12 -DSE_DOTA=24 -DSE_SDK2013=9 -DSE_BLADE=19 -DSE_BLOODYGOODTIME=4 -DSE_DODS=8 -DSE_EPISODEONE=1 -DSE_LEFT4DEAD=13 -DSE_HL2DM=7 -DSE_CSS=6 -DSE_LEFT4DEAD2=16 -DSE_DEADLOCK=27 -DSE_ALIENSWARM=17 -DSOURCE_ENGINE=7 -DGAME_DLL -DCOMPILER_GCC -DNO_HOOK_MALLOC -DNO_MALLOC_OVERRIDE -DSM_EXT -DENABLE_SOURCEMOD_INTEGRATION -DRCBOT_MAXPLAYERS=101 -I /var/repos/rcbot2 -I /var/repos/rcbot2/sourcehook -I /var/repos/rcbot2/loader -I /var/repos/rcbot2/alliedmodders/metamod-source/core -I /var/repos/rcbot2/alliedmodders/metamod-source/core/sourcehook -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/engine -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/mathlib -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/vstdlib -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/tier0 -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/tier1 -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/toolframework -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/public/game/server -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/game/shared -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/common -I /var/repos/rcbot2/utils/RCBot2_meta -I /var/repos/rcbot2/alliedmodders/sourcemod/sourcepawn/include -I /var/repos/rcbot2/alliedmodders/sourcemod/public/amtl -I /var/repos/rcbot2/alliedmodders/sourcemod/public/amtl/amtl -I /var/repos/rcbot2/alliedmodders/sourcemod/public/extensions -I /var/repos/rcbot2/alliedmodders/sourcemod/public -I /var/repos/rcbot2/sm_ext -I /var/repos/rcbot2/versioning -I /var/repos/rcbot2/build-release/includes -I /var/repos/rcbot2/alliedmodders/hl2sdk-hl2dm/game/server -MD -MF _var_repos_rcbot2_sm_ext_bot_sm_forwards.d -c /var/repos/rcbot2/sm_ext/bot_sm_forwards.cpp -o _var_repos_rcbot2_sm_ext_bot_sm_forwards.o
+In file included from /var/repos/rcbot2/sm_ext/bot_sm_forwards.cpp:9:
+/var/repos/rcbot2/sm_ext/bot_sm_forwards.h:3:10: fatal error: IExtensionSys.h: No such file or directory
+    3 | #include <IExtensionSys.h>
+      |          ^~~~~~~~~~~~~~~~~
+compilation terminated.
+Build failed: rcbot.2.hl2dm/linux-x86/_var_repos_rcbot2_sm_ext_bot_sm_forwards.o
