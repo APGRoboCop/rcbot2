@@ -6,7 +6,7 @@
 
 #include "bot_ehandle.h"
 #include "edict.h"
-#include "ehandle.h"
+#include "basehandle.h"
 #include "shareddefs.h"
 #include "utlmap.h"
 
@@ -336,7 +336,7 @@ class variant_t
 		float vecVal[3];
 		color32 rgbaVal;
 	};
-	CHandle<CBaseEntity> eVal; // this can't be in the union because it has a constructor. 
+	CBaseHandle eVal; // this can't be in the union because it has a constructor. 
 	fieldtype_t fieldType;
 };
 

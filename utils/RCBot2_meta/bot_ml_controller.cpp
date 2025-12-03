@@ -23,6 +23,7 @@
 #include "bot_onnx.h"
 #include "bot_features.h"
 #include "bot_buttons.h"
+#include "in_buttons.h"
 #include <cstring>
 #include <cmath>
 
@@ -139,7 +140,7 @@ void CMLBotController::Disable()
     if (m_bEnabled)
     {
         Msg("[ML] Disabled ML control for bot '%s'\n",
-            m_pBot->GetPlayerInfo() ? m_pBot->GetPlayerInfo()->GetName() : "unknown");
+            m_pBot->getPlayerInfo() ? m_pBot->getPlayerInfo()->GetName() : "unknown");
     }
 
     m_bEnabled = false;

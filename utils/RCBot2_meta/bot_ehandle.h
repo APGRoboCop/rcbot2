@@ -76,6 +76,17 @@ public:
 		return nullptr;
 	}
 
+	edict_t *get () const
+	{
+		if ( m_iSerialNumber && m_pEnt )
+		{
+			if ( !m_pEnt->IsFree() && m_iSerialNumber == m_pEnt->m_NetworkSerialNumber )
+				return m_pEnt;
+		}
+
+		return nullptr;
+	}
+
 	edict_t *get_old () const
 	{
 		return m_pEnt;

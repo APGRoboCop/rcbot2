@@ -678,6 +678,17 @@ public:
 
 	CBotVisibles* getVisibles() const { return m_pVisibles; }
 
+	// ML Controller helper methods
+	QAngle GetViewAngles() const { return m_vViewAngles; }
+	void SetViewAngles(const QAngle& angles) { m_vViewAngles = angles; }
+	void SetMovementVector(const Vector& v) { setMoveTo(v); }
+	CBotButtons* GetButtons() { return m_pButtons; }
+
+	// SourceMod natives helper methods
+	void SetLookAt(const Vector& vNew) { setLookAt(vNew); }
+	CBotSchedules* GetSchedules() { return m_pSchedules; }
+	CBotWeapons* GetWeapons() { return m_pWeapons; }
+
 	virtual bool canGotoWaypoint (const Vector& vPrevWaypoint, CWaypoint* pWaypoint, CWaypoint* pPrev = nullptr);
 	
 	void updatePosition() const;

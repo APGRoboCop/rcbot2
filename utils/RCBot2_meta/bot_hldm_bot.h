@@ -84,6 +84,19 @@ public:
 
 	void touchedWpt(CWaypoint* pWaypoint, int iNextWaypoint = -1, int iPrevWaypoint = -1) override;
 
+	// SourceMod natives getters
+	float getSprintTime() const { return m_fSprintTime; }
+	edict_t* getCarryingObject() const { return m_pCarryingObject; }
+	edict_t* getCurrentWeaponEdict() const { return m_pCurrentWeapon; }
+	const MyEHandle& getNearestPhysObj() const { return m_NearestPhysObj; }
+	const MyEHandle& getNearestBreakable() const { return m_NearestBreakable; }
+	const MyEHandle& getNearbyWeapon() const { return m_pNearbyWeapon; }
+	const MyEHandle& getHealthKit() const { return m_pHealthKit; }
+	const MyEHandle& getBattery() const { return m_pBattery; }
+	MyEHandle& getAmmoCrate() { return m_pAmmoCrate; }
+	int getClip1() const { return m_iClip1; }
+	int getClip2() const { return m_iClip2; }
+
 private:
 	// blah blah
 	MyEHandle m_NearestPhysObj;

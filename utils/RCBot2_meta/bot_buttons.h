@@ -113,6 +113,11 @@ public:
 	void jump (float fFor = 1.0f, float fFrom = 0) const;
 	void duck (float fFor = 1.0f, float fFrom = 0) const;
 
+	// ML Controller helper methods (capitalized wrappers)
+	void Reset() { letGoAllButtons(true); }
+	void Tap(int iButtonId) const { tap(iButtonId); }
+	void Hold(int iButtonId) const { holdButton(iButtonId); }
+
 private:
 	std::vector<std::unique_ptr<CBotButton>> m_theButtons;
 	bool m_bLetGoAll;

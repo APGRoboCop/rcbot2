@@ -593,7 +593,7 @@ CGotoHideSpotSched :: CGotoHideSpotSched (CBot *pBot, const Vector& vOrigin, IBo
 
 	// no interrupts, should be a quick waypoint path anyway
 	pHideGoalPoint->setNoInterruptions();
-	pHideGoalPoint->setInterruptFunction(interrupt);
+	pHideGoalPoint->setInterruptFunction(std::unique_ptr<IBotTaskInterrupt>(interrupt));
 	// get vector from good hide spot task
 	pHideGoalPoint->getPassedVector();
 }

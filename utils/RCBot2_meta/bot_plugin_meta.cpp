@@ -26,6 +26,7 @@
 #include "filesystem.h"
 #include "interface.h"
 #include "IStaticPropMgr.h"
+#include "IEffects.h"
 
 #ifdef __linux__
 #include "shake.h"    //bir3yk

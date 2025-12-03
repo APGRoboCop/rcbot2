@@ -71,9 +71,9 @@ cell_t sm_RCBotHLDM_UseSprint(IPluginContext *pContext, const cell_t *params) {
 
 	// Set sprint button state
 	if (enable) {
-		bot->m_pButtons->holdButton(IN_SPEED, 0.0f, 1.0f, 0.0f);
+		bot->GetButtons()->holdButton(IN_SPEED, 0.0f, 1.0f, 0.0f);
 	} else {
-		bot->m_pButtons->letGo(IN_SPEED);
+		bot->GetButtons()->letGo(IN_SPEED);
 	}
 
 	return 1;
@@ -89,7 +89,7 @@ cell_t sm_RCBotHLDM_IsSprinting(IPluginContext *pContext, const cell_t *params) 
 	}
 
 	// Check if sprint button is held
-	return bot->m_pButtons->holdingButton(IN_SPEED) ? 1 : 0;
+	return bot->GetButtons()->holdingButton(IN_SPEED) ? 1 : 0;
 }
 
 /* native float RCBot2_HLDM_GetSprintTime(int client); */
@@ -103,7 +103,7 @@ cell_t sm_RCBotHLDM_GetSprintTime(IPluginContext *pContext, const cell_t *params
 
 	// Get sprint time remaining (m_fSprintTime is when sprint can be used again)
 	const float currentTime = engine->Time();
-	const float sprintCooldown = bot->m_fSprintTime;
+	const float sprintCooldown = bot->getSprintTime();
 	const float timeRemaining = (sprintCooldown > currentTime) ? (sprintCooldown - currentTime) : 0.0f;
 
 	return sp_ftoc(timeRemaining);
@@ -135,8 +135,8 @@ cell_t sm_RCBotHLDM_UseCharger(IPluginContext *pContext, const cell_t *params) {
 	}
 
 	// Set bot to use the charger
-	bot->setLookAt(CBotGlobals::entityOrigin(pCharger));
-	bot->m_pButtons->holdButton(IN_USE, 0.0f, 1.0f, 0.0f);
+	bot->SetLookAt(CBotGlobals::entityOrigin(pCharger));
+	bot->GetButtons()->holdButton(IN_USE, 0.0f, 1.0f, 0.0f);
 
 	return 1;
 }
@@ -175,7 +175,8 @@ cell_t sm_RCBotHLDM_IsCarryingObject(IPluginContext *pContext, const cell_t *par
 	}
 
 	// Check if bot is carrying an object with gravity gun
-	return (bot->m_pCarryingObject != nullptr && !bot->m_pCarryingObject->IsFree()) ? 1 : 0;
+	edict_t* pCarrying = bot->getCarryingObject();
+	return (pCarrying != nullptr && !pCarrying->IsFree()) ? 1 : 0;
 }
 
 /* native int RCBot2_HLDM_GetCarriedObject(int client); */
@@ -188,8 +189,9 @@ cell_t sm_RCBotHLDM_GetCarriedObject(IPluginContext *pContext, const cell_t *par
 	}
 
 	// Return entity index of carried object, or -1 if none
-	if (bot->m_pCarryingObject && !bot->m_pCarryingObject->IsFree()) {
-		return ENTINDEX(bot->m_pCarryingObject);
+	edict_t* pCarrying = bot->getCarryingObject();
+	if (pCarrying && !pCarrying->IsFree()) {
+		return ENTINDEX(pCarrying);
 	}
 
 	return -1;
@@ -217,9 +219,9 @@ cell_t sm_RCBotHLDM_PickupObject(IPluginContext *pContext, const cell_t *params)
 	}
 
 	// Add schedule to pick up object with gravity gun
-	CBotSchedule* pSchedule = new CBotSchedule(new CBotGravGunPickup(bot->m_pCurrentWeapon, pObject));
+	CBotSchedule* pSchedule = new CBotSchedule(new CBotGravGunPickup(bot->getCurrentWeaponEdict(), pObject));
 	pSchedule->setID(SCHED_GRAVGUN_PICKUP);
-	bot->m_pSchedules->addFront(pSchedule);
+	bot->GetSchedules()->addFront(pSchedule);
 
 	return 1;
 }
@@ -234,8 +236,9 @@ cell_t sm_RCBotHLDM_DropObject(IPluginContext *pContext, const cell_t *params) {
 	}
 
 	// Drop currently carried object (secondary fire)
-	if (bot->m_pCarryingObject && !bot->m_pCarryingObject->IsFree()) {
-		bot->m_pButtons->tap(IN_ATTACK2);
+	edict_t* pCarrying = bot->getCarryingObject();
+	if (pCarrying && !pCarrying->IsFree()) {
+		bot->GetButtons()->tap(IN_ATTACK2);
 		return 1;
 	}
 
@@ -252,8 +255,9 @@ cell_t sm_RCBotHLDM_LaunchObject(IPluginContext *pContext, const cell_t *params)
 	}
 
 	// Launch currently carried object (primary fire)
-	if (bot->m_pCarryingObject && !bot->m_pCarryingObject->IsFree()) {
-		bot->m_pButtons->attack(0.1f);
+	edict_t* pCarrying = bot->getCarryingObject();
+	if (pCarrying && !pCarrying->IsFree()) {
+		bot->GetButtons()->attack(0.1f);
 		return 1;
 	}
 
@@ -274,7 +278,7 @@ cell_t sm_RCBotHLDM_GetNearestPhysicsObject(IPluginContext *pContext, const cell
 	}
 
 	// Return entity index of nearest physics object
-	return EHandleToIndex(bot->m_NearestPhysObj);
+	return EHandleToIndex(bot->getNearestPhysObj());
 }
 
 /* native int RCBot2_HLDM_GetNearestBreakable(int client); */
@@ -287,7 +291,7 @@ cell_t sm_RCBotHLDM_GetNearestBreakable(IPluginContext *pContext, const cell_t *
 	}
 
 	// Return entity index of nearest breakable object
-	return EHandleToIndex(bot->m_NearestBreakable);
+	return EHandleToIndex(bot->getNearestBreakable());
 }
 
 /* native bool RCBot2_HLDM_SetFailedObject(int client, int object); */
@@ -348,7 +352,7 @@ cell_t sm_RCBotHLDM_GetNearestWeapon(IPluginContext *pContext, const cell_t *par
 	}
 
 	// Return entity index of nearest weapon
-	return EHandleToIndex(bot->m_pNearbyWeapon);
+	return EHandleToIndex(bot->getNearbyWeapon());
 }
 
 /* native int RCBot2_HLDM_GetNearestHealthKit(int client); */
@@ -361,7 +365,7 @@ cell_t sm_RCBotHLDM_GetNearestHealthKit(IPluginContext *pContext, const cell_t *
 	}
 
 	// Return entity index of nearest health kit
-	return EHandleToIndex(bot->m_pHealthKit);
+	return EHandleToIndex(bot->getHealthKit());
 }
 
 /* native int RCBot2_HLDM_GetNearestBattery(int client); */
@@ -374,7 +378,7 @@ cell_t sm_RCBotHLDM_GetNearestBattery(IPluginContext *pContext, const cell_t *pa
 	}
 
 	// Return entity index of nearest battery (armor)
-	return EHandleToIndex(bot->m_pBattery);
+	return EHandleToIndex(bot->getBattery());
 }
 
 /* native int RCBot2_HLDM_GetNearestAmmoCrate(int client); */
@@ -387,7 +391,7 @@ cell_t sm_RCBotHLDM_GetNearestAmmoCrate(IPluginContext *pContext, const cell_t *
 	}
 
 	// Return entity index of nearest ammo crate
-	return EHandleToIndex(bot->m_pAmmoCrate);
+	return EHandleToIndex(bot->getAmmoCrate());
 }
 
 /* native bool RCBot2_HLDM_UseAmmoCrate(int client); */
@@ -400,10 +404,10 @@ cell_t sm_RCBotHLDM_UseAmmoCrate(IPluginContext *pContext, const cell_t *params)
 	}
 
 	// Use nearest ammo crate
-	edict_t* pCrate = bot->m_pAmmoCrate.get();
+	edict_t* pCrate = bot->getAmmoCrate().get();
 	if (pCrate && !pCrate->IsFree()) {
-		bot->setLookAt(CBotGlobals::entityOrigin(pCrate));
-		bot->m_pButtons->attack(0.5f);
+		bot->SetLookAt(CBotGlobals::entityOrigin(pCrate));
+		bot->GetButtons()->attack(0.5f);
 		return 1;
 	}
 
@@ -424,8 +428,8 @@ cell_t sm_RCBotHLDM_GetCurrentWeapon(IPluginContext *pContext, const cell_t *par
 	}
 
 	// Return entity index of current weapon
-	if (bot->m_pCurrentWeapon && !bot->m_pCurrentWeapon->IsFree()) {
-		return ENTINDEX(bot->m_pCurrentWeapon);
+	if (bot->getCurrentWeaponEdict() && !bot->getCurrentWeaponEdict()->IsFree()) {
+		return ENTINDEX(bot->getCurrentWeaponEdict());
 	}
 
 	return -1;
@@ -441,7 +445,7 @@ cell_t sm_RCBotHLDM_GetWeaponClip1(IPluginContext *pContext, const cell_t *param
 	}
 
 	// Return primary clip ammo
-	return bot->m_iClip1;
+	return bot->getClip1();
 }
 
 /* native int RCBot2_HLDM_GetWeaponClip2(int client); */
@@ -454,7 +458,7 @@ cell_t sm_RCBotHLDM_GetWeaponClip2(IPluginContext *pContext, const cell_t *param
 	}
 
 	// Return secondary clip ammo
-	return bot->m_iClip2;
+	return bot->getClip2();
 }
 
 /* native bool RCBot2_HLDM_HasGravityGun(int client); */
@@ -467,9 +471,9 @@ cell_t sm_RCBotHLDM_HasGravityGun(IPluginContext *pContext, const cell_t *params
 	}
 
 	// Check if bot has gravity gun weapon
-	const CWeapon* pGravGun = CWeapons::getWeapon(HL2DM_WEAPON_GRAVITYGUN);
+	const CWeapon* pGravGun = CWeapons::getWeapon(HL2DM_WEAPON_PHYSCANNON);
 	if (pGravGun) {
-		const CBotWeapon* pBotWeapon = bot->m_pWeapons->getWeapon(pGravGun);
+		const CBotWeapon* pBotWeapon = bot->GetWeapons()->getWeapon(pGravGun);
 		return (pBotWeapon && pBotWeapon->hasWeapon()) ? 1 : 0;
 	}
 
@@ -495,7 +499,7 @@ cell_t sm_RCBotHLDM_ThrowGrenade(IPluginContext *pContext, const cell_t *params)
 		return 0;
 	}
 
-	const CBotWeapon* pBotGrenade = bot->m_pWeapons->getWeapon(pGrenade);
+	const CBotWeapon* pBotGrenade = bot->GetWeapons()->getWeapon(pGrenade);
 	if (!pBotGrenade || pBotGrenade->getAmmo(bot) <= 0) {
 		return 0;
 	}
@@ -520,6 +524,6 @@ cell_t sm_RCBotHLDM_CanThrowGrenade(IPluginContext *pContext, const cell_t *para
 		return 0;
 	}
 
-	const CBotWeapon* pBotGrenade = bot->m_pWeapons->getWeapon(pGrenade);
+	const CBotWeapon* pBotGrenade = bot->GetWeapons()->getWeapon(pGrenade);
 	return (pBotGrenade && pBotGrenade->getAmmo(bot) > 0) ? 1 : 0;
 }
