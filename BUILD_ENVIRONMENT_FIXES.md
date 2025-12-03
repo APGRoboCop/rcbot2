@@ -43,10 +43,25 @@ git submodule status
 ### 4. **Uninitialized AlliedModders Submodules**
 The following submodules show as uninitialized (leading `-` in status):
 - `alliedmodders/metamod-source`
+- `alliedmodders/sourcemod` (CRITICAL for SourceMod extension build)
 - `alliedmodders/hl2sdk-tf2`
 - `alliedmodders/hl2sdk-css`
 - `alliedmodders/hl2sdk-dods`
 - etc.
+
+### 5. **Missing SourceMod Headers** (COMPILATION PHASE)
+```
+fatal error: IExtensionSys.h: No such file or directory
+```
+
+**Issue**: When building with SourceMod integration (default), the build requires headers from the `alliedmodders/sourcemod` submodule. If this submodule is not initialized, compilation fails when trying to include SourceMod extension headers.
+
+**Files affected**:
+- `sm_ext/bot_sm_ext.h` - Includes `<IExtensionSys.h>` and `<smsdk_config.h>`
+- `sm_ext/bot_sm_forwards.h` - Includes SourceMod forward system headers
+- All files in `sm_ext/` directory
+
+**Why it matters**: The RCBot2 build includes SourceMod extension integration by default, which provides advanced scripting capabilities. This requires the SourceMod public headers to be available.
 
 ## The Fix Script
 
@@ -66,7 +81,7 @@ The `fix-build-environment.sh` script addresses all these issues:
 
 4. **Cleans up corrupted references**: Removes broken submodule paths from git cache
 
-5. **Initializes AlliedModders submodules**: Optional step for metamod and hl2sdk submodules
+5. **Initializes AlliedModders submodules**: Includes metamod, sourcemod (required), and hl2sdk submodules
 
 6. **Cleans build artifacts**: Forces a fresh configure
 
@@ -186,6 +201,14 @@ sudo apt-get install linux-libc-dev:i386
 ```bash
 git rm --cached dependencies/hl2sdk/hl2sdk-css
 git submodule sync
+```
+
+### Error: "fatal error: IExtensionSys.h: No such file or directory"
+**Fix**: Initialize the sourcemod submodule
+```bash
+git submodule update --init --depth=1 alliedmodders/sourcemod
+# Or run the full fix script
+./fix-build-environment.sh
 ```
 
 ## Technical Details
