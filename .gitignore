@@ -31,3 +31,7 @@ apg-load
 # Visual Studio code
 .vscode/
 *.code-workspace
+
+# Build directories
+build-release/
+build-debug/
