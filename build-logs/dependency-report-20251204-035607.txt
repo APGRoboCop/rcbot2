@@ -1,0 +1,9 @@
+RCBot2 Dependency Report
+========================
+Date: Thu Dec  4 03:56:07 AM UTC 2025
+System: Ubuntu 24.04.3 LTS
+
+Dependencies:
+  hl2sdk_manifests: existing:/var/repos/rcbot2/hl2sdk-manifests
+
+Failed Checks:

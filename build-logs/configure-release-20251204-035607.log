@@ -1,0 +1,12 @@
+Checking CC compiler (vendor test gcc)... ['clang', '-m32', 'test.c', '-o', 'test-c']
+Compiler clang for CC failed: [Errno 2] No such file or directory: 'clang'
+Checking CC compiler (vendor test gcc)... ['gcc', '-m32', 'test.c', '-o', 'test-c']
+found gcc version 13.3, x86
+Checking CXX compiler (vendor test gcc)... ['g++', '-m32', 'test.cpp', '-o', 'test-cxx']
+found gcc version 13.3, x86
+Checking CC compiler (vendor test gcc)... ['clang', '-m64', 'test.c', '-o', 'test-c']
+Compiler clang for CC failed: [Errno 2] No such file or directory: 'clang'
+Checking CC compiler (vendor test gcc)... ['gcc', '-m64', 'test.c', '-o', 'test-c']
+found gcc version 13.3, x86_64
+Checking CXX compiler (vendor test gcc)... ['g++', '-m64', 'test.cpp', '-o', 'test-cxx']
+found gcc version 13.3, x86_64
