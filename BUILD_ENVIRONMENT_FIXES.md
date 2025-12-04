@@ -63,6 +63,26 @@ fatal error: IExtensionSys.h: No such file or directory
 
 **Why it matters**: The RCBot2 build includes SourceMod extension integration by default, which provides advanced scripting capabilities. This requires the SourceMod public headers to be available.
 
+### 6. **Missing SourcePawn VM Headers** (COMPILATION PHASE - NESTED SUBMODULES)
+```
+fatal error: sp_vm_types.h: No such file or directory
+```
+
+**Issue**: The `alliedmodders/sourcemod` submodule has its own nested submodules, including `sourcepawn`. The header `sp_vm_types.h` is located in `alliedmodders/sourcemod/sourcepawn/include/`. If the sourcemod submodule is initialized but its nested submodules are not, these headers will be missing.
+
+**SourceMod nested submodules**:
+- `sourcepawn` - SourcePawn VM and compiler (CRITICAL - contains sp_vm_types.h, sp_vm_api.h)
+- `public/amtl` - AlliedModders Template Library
+- `public/safetyhook` - SafetyHook library
+- `hl2sdk-manifests` - SDK manifest files
+
+**Why it happens**: Using `git submodule update --init` without `--recursive` only initializes the top-level submodule, not its nested submodules.
+
+**Solution**: Initialize sourcemod with `--recursive` flag:
+```bash
+git submodule update --init --recursive alliedmodders/sourcemod
+```
+
 ## The Fix Script
 
 The `fix-build-environment.sh` script addresses all these issues:
@@ -82,6 +102,7 @@ The `fix-build-environment.sh` script addresses all these issues:
 4. **Cleans up corrupted references**: Removes broken submodule paths from git cache
 
 5. **Initializes AlliedModders submodules**: Includes metamod, sourcemod (required), and hl2sdk submodules
+   - Uses `--recursive` for sourcemod to initialize nested submodules (sourcepawn, amtl, etc.)
 
 6. **Cleans build artifacts**: Forces a fresh configure
 
@@ -210,6 +231,17 @@ git submodule update --init --depth=1 alliedmodders/sourcemod
 # Or run the full fix script
 ./fix-build-environment.sh
 ```
+
+### Error: "fatal error: sp_vm_types.h: No such file or directory"
+**Fix**: Initialize sourcemod with nested submodules (recursive)
+```bash
+# The sourcemod submodule has its own nested submodules
+git submodule update --init --recursive alliedmodders/sourcemod
+# Or run the full fix script (now handles recursive init)
+./fix-build-environment.sh
+```
+
+**Why this happens**: The `sp_vm_types.h` header is in `alliedmodders/sourcemod/sourcepawn/include/`. Even if sourcemod is initialized, its nested `sourcepawn` submodule must also be initialized using `--recursive`.
 
 ## Technical Details
 
