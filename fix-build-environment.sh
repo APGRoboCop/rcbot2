@@ -274,6 +274,7 @@ fix_alliedmodders_submodules() {
 
     local submodules=(
         "alliedmodders/metamod-source"
+        "alliedmodders/sourcemod"
         "alliedmodders/hl2sdk-tf2"
         "alliedmodders/hl2sdk-hl2dm"
         "alliedmodders/hl2sdk-css"
