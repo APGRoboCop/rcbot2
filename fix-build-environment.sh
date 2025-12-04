@@ -290,7 +290,14 @@ fix_alliedmodders_submodules() {
     for submodule in "${submodules[@]}"; do
         log_action "Initializing $submodule..."
 
-        if git submodule update --init --depth=1 "$submodule" 2>&1 | tee -a "$LOG_FILE"; then
+        # sourcemod requires recursive init for nested submodules (sourcepawn, etc.)
+        local recursive_flag=""
+        if [[ "$submodule" == *"sourcemod"* ]]; then
+            recursive_flag="--recursive"
+            log_info "Using recursive initialization for sourcemod (includes sourcepawn)"
+        fi
+
+        if git submodule update --init $recursive_flag --depth=1 "$submodule" 2>&1 | tee -a "$LOG_FILE"; then
             if [ -d "$submodule" ] && [ "$(ls -A $submodule 2>/dev/null)" ]; then
                 log_success "$submodule initialized"
                 success_count=$((success_count + 1))
