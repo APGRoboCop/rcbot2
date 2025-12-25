@@ -1384,9 +1384,13 @@ edict_t *CBot :: getVisibleSpecial ()
 	return nullptr;
 }
 
-bool CBot::wantToInvestigateSound () 
-{ 
-	return m_fSpawnTime + 10.0f < engine->Time() && !hasEnemy() && m_bWantToInvestigateSound; 
+bool CBot::wantToInvestigateSound ()
+{
+	// In nav-test mode, don't investigate sounds - focus on exploration
+	if (m_bNavTestMode)
+		return false;
+
+	return m_fSpawnTime + 10.0f < engine->Time() && !hasEnemy() && m_bWantToInvestigateSound;
 }
 
 bool CBot :: recentlyHurt (const float fTime) const
@@ -1709,9 +1713,16 @@ void CBot :: checkDependantEntities ()
 
 void CBot :: findEnemy ( edict_t *pOldEnemy )
 {
+	// In nav-test mode, don't look for enemies - focus on exploration
+	if (m_bNavTestMode)
+	{
+		m_pEnemy = nullptr;
+		return;
+	}
+
 	m_pFindEnemyFunc->init();
 
-	if ( pOldEnemy && isEnemy(pOldEnemy,true) ) 
+	if ( pOldEnemy && isEnemy(pOldEnemy,true) )
 		m_pFindEnemyFunc->setOldEnemy(pOldEnemy);
 	/*else if ( CBotGlobals::entityIsAlive(pOldEnemy) ) /// lost enemy
 	{
@@ -2015,6 +2026,10 @@ void CBot :: updateStatistics ()
 
 bool CBot :: wantToListen () const
 {
+	// In nav-test mode, don't listen for players - focus on exploration
+	if (m_bNavTestMode)
+		return false;
+
 	return m_bWantToListen && m_fWantToListenTime < engine->Time() && m_fLastSeeEnemy+2.5f < engine->Time();
 }
 // Listen for players who are shooting
