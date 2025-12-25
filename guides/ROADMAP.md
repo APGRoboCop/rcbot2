@@ -23,7 +23,7 @@ This document consolidates all development roadmaps and implementation plans.
 | Phase | Feature | Status | Priority |
 |-------|---------|--------|----------|
 | 0 | HL2DM Core Features | Completed | High |
-| 1 | HL2DM Waypoint Enhancements | Completed | High |
+| 1 | HL2DM Waypoint Enhancements | Partial | High |
 | 2 | HL2DM Advanced Features | Completed | High |
 | 3 | Engineer Sentry Orientation | Completed | Medium |
 | 4 | Class Change Implementation | Completed | Medium |
@@ -55,7 +55,7 @@ This document consolidates all development roadmaps and implementation plans.
   - Support for custom game modes
   - Configuration in `package/config/gamemodes.ini`
 
-### Phase 1: HL2DM Waypoint Enhancements (Completed)
+### Phase 1: HL2DM Waypoint Enhancements (Partial)
 
 **Focus**: Advanced navigation system for HL2DM maps.
 
@@ -80,6 +80,36 @@ This document consolidates all development roadmaps and implementation plans.
   - Weapon pickup awareness
   - Health/armor charger locations
   - Gravity gun-specific waypoints
+
+**Planned Features**:
+- **Waypoint Auto-Refinement & Auto-Testing**: Automated navigation testing system
+  - Nav-test mode command that deprioritizes combat in favor of map coverage
+  - Bots systematically traverse the map, covering as much area as possible
+  - Movement issues (stuck locations, unreachable waypoints, pathing failures) are detected and logged
+  - Issues stored in SQLite database for later analysis
+  - Trade-off: increased CPU overhead and potential latency spikes during testing
+  - Generates actionable reports for waypoint improvement
+
+- **Iterative Waypoint Auto-Generation**: Data-driven waypoint improvement system
+  - Integrates nav-test mode data into the waypoint auto-generation system
+  - Recursive/iterative improvement cycle using collected movement issue data
+  - Automatic identification of problematic areas needing additional waypoints
+  - Automatic removal/adjustment of waypoints causing navigation issues
+  - Designed to minimize reliance on human-placed waypoints
+  - Self-improving waypoint network through repeated nav-test cycles
+
+- **Advanced Behavior Waypointing**: Tactical waypoint metadata system
+  - Individual waypoint flagging and weighting system
+  - Waypoint tactical classifications:
+    - Camping/hiding spots (good for ambush, defensive positions)
+    - Exposed/dangerous areas (not suitable for lingering, high-risk zones)
+    - Resource proximity (near health, armor, weapons, ammo)
+    - High-traffic areas (frequently traversed by players)
+    - Chokepoints (strategic control locations)
+  - Bots access waypoint metadata for tactical decision-making
+  - Enables map-aware behavior: bots act like experienced players who know the map
+  - Advanced decision-making considers waypoint weights when choosing destinations
+  - Supports different playstyles (aggressive, defensive, objective-focused)
 
 ### Phase 2: HL2DM Advanced Features (Completed)
 
