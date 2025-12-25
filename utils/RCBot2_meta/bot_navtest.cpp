@@ -30,6 +30,7 @@
  */
 
 #include "bot_navtest.h"
+#include "bot_tactical.h"
 #include "bot.h"
 #include "bot_globals.h"
 #include "bot_waypoint.h"
@@ -527,6 +528,17 @@ void CNavTestManager::update()
 				pSchedules->add(new CNavTestExploreSched(-1));
 			}
 		}
+	}
+
+	// Update tactical data integration (every 10 seconds)
+	static float s_lastTacticalUpdate = 0.0f;
+	if (curTime - s_lastTacticalUpdate >= 10.0f)
+	{
+		s_lastTacticalUpdate = curTime;
+
+		CTacticalDataManager& tactical = CTacticalDataManager::instance();
+		tactical.updateTrafficFromNavTest();
+		tactical.updateDangerFromNavTest();
 	}
 }
 

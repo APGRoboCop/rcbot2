@@ -302,6 +302,13 @@ public:
 	// Decay danger ratings over time
 	void updateDangerDecay(float deltaTime);
 
+	// Nav-test integration
+	// Updates HIGH_TRAFFIC flags based on nav-test visit frequency data
+	void updateTrafficFromNavTest();
+
+	// Updates danger ratings and weights based on nav-test issue data
+	void updateDangerFromNavTest();
+
 private:
 	CTacticalDataManager();
 	~CTacticalDataManager();

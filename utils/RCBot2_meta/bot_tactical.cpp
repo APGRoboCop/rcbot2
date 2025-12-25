@@ -30,6 +30,7 @@
  */
 
 #include "bot_tactical.h"
+#include "bot_navtest.h"
 #include "bot.h"
 #include "bot_globals.h"
 #include "bot_waypoint.h"
@@ -609,6 +610,156 @@ void CTacticalDataManager::updateDangerDecay(float deltaTime)
 				danger = 0.0f;
 			info.setDangerRating(danger);
 		}
+	}
+}
+
+void CTacticalDataManager::updateTrafficFromNavTest()
+{
+	CNavTestManager& navTest = CNavTestManager::instance();
+	if (!navTest.isSessionActive())
+		return;
+
+	CMapCoverageTracker& coverage = navTest.getCoverageTracker();
+
+	// Calculate average visit count for threshold determination
+	int totalVisits = 0;
+	int visitedWaypoints = 0;
+
+	for (size_t i = 0; i < m_tacticalData.size(); i++)
+	{
+		int visits = coverage.getVisitCount(static_cast<int>(i));
+		if (visits > 0)
+		{
+			totalVisits += visits;
+			visitedWaypoints++;
+		}
+	}
+
+	// Need at least some data to work with
+	if (visitedWaypoints < 5)
+		return;
+
+	float avgVisits = static_cast<float>(totalVisits) / static_cast<float>(visitedWaypoints);
+
+	// Waypoints with visits > 2x average are considered high traffic
+	float highTrafficThreshold = avgVisits * 2.0f;
+
+	int flagsSet = 0;
+
+	for (size_t i = 0; i < m_tacticalData.size(); i++)
+	{
+		int visits = coverage.getVisitCount(static_cast<int>(i));
+
+		if (static_cast<float>(visits) >= highTrafficThreshold)
+		{
+			m_tacticalData[i].addTacticalFlag(TacticalFlags::HIGH_TRAFFIC);
+			flagsSet++;
+		}
+		else
+		{
+			// Clear flag if visits dropped below threshold
+			m_tacticalData[i].removeTacticalFlag(TacticalFlags::HIGH_TRAFFIC);
+		}
+	}
+
+	if (flagsSet > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Nav-test: Updated HIGH_TRAFFIC flag on %d waypoints (threshold: %.1f visits)",
+			flagsSet, highTrafficThreshold);
+	}
+}
+
+void CTacticalDataManager::updateDangerFromNavTest()
+{
+	CNavTestManager& navTest = CNavTestManager::instance();
+	CNavTestIssueTracker& issues = navTest.getIssueTracker();
+
+	if (issues.getIssueCount() == 0)
+		return;
+
+	int dangerUpdates = 0;
+
+	for (size_t i = 0; i < m_tacticalData.size(); i++)
+	{
+		int wptId = static_cast<int>(i);
+		int issueFreq = issues.getIssueFrequency(wptId);
+
+		if (issueFreq == 0)
+			continue;
+
+		CTacticalInfo& info = m_tacticalData[i];
+
+		// Increase danger rating based on issue frequency
+		// More issues = more dangerous for navigation
+		float dangerIncrease = 0.0f;
+
+		// Get specific issues for this waypoint for detailed analysis
+		std::vector<CNavTestIssue> wptIssues = issues.getIssuesForWaypoint(wptId);
+
+		for (const CNavTestIssue& issue : wptIssues)
+		{
+			switch (issue.severity)
+			{
+			case ENavTestIssueSeverity::CRITICAL:
+				dangerIncrease += 0.4f;
+				break;
+			case ENavTestIssueSeverity::HIGH:
+				dangerIncrease += 0.25f;
+				break;
+			case ENavTestIssueSeverity::MEDIUM:
+				dangerIncrease += 0.1f;
+				break;
+			case ENavTestIssueSeverity::LOW:
+				dangerIncrease += 0.05f;
+				break;
+			}
+
+			// Set specific flags based on issue type
+			switch (issue.type)
+			{
+			case ENavTestIssueType::FALL_DAMAGE:
+				info.addTacticalFlag(TacticalFlags::FALL_HAZARD);
+				break;
+			case ENavTestIssueType::STUCK:
+			case ENavTestIssueType::PATH_FAILURE:
+				info.addTacticalFlag(TacticalFlags::DANGER_ZONE);
+				break;
+			default:
+				break;
+			}
+
+			// Adjust playstyle weights based on issues
+			// Cautious playstyles should avoid problematic waypoints
+			CTacticalWeight& weights = info.getWeights();
+
+			if (issue.severity >= ENavTestIssueSeverity::HIGH)
+			{
+				// Reduce weights for cautious playstyles
+				weights.defensive *= 0.8f;
+				weights.sniper *= 0.9f;
+
+				// Aggressive bots might still use risky paths
+				weights.aggressive *= 0.95f;
+			}
+		}
+
+		// Cap danger increase at 1.0
+		float currentDanger = info.getDangerRating();
+		float newDanger = currentDanger + dangerIncrease;
+		if (newDanger > 1.0f)
+			newDanger = 1.0f;
+
+		if (newDanger > currentDanger)
+		{
+			info.setDangerRating(newDanger);
+			dangerUpdates++;
+		}
+	}
+
+	if (dangerUpdates > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Nav-test: Updated danger ratings on %d waypoints based on %d issues",
+			dangerUpdates, issues.getIssueCount());
 	}
 }
 
