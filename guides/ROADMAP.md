@@ -22,7 +22,7 @@ This document consolidates all development roadmaps and implementation plans.
 
 | Phase | Feature | Status | Priority |
 |-------|---------|--------|----------|
-| 0 | HL2DM Core Features | Completed | High |
+| 0 | HL2DM Core Features | Partial | High |
 | 1 | HL2DM Waypoint Enhancements | Partial | High |
 | 2 | HL2DM Advanced Features | Completed | High |
 | 3 | Engineer Sentry Orientation | Completed | Medium |
@@ -34,7 +34,7 @@ This document consolidates all development roadmaps and implementation plans.
 | 9 | Kart Game Support | Partial | Low |
 | 10 | Advanced Features | Future | Low |
 
-### Phase 0: HL2DM Core Features (Completed)
+### Phase 0: HL2DM Core Features (Partial)
 
 **Focus**: Establish solid HL2DM bot foundation for all future development.
 
@@ -54,6 +54,38 @@ This document consolidates all development roadmaps and implementation plans.
   - Flexible gamemode identification
   - Support for custom game modes
   - Configuration in `package/config/gamemodes.ini`
+
+**Pending Features**:
+- **Healthcharger & Suitcharger Recognition**: Ensure correct bot interaction with HL2DM charger devices
+  - Detect and locate func_healthcharger and func_recharge (suit charger) entities in the map
+  - Bots recognize when health/armor is below threshold and seek out chargers
+  - Proper +use interaction to activate chargers
+  - Wait at charger until fully charged or charger depleted
+  - Track charger cooldown/depletion state to avoid revisiting empty chargers
+  - Integrate charger locations into waypoint system for pathfinding
+
+- **Team Deathmatch Gamemode Support**: Ensure correct bot recognition and participation in TDM
+  - Detect team deathmatch gamemode via mp_teamplay cvar or gamemode config
+  - Bots recognize teammates vs enemies based on team assignment
+  - Friendly fire awareness based on mp_friendlyfire setting
+  - Team-based spawn point usage
+  - Score tracking awareness (team score vs individual frags)
+  - Cooperation behaviors with teammates (avoid blocking, don't steal kills unnecessarily)
+
+- **Door Entity Recognition & Usage**: Comprehensive door handling system
+  - Detect door entity types: func_door, func_door_rotating, prop_door_rotating, func_movelinear
+  - Read door entity properties and spawnflags to determine activation method:
+    - Touch-activated doors (walk through to open)
+    - Use-activated doors (requires +use interaction)
+    - Button-linked doors (find and press associated func_button)
+    - Trigger-activated doors (step on trigger_multiple platform)
+    - Breakable doors (shoot or melee to destroy)
+    - Locked doors (recognize and avoid or find key/button)
+  - Detect door state (open, closed, opening, closing, locked)
+  - Handle multi-part doors (double doors that open together)
+  - Wait for door to fully open before proceeding
+  - Handle doors that close automatically (timing for passage)
+  - Integrate door knowledge into pathfinding (avoid paths through locked doors)
 
 ### Phase 1: HL2DM Waypoint Enhancements (Partial)
 
@@ -110,6 +142,35 @@ This document consolidates all development roadmaps and implementation plans.
   - Enables map-aware behavior: bots act like experienced players who know the map
   - Advanced decision-making considers waypoint weights when choosing destinations
   - Supports different playstyles (aggressive, defensive, objective-focused)
+
+- **Gravity-Aware Navigation**: Dynamic pathfinding based on server gravity settings
+  - Read sv_gravity cvar value at map start and on change
+  - Calculate safe fall distances based on current gravity (lower gravity = higher safe fall)
+  - Estimate fall damage using Source engine formula adjusted for gravity
+  - Re-evaluate waypoint connections that involve drops:
+    - Connections marked as dangerous at normal gravity become safe at low gravity
+    - Enable shortcuts via drops that would normally cause fall damage
+  - Bot decision-making infers traversability like experienced players would
+  - Dynamic path cost adjustment (falls become cheaper at low gravity)
+  - Support for gravity-change trigger brushes (per-area gravity zones)
+  - Update navigation graph when gravity changes mid-game
+  - Console command to manually refresh gravity-based path evaluation
+
+- **Teleport Waypointing & Navigation**: Advanced teleporter awareness system
+  - Waypoint flag for teleport entrance locations (trigger_teleport entities)
+  - Waypoint flag for teleport destination/exit locations
+  - Link teleport entrance waypoints to their destination waypoints
+  - Automatic detection of teleport pairs via entity I/O analysis
+  - Bot pathfinding includes teleport shortcuts in route calculation
+  - Cost/benefit analysis for teleport usage:
+    - Compare teleport route vs walking route distance
+    - Consider teleport destination safety (telefrag risk, enemies nearby)
+    - Factor in one-way vs two-way teleports
+  - Support for multi-destination teleports (random or sequential destinations)
+  - Handle teleport cooldowns if present
+  - Bots remember and utilize teleports like experienced players who know the map
+  - Tactical teleport usage (escape routes, flanking via teleport)
+  - Integration with tactical waypointing (teleport exits as potential ambush points)
 
 ### Phase 2: HL2DM Advanced Features (Completed)
 
