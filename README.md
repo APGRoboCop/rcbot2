@@ -83,16 +83,14 @@ The roadmap takes an **HL2DM-first approach** for pragmatic reasons:
 - ✅ **Roadmap Created**: Comprehensive AI/ML roadmap and implementation plan
 - ⏳ **Implementation**: Phase 0 (HL2DM foundation) pending
 
-**See**: [AI/ML Roadmap](roadmaps/roadmap-intelligence.md) | [Implementation Plan](IMPLEMENTATION_PLAN.md) | [ML Module README](utils/RCBot2_meta/ml/README.md)
+**See**: [Roadmap](guides/ROADMAP.md) | [ML Module README](utils/RCBot2_meta/ml/README.md)
 
 ## Quick Links
 
 ### Documentation
 - 📖 **[Development Guide](claude.md)** - Comprehensive developer documentation
-- 🗺️ **[Main Roadmap](roadmaps/roadmap.md)** - Feature roadmap (8 phases)
-- 🤖 **[AI/ML Roadmap](roadmaps/roadmap-intelligence.md)** - ML/AI development (HL2DM-first)
-- 🔌 **[SourceMod Roadmap](roadmaps/roadmap-sourcemod.md)** - SourceMod integration (70+ natives)
-- 📋 **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Week-by-week ML implementation guide
+- 🗺️ **[Roadmap](guides/ROADMAP.md)** - Consolidated development roadmap (features, ML/AI, SourceMod)
+- 🔧 **[Build Guide](guides/BUILD_GUIDE.md)** - Complete build instructions and troubleshooting
 - 📚 **[API Documentation](docs/api.md)** - SourceMod native reference
 
 ### Community & Support
@@ -127,7 +125,7 @@ This fork includes significant improvements over the upstream version. For gener
 - **Gameplay Recording** - Record bot/human gameplay for training data
 - **ML Controller & Hybrid AI** - Blend ML predictions with rule-based fallback
 - **HL2DM Primary Target** - Simplest game for fastest ML iteration, expands to TF2/DOD/CS:S
-- See `utils/RCBot2_meta/ml/` for architecture and [roadmaps/roadmap-intelligence.md](roadmaps/roadmap-intelligence.md)
+- See `utils/RCBot2_meta/ml/` for architecture and [Roadmap](guides/ROADMAP.md)
 
 ### SourceMod Integration (100% Complete)
 The plugin now exposes **70+ natives** to SourceMod across 7 implementation phases:
@@ -138,7 +136,7 @@ The plugin now exposes **70+ natives** to SourceMod across 7 implementation phas
 - **Phase 5**: Squad & team coordination (squads, leaders, formations)
 - **Phase 6**: Advanced bot management (enumeration, lifecycle, statistics)
 - **Phase 7**: Perception & AI configuration (FOV, visibility, conditions)
-- See `sm_ext/` for implementation and [roadmaps/roadmap-sourcemod.md](roadmaps/roadmap-sourcemod.md)
+- See `sm_ext/` for implementation and [Roadmap](guides/ROADMAP.md)
 
 ### Waypoint System Enhancements
 - **Weapon Pickup Support** - Waypoint flags for weapon locations (HL2DM: pistol, shotgun, SMG, AR2, RPG, etc.)
@@ -246,11 +244,9 @@ Comprehensive documentation is available in multiple categories:
 
 ### Developer Documentation
 - **[Development Guide](claude.md)** - Architecture, coding guidelines, ML/AI infrastructure, development workflow
-- **[Main Roadmap](roadmaps/roadmap.md)** - Feature roadmap (8 phases, TF2 core improvements)
-- **[AI/ML Roadmap](roadmaps/roadmap-intelligence.md)** - ML/AI development (HL2DM-first approach, Phase 0-1+)
-- **[SourceMod Roadmap](roadmaps/roadmap-sourcemod.md)** - SourceMod integration (70+ natives, 7 phases)
-- **[Implementation Plan](IMPLEMENTATION_PLAN.md)** - Week-by-week ML implementation guide
-- **[Implementation Notes](roadmaps/IMPLEMENTATION_NOTES.md)** - Detailed implementation notes
+- **[Roadmap](guides/ROADMAP.md)** - Consolidated roadmap (features, ML/AI, SourceMod integration)
+- **[Build Guide](guides/BUILD_GUIDE.md)** - Complete build instructions and troubleshooting
+- **[Codebase Audit](CODEBASE_AUDIT.md)** - Comprehensive security and code quality audit
 
 ### User Documentation
 - **[Command Reference](docs/commands.md)** - Complete list of console commands
@@ -269,7 +265,7 @@ Comprehensive documentation is available in multiple categories:
 
 ### ML/AI Documentation
 - **[ML Module README](utils/RCBot2_meta/ml/README.md)** - ML architecture, usage, and development workflow
-- **[AI/ML Roadmap](roadmaps/roadmap-intelligence.md)** - Complete ML strategy and approach
+- **[Roadmap - ML Section](guides/ROADMAP.md#2-mlai-development)** - Complete ML strategy and approach
 
 ## Contributing
 
@@ -281,7 +277,7 @@ We welcome contributions! Here's how you can help:
 - **Improve documentation** (always appreciated!)
 - **Test features** and provide feedback
 
-See the [Roadmap](roadmap.md) for current priorities and planned features.
+See the [Roadmap](guides/ROADMAP.md) for current priorities and planned features.
 
 ## License
 
@@ -306,7 +302,7 @@ RCBot2 is released under the [GNU Affero General Public License v3.0][AGPL].
 
 ### High Priority Items
 
-See the full [Roadmap](roadmap.md) for details. Current priorities:
+See the full [Roadmap](guides/ROADMAP.md) for details. Current priorities:
 
 **High Priority Features:**
 - 🟠 MvM upgrade menu support (stub implementation exists)
@@ -377,7 +373,7 @@ See the full [Roadmap](roadmap.md) for details. Current priorities:
 - **Comprehensive Roadmap**: Week-by-week implementation plan
 
 **Status**: Architecture defined, headers created, implementation pending
-**See**: [roadmaps/roadmap-intelligence.md](roadmaps/roadmap-intelligence.md) | [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)
+**See**: [Roadmap - ML Section](guides/ROADMAP.md#2-mlai-development)
 
 ### Waypoint System Enhancements
 
@@ -424,14 +420,14 @@ See the full [Roadmap](roadmap.md) for details. Current priorities:
 - 🔶 **Robot Destruction**: Mode detection complete, core collection pending
 - 🔶 **Medic Uber Coordination**: Basic deployment, advanced sentry tactics pending
 
-### Documentation & Planning
+### Documentation
 
-**Comprehensive roadmaps and guides** for all development areas:
+**Consolidated documentation** in the `guides/` folder:
 
-- **5 Roadmap Documents**: Main, AI/ML, SourceMod, Implementation Notes, Issues Verification
-- **ML Implementation Plan**: Week-by-week guide for Phase 0
-- **API Documentation**: Complete SourceMod native reference
-- **Example Scripts**: 10+ demonstration scripts for all features
+- **[Roadmap](guides/ROADMAP.md)**: Features, ML/AI, SourceMod integration
+- **[Build Guide](guides/BUILD_GUIDE.md)**: Complete build instructions and troubleshooting
+- **[Codebase Audit](CODEBASE_AUDIT.md)**: Security and code quality analysis
+- **Example Scripts**: 10+ demonstration scripts in `scripting/`
 
 ## Acknowledgments
 
