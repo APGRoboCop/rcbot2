@@ -1582,6 +1582,72 @@ private:
 	float m_flTime;
 };
 
+/********************************
+ *    Navigation Testing        *
+ ********************************/
+
+/**
+ * Task for nav-test exploration - find and navigate to unvisited waypoints
+ */
+class CNavTestExploreTask : public CBotTask
+{
+public:
+	/**
+	 * Create an exploration task
+	 *
+	 * @param iTargetWaypoint   The waypoint to navigate to (-1 for auto-select)
+	 **/
+	CNavTestExploreTask(int iTargetWaypoint = -1)
+		: m_iTargetWaypoint(iTargetWaypoint)
+		, m_fTime(0.0f)
+		, m_bPathFound(false)
+	{
+	}
+
+	void init() override;
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "NavTest Explore (wpt %d)", m_iTargetWaypoint);
+	}
+
+private:
+	int m_iTargetWaypoint;
+	float m_fTime;
+	bool m_bPathFound;
+};
+
+/**
+ * Task to wait at current waypoint during nav-test
+ * Used for testing waypoint reachability and stability
+ */
+class CNavTestWaitTask : public CBotTask
+{
+public:
+	CNavTestWaitTask(float fWaitTime = 2.0f)
+		: m_fWaitTime(fWaitTime)
+		, m_fStartTime(0.0f)
+	{
+	}
+
+	void init() override
+	{
+		m_fStartTime = 0.0f;
+	}
+
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "NavTest Wait (%.1fs)", m_fWaitTime);
+	}
+
+private:
+	float m_fWaitTime;
+	float m_fStartTime;
+};
+
 /*
 class CAttackTask : public CBotTask
 {

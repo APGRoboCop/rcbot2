@@ -34,6 +34,7 @@
 #include "bot_globals.h"
 #include "bot_waypoint.h"
 #include "bot_cvars.h"
+#include "bot_schedule.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -504,6 +505,28 @@ void CNavTestManager::update()
 		// Update session stats
 		m_currentSession.visitedWaypoints = m_coverageTracker.getVisitedCount();
 		m_currentSession.totalIssues = m_issueTracker.getIssueCount();
+
+		// Re-schedule bots in nav-test mode that have empty schedules
+		for (int i = 0; i < RCBOT_MAXPLAYERS; i++)
+		{
+			CBot* pBot = CBots::getBot(i);
+			if (pBot == nullptr || !pBot->inUse() || !pBot->isNavTestMode())
+				continue;
+
+			if (!pBot->isAlive())
+				continue;
+
+			CBotSchedules* pSchedules = pBot->getSchedule();
+			if (pSchedules == nullptr)
+				continue;
+
+			// If bot has no current schedule or nav-test schedule completed, give it a new one
+			if (pSchedules->isEmpty() || !pSchedules->isCurrentSchedule(SCHED_NAVTEST_EXPLORE))
+			{
+				pSchedules->freeMemory();
+				pSchedules->add(new CNavTestExploreSched(-1));
+			}
+		}
 	}
 }
 

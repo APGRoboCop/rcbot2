@@ -863,6 +863,10 @@ public:
 
 	bool recentlySpawned ( float fTime ) const;
 
+	// Nav-test mode control
+	bool isNavTestMode() const { return m_bNavTestMode; }
+	void setNavTestMode(bool bEnabled) { m_bNavTestMode = bEnabled; }
+
 protected:
     void setLookAt (const Vector& vNew)
 	{
@@ -1085,6 +1089,9 @@ protected:
 	float m_fEnemyAimLerp;
 	float m_fEnemyAimLerpTime;
 	Vector m_vEnemyAimLerpVelocity;
+
+	// Nav-test mode - bot is in waypoint testing mode
+	bool m_bNavTestMode;
 };
 
 class CBots

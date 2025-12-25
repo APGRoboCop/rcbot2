@@ -297,12 +297,54 @@ CBotCommandInline NavTestStartCommand("start", CMD_ACCESS_WAYPOINT, [](CClient* 
 		duration = static_cast<float>(atof(args[0]));
 
 	if (CNavTestManager::instance().startSession(duration))
+	{
+		// Enable nav-test mode on all bots and give them exploration schedules
+		int botsEnabled = 0;
+		for (int i = 0; i < RCBOT_MAXPLAYERS; i++)
+		{
+			CBot* pBot = CBots::getBot(i);
+			if (pBot != nullptr && pBot->inUse())
+			{
+				pBot->setNavTestMode(true);
+
+				// Clear current schedules and add exploration schedule
+				CBotSchedules* pSchedules = pBot->getSchedule();
+				if (pSchedules != nullptr)
+				{
+					pSchedules->freeMemory();
+					pSchedules->add(new CNavTestExploreSched(-1));
+				}
+				botsEnabled++;
+			}
+		}
+
+		edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+		CBotGlobals::botMessage(pEntity, 0, "Nav-test mode enabled on %d bots", botsEnabled);
+
 		return COMMAND_ACCESSED;
+	}
 	return COMMAND_ERROR;
 }, "Start nav-test session. Usage: rcbot navtest start [duration_seconds]");
 
 CBotCommandInline NavTestStopCommand("stop", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
 {
+	// Disable nav-test mode on all bots
+	for (int i = 0; i < RCBOT_MAXPLAYERS; i++)
+	{
+		CBot* pBot = CBots::getBot(i);
+		if (pBot != nullptr && pBot->inUse())
+		{
+			pBot->setNavTestMode(false);
+
+			// Clear nav-test schedules
+			CBotSchedules* pSchedules = pBot->getSchedule();
+			if (pSchedules != nullptr && pSchedules->isCurrentSchedule(SCHED_NAVTEST_EXPLORE))
+			{
+				pSchedules->freeMemory();
+			}
+		}
+	}
+
 	CNavTestManager::instance().stopSession();
 	return COMMAND_ACCESSED;
 }, "Stop current nav-test session");

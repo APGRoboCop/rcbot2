@@ -1176,6 +1176,7 @@ void CBot :: init (const bool bVarInit)
 	m_fFov = BOT_DEFAULT_FOV;
 	m_bOpenFire = true;
 	m_pSquad = nullptr;
+	m_bNavTestMode = false;
 
 	cmd.command_number = 0;
 
