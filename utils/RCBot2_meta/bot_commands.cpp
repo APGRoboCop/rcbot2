@@ -32,6 +32,7 @@
  */
 #include "bot_commands.h"
 #include "bot.h"
+#include <ctime>
 #include "bot_accessclient.h"
 #include "bot_client.h"
 #include "bot_cvars.h"
@@ -44,6 +45,9 @@
 #include "bot_waypoint_locations.h" // for waypoint commands
 #include "bot_waypoint_visibility.h"
 #include "bot_weapons.h"
+#include "bot_navtest.h"            // for nav-test commands
+#include "bot_door.h"               // for door commands
+#include "bot_gravity.h"            // for gravity commands
 #include "ndebugoverlay.h"
 
 #include "bot_tf2_points.h"
@@ -285,6 +289,100 @@ CBotCommandInline CTestCommand("test", 0, [](CClient* pClient, const BotCommandA
 	return COMMAND_NOT_FOUND;
 });
 
+// Nav-test subcommands
+CBotCommandInline NavTestStartCommand("start", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	float duration = 0.0f;
+	if (args[0] && *args[0])
+		duration = static_cast<float>(atof(args[0]));
+
+	if (CNavTestManager::instance().startSession(duration))
+		return COMMAND_ACCESSED;
+	return COMMAND_ERROR;
+}, "Start nav-test session. Usage: rcbot navtest start [duration_seconds]");
+
+CBotCommandInline NavTestStopCommand("stop", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CNavTestManager::instance().stopSession();
+	return COMMAND_ACCESSED;
+}, "Stop current nav-test session");
+
+CBotCommandInline NavTestStatusCommand("status", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const CNavTestSession& session = CNavTestManager::instance().getCurrentSession();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (!session.isActive)
+	{
+		CBotGlobals::botMessage(pEntity, 0, "No active nav-test session.");
+		return COMMAND_ACCESSED;
+	}
+
+	float elapsed = static_cast<float>(std::time(nullptr) - session.startTime);
+	CBotGlobals::botMessage(pEntity, 0, "Nav-test Status:");
+	CBotGlobals::botMessage(pEntity, 0, "  Map: %s", session.mapName.c_str());
+	CBotGlobals::botMessage(pEntity, 0, "  Elapsed: %.1f seconds", elapsed);
+	CBotGlobals::botMessage(pEntity, 0, "  Coverage: %d/%d (%.1f%%)",
+		CNavTestManager::instance().getCoverageTracker().getVisitedCount(),
+		session.totalWaypoints,
+		CNavTestManager::instance().getCoverageTracker().getCoveragePercent() * 100.0f);
+	CBotGlobals::botMessage(pEntity, 0, "  Issues: %d", CNavTestManager::instance().getIssueTracker().getIssueCount());
+
+	return COMMAND_ACCESSED;
+}, "Show nav-test session status");
+
+CBotCommandInline NavTestReportCommand("report", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CNavTestManager::instance().generateReport(true, nullptr);
+	return COMMAND_ACCESSED;
+}, "Generate nav-test report");
+
+CBotSubcommands NavTestSubcommands("navtest", CMD_ACCESS_WAYPOINT, {
+	&NavTestStartCommand,
+	&NavTestStopCommand,
+	&NavTestStatusCommand,
+	&NavTestReportCommand
+}, "Nav-test commands for automated waypoint testing");
+
+// Door manager commands
+CBotCommandInline DoorScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CDoorManager::instance().scanMap();
+	return COMMAND_ACCESSED;
+}, "Rescan map for door entities");
+
+CBotCommandInline DoorInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Door Manager: %d doors tracked", CDoorManager::instance().getDoorCount());
+	return COMMAND_ACCESSED;
+}, "Show door manager info");
+
+CBotSubcommands DoorSubcommands("door", CMD_ACCESS_WAYPOINT, {
+	&DoorScanCommand,
+	&DoorInfoCommand
+}, "Door handling commands");
+
+// Gravity info command
+CBotCommandInline GravityInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	const CGravityInfo& info = CGravityManager::instance().getGravityInfo();
+
+	CBotGlobals::botMessage(pEntity, 0, "Gravity Info:");
+	CBotGlobals::botMessage(pEntity, 0, "  Current gravity: %.0f", info.getGravity());
+	CBotGlobals::botMessage(pEntity, 0, "  Max safe fall height: %.0f units", info.getMaxSafeFallHeight());
+	CBotGlobals::botMessage(pEntity, 0, "  Fatal fall height: %.0f units", info.getFatalFallHeight());
+	CBotGlobals::botMessage(pEntity, 0, "  Non-standard gravity: %s", info.isNonStandardGravity() ? "Yes" : "No");
+	CBotGlobals::botMessage(pEntity, 0, "  Dangerous connections: %d", CGravityManager::instance().getDangerousConnectionCount());
+
+	return COMMAND_ACCESSED;
+}, "Show gravity and fall damage info");
+
+CBotSubcommands GravitySubcommands("gravity", CMD_ACCESS_WAYPOINT, {
+	&GravityInfoCommand
+}, "Gravity-aware navigation commands");
+
 CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACCESS_DEDICATED, {
 	&WaypointSubcommands,
 	&AddBotCommand,
@@ -295,5 +393,8 @@ CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACC
 	&ConfigSubcommands,
 	&KickBotCommand,
 	&UserSubcommands,
-	&UtilSubcommands
+	&UtilSubcommands,
+	&NavTestSubcommands,   // Nav-test commands
+	&DoorSubcommands,      // Door handling commands
+	&GravitySubcommands    // Gravity navigation commands
 });

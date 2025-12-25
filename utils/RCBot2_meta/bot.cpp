@@ -82,6 +82,8 @@
 
 #include "bot_getprop.h"
 #include "bot_profiling.h"
+#include "bot_navtest.h"
+#include "bot_gravity.h"
 
 #include "rcbot/logging.h"
 
@@ -537,6 +539,9 @@ bool CBot :: checkStuck ()
 				m_fLastWaypointVisible = 0.0f;
 				m_bFailNextMove = true;
 
+				// Report stuck to nav-test system
+				CNavTestManager::instance().onBotStuck(this, 2.0f);
+
 				return true;
 			}
 		}
@@ -577,6 +582,9 @@ bool CBot :: checkStuck ()
 		{
 			m_bThinkStuck = true;
 			m_fPercentMoved = 0.1f;
+
+			// Report stuck to nav-test system (movement-based detection)
+			CNavTestManager::instance().onBotStuck(this, fTime - m_fCheckStuckTime);
 
 			m_pButtons->jump();
 			m_pButtons->duck(0.25f,randomFloat(0.2f,0.4f));

@@ -56,6 +56,8 @@
 #include "bot_waypoint_visibility.h"
 #include "bot_wpt_color.h"
 #include "bot_wpt_dist.h"
+#include "bot_gravity.h"
+#include "bot_navtest.h"
 
 #include "rcbot/logging.h"
 #include "rcbot/utils.h"
@@ -1026,8 +1028,11 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 				fCost = curr->getCost();
 			else if ( succWpt->hasFlag(CWaypointTypes::W_FL_TELEPORT_CHEAT) )
 				fCost = succWpt->distanceFrom(vOrigin);
-			else 
+			else
 				fCost = curr->getCost()+succWpt->distanceFrom(vOrigin);
+
+			// Apply gravity-based fall damage cost modifier
+			fCost = CGravityManager::instance().getModifiedPathCost(iCurrentNode, iSucc, fCost);
 
 			if ( !CWaypointDistances::isSet(m_iCurrentWaypoint,iSucc) || CWaypointDistances::getDistance(m_iCurrentWaypoint,iSucc) > fCost )
 				CWaypointDistances::setDistance(m_iCurrentWaypoint,iSucc,fCost);
@@ -1305,6 +1310,9 @@ void CWaypointNavigator :: updatePosition ()
 		if ( bTouched )
 		{
 			const int iWaypointID = CWaypoints::getWaypointIndex(pWaypoint);
+
+			// Report waypoint reached to nav-test system for coverage tracking
+			CNavTestManager::instance().onBotWaypointReached(m_pBot, iWaypointID);
 
 			fPrevBelief = getBelief(iWaypointID);
 

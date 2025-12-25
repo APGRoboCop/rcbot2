@@ -63,6 +63,10 @@
 #include "bot_kv.h"
 #include "bot_sigscan.h"
 //#include "bot_mods.h"
+#include "bot_door.h"
+#include "bot_navtest.h"
+#include "bot_tactical.h"
+#include "bot_gravity.h"
 
 #include "tier0/icommandline.h"
 
@@ -849,6 +853,11 @@ void RCBotPluginMeta::Hook_GameFrame(const bool simulating)
 
 		currentmod->modFrame();
 
+		// Phase 1 systems per-frame updates
+		CNavTestManager::instance().update();
+		CDoorManager::instance().update();
+		CGravityManager::instance().update();
+
 		// Bot Quota
 		if (rcbot_bot_quota_interval.GetFloat() > 0.0) {
 			BotQuotaCheck();
@@ -990,6 +999,17 @@ bool RCBotPluginMeta::Hook_LevelInit(const char *pMapName,
 	CBotSquads::FreeMemory();
 
 	CClients::setListenServerClient(nullptr);
+
+	// Initialize Phase 1 systems
+	// Door manager - scan map for door entities
+	CDoorManager::instance().scanMap();
+
+	// Tactical data manager - analyze waypoints for tactical metadata
+	CTacticalDataManager::instance().analyzeAllWaypoints();
+
+	// Gravity manager - analyze waypoint connections for fall damage
+	CGravityManager::instance().update();
+	CGravityManager::instance().getPathAnalyzer().analyzeAllConnections();
 
 	// Setup game rules
 	extern void **g_pGameRules; //Unused? [APG]RoboCop[CL]
