@@ -22,16 +22,86 @@ This document consolidates all development roadmaps and implementation plans.
 
 | Phase | Feature | Status | Priority |
 |-------|---------|--------|----------|
-| 1 | Engineer Sentry Orientation | Completed | High |
-| 2 | Class Change Implementation | Completed | High |
-| 3 | Demoman Sticky Jumping | Completed | Medium |
-| 4 | Medic/Spy Improvements | Partial | Medium |
-| 5 | MVM Upgrade System | Pending | Medium |
-| 6 | Zombie/Robot Modes | Partial | Low |
-| 7 | Kart Game Support | Partial | Low |
-| 8 | Advanced Features | Future | Low |
+| 0 | HL2DM Core Features | Completed | High |
+| 1 | HL2DM Waypoint Enhancements | Completed | High |
+| 2 | HL2DM Advanced Features | Completed | High |
+| 3 | Engineer Sentry Orientation | Completed | Medium |
+| 4 | Class Change Implementation | Completed | Medium |
+| 5 | Demoman Sticky Jumping | Completed | Medium |
+| 6 | Medic/Spy Improvements | Partial | Medium |
+| 7 | MVM Upgrade System | Pending | Low |
+| 8 | Zombie/Robot Modes | Partial | Low |
+| 9 | Kart Game Support | Partial | Low |
+| 10 | Advanced Features | Future | Low |
 
-### Phase 1: Engineer Sentry Orientation (Completed)
+### Phase 0: HL2DM Core Features (Completed)
+
+**Focus**: Establish solid HL2DM bot foundation for all future development.
+
+**Completed Features**:
+- **NPC Combat System**: Full combat AI for 28+ NPCs including Combine soldiers, zombies, antlions, etc.
+  - Threat assessment and prioritization
+  - NPC-specific combat tactics
+  - Cover usage against NPCs
+  - Implemented in `bot_npc_combat.h/cpp`
+
+- **Performance Optimization**: Optimized think loop for HL2DM
+  - Reduced CPU overhead per bot
+  - Improved frame timing
+  - Better spawn point utilization
+
+- **Enhanced Game Detection**: Config-based gamemode detection
+  - Flexible gamemode identification
+  - Support for custom game modes
+  - Configuration in `package/config/gamemodes.ini`
+
+### Phase 1: HL2DM Waypoint Enhancements (Completed)
+
+**Focus**: Advanced navigation system for HL2DM maps.
+
+**Completed Features**:
+- **Auto-generation**: Automatic waypoint placement system
+  - Implemented in `bot_waypoint_auto.h/cpp`
+  - Intelligent placement based on map geometry
+  - Reduced manual waypoint creation time
+
+- **Undo/Redo System**: Quality-of-life improvements for waypoint editing
+  - Implemented in `bot_waypoint_undo.h/cpp`
+  - Multi-level undo/redo support
+  - Prevents accidental waypoint destruction
+
+- **Compression**: Waypoint file size optimization
+  - Implemented in `bot_waypoint_compress.h/cpp`
+  - Smaller waypoint files
+  - Faster loading times
+
+- **HL2DM Extensions**: HL2DM-specific waypoint features
+  - Implemented in `bot_waypoint_hl2dm.h/cpp`
+  - Weapon pickup awareness
+  - Health/armor charger locations
+  - Gravity gun-specific waypoints
+
+### Phase 2: HL2DM Advanced Features (Completed)
+
+**Focus**: HL2DM-specific advanced AI capabilities.
+
+**Completed Features**:
+- **SourceMod HL2DM Natives**: Dedicated HL2DM control interface
+  - Implemented in `bot_sm_natives_hldm.h/cpp`
+  - HL2DM-specific bot commands
+  - Example scripts in `scripting/rcbot_hldm_demo.sp`
+
+- **Gravity Gun Tactics**: Advanced physics weapon handling
+  - Object pickup and throw mechanics
+  - Prop selection for combat
+  - Environmental hazard usage
+
+- **Item Priority System**: Smart item collection
+  - Health/armor priority based on need
+  - Weapon preference system
+  - Ammo management
+
+### Phase 3: Engineer Sentry Orientation (Completed)
 
 **Problem**: Engineer bots placed sentries facing random directions.
 
@@ -40,14 +110,14 @@ This document consolidates all development roadmaps and implementation plans.
 - Consider enemy spawn points and objectives
 - Account for nearby waypoint connections
 
-### Phase 2: Class Change Implementation (Completed)
+### Phase 4: Class Change Implementation (Completed)
 
 **Implementation**: `CBotTF2::changeClass()` method
 - Bots can now change classes based on team composition
 - Respects class limits and team balance
 - Considers game mode requirements (e.g., more engineers in MvM)
 
-### Phase 3: Demoman Sticky Jumping (Completed)
+### Phase 5: Demoman Sticky Jumping (Completed)
 
 **Features**:
 - Sticky jump waypoint flag detection
@@ -55,7 +125,7 @@ This document consolidates all development roadmaps and implementation plans.
 - Air control during jumps
 - Landing zone prediction
 
-### Phase 4: Medic/Spy Improvements (Partial)
+### Phase 6: Medic/Spy Improvements (Partial)
 
 **Completed**:
 - Basic uber deployment logic
@@ -66,7 +136,7 @@ This document consolidates all development roadmaps and implementation plans.
 - Multi-uber push coordination
 - Spy sapper priority logic
 
-### Phase 5: MVM Upgrade System (Pending)
+### Phase 7: MVM Upgrade System (Pending)
 
 **Planned Features**:
 - Buy menu navigation
@@ -74,7 +144,7 @@ This document consolidates all development roadmaps and implementation plans.
 - Economy tracking
 - Team coordination for upgrades
 
-### Phase 6: Zombie/Robot Modes (Partial)
+### Phase 8: Zombie/Robot Modes (Partial)
 
 **Completed**:
 - Zombie Infection map detection
@@ -84,11 +154,11 @@ This document consolidates all development roadmaps and implementation plans.
 - Full AI for Scream Fortress zombie maps
 - Core collection behavior in Robot Destruction
 
-### Phase 7: Kart Game Support (Partial)
+### Phase 9: Kart Game Support (Partial)
 
 **Status**: Basic detection for sd_doomsday_event kart minigames
 
-### Phase 8: Advanced Features (Future)
+### Phase 10: Advanced Features (Future)
 
 - TF2 Classic support
 - Enhanced CS:S buy menu
