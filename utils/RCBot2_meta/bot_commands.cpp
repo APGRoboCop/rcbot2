@@ -48,6 +48,7 @@
 #include "bot_navtest.h"            // for nav-test commands
 #include "bot_door.h"               // for door commands
 #include "bot_gravity.h"            // for gravity commands
+#include "bot_waypoint_autorefine.h" // for waypoint auto-refine commands
 #include "ndebugoverlay.h"
 
 #include "bot_tf2_points.h"
@@ -425,6 +426,35 @@ CBotSubcommands GravitySubcommands("gravity", CMD_ACCESS_WAYPOINT, {
 	&GravityInfoCommand
 }, "Gravity-aware navigation commands");
 
+// Waypoint auto-refine commands
+CBotCommandInline AutoRefineCommand("autorefine", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	// Build a CCommand from args
+	CCommand cmd;
+	Waypoint_AutoRefine_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Auto-refine waypoints based on nav-test data.\n"
+   "Options: analyze-only, dry-run, no-save, no-remove, max-iter=N, stop, rollback [N]");
+
+CBotCommandInline AnalyzeWaypointsCommand("analyze", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool verbose = false;
+	for (size_t i = 0; i < args.size(); i++)
+	{
+		if (strcmp(args[i], "-v") == 0 || strcmp(args[i], "verbose") == 0)
+			verbose = true;
+	}
+
+	CAnalysisResult result = CWaypointAutoRefiner::instance().analyze();
+	CWaypointAutoRefiner::instance().printAnalysis(result, verbose);
+	return COMMAND_ACCESSED;
+}, "Analyze waypoint health and issues. Use -v for verbose output.");
+
+CBotSubcommands AutoRefineSubcommands("refine", CMD_ACCESS_WAYPOINT, {
+	&AutoRefineCommand,
+	&AnalyzeWaypointsCommand
+}, "Waypoint auto-refinement commands");
+
 CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACCESS_DEDICATED, {
 	&WaypointSubcommands,
 	&AddBotCommand,
@@ -438,5 +468,6 @@ CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACC
 	&UtilSubcommands,
 	&NavTestSubcommands,   // Nav-test commands
 	&DoorSubcommands,      // Door handling commands
-	&GravitySubcommands    // Gravity navigation commands
+	&GravitySubcommands,   // Gravity navigation commands
+	&AutoRefineSubcommands // Waypoint auto-refine commands
 });
