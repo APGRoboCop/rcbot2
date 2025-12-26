@@ -192,8 +192,15 @@ public:
 	// Get path analyzer
 	CGravityPathAnalyzer& getPathAnalyzer() { return m_pathAnalyzer; }
 
+	// Get zone manager
+	CGravityZoneManager& getZoneManager() { return m_zoneManager; }
+	const CGravityZoneManager& getZoneManager() const { return m_zoneManager; }
+
 	// Check if gravity has changed since last analysis
 	bool hasGravityChanged() const;
+
+	// Refresh gravity data (scan zones, re-analyze connections)
+	void refresh();
 
 	// Convenience methods
 
@@ -232,6 +239,7 @@ private:
 
 	CGravityInfo m_gravityInfo;
 	CGravityPathAnalyzer m_pathAnalyzer;
+	CGravityZoneManager m_zoneManager;
 
 	float m_lastGravityValue;
 	float m_lastUpdateTime;
@@ -288,5 +296,86 @@ inline float ScaleSafeHeight(float defaultSafeHeight, float currentGravity)
 	float gravityRatio = FallDamage::DEFAULT_GRAVITY / currentGravity;
 	return defaultSafeHeight * gravityRatio;
 }
+
+//=============================================================================
+// CGravityZone
+// Represents a trigger_gravity brush entity with non-standard gravity
+//=============================================================================
+struct CGravityZone
+{
+	edict_t* pEntity;              // The trigger_gravity entity
+	Vector mins;                   // Bounding box min
+	Vector maxs;                   // Bounding box max
+	float gravity;                 // Gravity value (0-1 multiplier in Source)
+	float absoluteGravity;         // Actual gravity value (gravity * sv_gravity)
+	std::vector<int> waypointsInZone; // Waypoints inside this zone
+
+	CGravityZone()
+		: pEntity(nullptr)
+		, mins(0, 0, 0)
+		, maxs(0, 0, 0)
+		, gravity(1.0f)
+		, absoluteGravity(FallDamage::DEFAULT_GRAVITY)
+	{
+	}
+
+	// Check if a point is inside this zone
+	bool containsPoint(const Vector& point) const
+	{
+		return point.x >= mins.x && point.x <= maxs.x &&
+		       point.y >= mins.y && point.y <= maxs.y &&
+		       point.z >= mins.z && point.z <= maxs.z;
+	}
+};
+
+//=============================================================================
+// CGravityZoneManager
+// Scans and tracks gravity zones in the map
+//=============================================================================
+class CGravityZoneManager
+{
+public:
+	CGravityZoneManager();
+
+	// Scan map for trigger_gravity entities
+	void scanForGravityZones();
+
+	// Update zone data (if entities change)
+	void update();
+
+	// Check if a point is in any gravity zone
+	bool isInGravityZone(const Vector& point) const;
+
+	// Get effective gravity at a point
+	float getGravityAtPoint(const Vector& point) const;
+
+	// Get zone containing a point (nullptr if not in any zone)
+	const CGravityZone* getZoneAtPoint(const Vector& point) const;
+
+	// Get all waypoints affected by non-standard gravity
+	std::vector<int> getAffectedWaypoints() const;
+
+	// Get all zones
+	const std::vector<CGravityZone>& getZones() const { return m_zones; }
+
+	// Get zone count
+	int getZoneCount() const { return static_cast<int>(m_zones.size()); }
+
+	// Clear all zones
+	void clear() { m_zones.clear(); }
+
+	// Link waypoints to zones
+	void linkWaypointsToZones();
+
+private:
+	std::vector<CGravityZone> m_zones;
+	float m_lastScanTime;
+};
+
+//=============================================================================
+// Command handler for gravity refresh
+//=============================================================================
+class CCommand;
+void Gravity_Refresh_Command(const CCommand& args);
 
 #endif // __BOT_GRAVITY_H__

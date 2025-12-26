@@ -6182,3 +6182,101 @@ void CNavTestWaitTask::execute(CBot* pBot, CBotSchedule* pSchedule)
 	pBot->stopMoving();
 	pBot->setLookAtTask(LOOK_AROUND);
 }
+
+/////////////////////////////////
+// Use Map Teleport Task
+/////////////////////////////////
+
+#include "bot_teleport.h"
+
+void CBotTaskUseTeleport::init()
+{
+	m_fTime = 0.0f;
+	m_fEnterTime = 0.0f;
+	m_bEnteredTrigger = false;
+	m_bTeleported = false;
+	m_vStartPos = Vector(0, 0, 0);
+}
+
+void CBotTaskUseTeleport::execute(CBot* pBot, CBotSchedule* pSchedule)
+{
+	CTeleportManager& teleportMgr = CTeleportManager::instance();
+
+	// Get teleport info
+	const CTeleportInfo* pTeleport = teleportMgr.getTeleport(m_iTeleportIndex);
+	if (pTeleport == nullptr)
+	{
+		fail();
+		return;
+	}
+
+	// Check if on cooldown
+	if (teleportMgr.isTeleportOnCooldown(pBot, m_iTeleportIndex))
+	{
+		fail();
+		return;
+	}
+
+	// Initialize time on first execute
+	if (m_fTime == 0.0f)
+	{
+		m_fTime = engine->Time() + 10.0f; // Max 10 seconds to complete teleport
+		m_vStartPos = pBot->getOrigin();
+	}
+
+	// Check timeout
+	if (engine->Time() > m_fTime)
+	{
+		fail();
+		return;
+	}
+
+	// Check if we've already teleported
+	if (m_bTeleported)
+	{
+		// Mark as used and complete
+		teleportMgr.onBotUseTeleport(pBot, m_iTeleportIndex);
+		complete();
+		return;
+	}
+
+	// Check if we're inside the teleport trigger
+	Vector botOrigin = pBot->getOrigin();
+	bool isInTrigger = pTeleport->containsPoint(botOrigin);
+
+	if (isInTrigger && !m_bEnteredTrigger)
+	{
+		m_bEnteredTrigger = true;
+		m_fEnterTime = engine->Time();
+	}
+
+	if (m_bEnteredTrigger)
+	{
+		// Check if we've been teleported (position changed significantly)
+		float distFromStart = (botOrigin - m_vStartPos).Length();
+		if (distFromStart > 500.0f) // Teleported at least 500 units
+		{
+			m_bTeleported = true;
+			return;
+		}
+
+		// Wait a short time for teleport to happen
+		if (engine->Time() > m_fEnterTime + 2.0f && !m_bTeleported)
+		{
+			// Teleport didn't happen - maybe trigger is broken
+			fail();
+			return;
+		}
+
+		// Stay in the trigger area
+		pBot->stopMoving();
+		pBot->setLookAtTask(LOOK_AROUND);
+	}
+	else
+	{
+		// Move toward the teleport center
+		pBot->setMoveTo(pTeleport->center);
+		pBot->setLookVector(pTeleport->center);
+		pBot->setLookAtTask(LOOK_VECTOR);
+	}
+}

@@ -418,12 +418,21 @@ CBotCommandInline GravityInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pC
 	CBotGlobals::botMessage(pEntity, 0, "  Fatal fall height: %.0f units", info.getFatalFallHeight());
 	CBotGlobals::botMessage(pEntity, 0, "  Non-standard gravity: %s", info.isNonStandardGravity() ? "Yes" : "No");
 	CBotGlobals::botMessage(pEntity, 0, "  Dangerous connections: %d", CGravityManager::instance().getDangerousConnectionCount());
+	CBotGlobals::botMessage(pEntity, 0, "  Gravity zones: %d", CGravityManager::instance().getZoneManager().getZoneCount());
 
 	return COMMAND_ACCESSED;
 }, "Show gravity and fall damage info");
 
+CBotCommandInline GravityRefreshCommand("refresh", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Gravity_Refresh_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Refresh gravity data (scan zones, re-analyze connections)");
+
 CBotSubcommands GravitySubcommands("gravity", CMD_ACCESS_WAYPOINT, {
-	&GravityInfoCommand
+	&GravityInfoCommand,
+	&GravityRefreshCommand
 }, "Gravity-aware navigation commands");
 
 // Waypoint auto-refine commands
@@ -541,6 +550,39 @@ CBotSubcommands TacticalSubcommands("tactical", CMD_ACCESS_WAYPOINT, {
 	&TacticalLoadCommand
 }, "Tactical AI commands");
 
+// Teleport navigation commands
+#include "bot_teleport.h"
+
+CBotCommandInline TeleportScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Teleport_Scan_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Scan map for teleport entities and link to waypoints");
+
+CBotCommandInline TeleportInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Teleport_Info_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Show teleport information");
+
+CBotCommandInline TeleportCreateWptsCommand("createwpts", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	if (CTeleportManager::instance().createTeleportWaypoints())
+		CBotGlobals::botMessage(pEntity, 0, "Created teleport waypoints");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "No teleport waypoints needed");
+	return COMMAND_ACCESSED;
+}, "Create waypoints at teleport entrances and exits");
+
+CBotSubcommands TeleportSubcommands("teleport", CMD_ACCESS_WAYPOINT, {
+	&TeleportScanCommand,
+	&TeleportInfoCommand,
+	&TeleportCreateWptsCommand
+}, "Teleport navigation commands");
+
 CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACCESS_DEDICATED, {
 	&WaypointSubcommands,
 	&AddBotCommand,
@@ -555,6 +597,7 @@ CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACC
 	&NavTestSubcommands,   // Nav-test commands
 	&DoorSubcommands,      // Door handling commands
 	&GravitySubcommands,   // Gravity navigation commands
+	&TeleportSubcommands,  // Teleport navigation commands
 	&AutoRefineSubcommands, // Waypoint auto-refine commands
 	&TacticalSubcommands   // Tactical AI commands
 });

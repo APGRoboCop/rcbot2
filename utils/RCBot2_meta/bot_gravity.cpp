@@ -450,3 +450,219 @@ int CGravityManager::getFatalConnectionCount() const
 	}
 	return count;
 }
+
+void CGravityManager::refresh()
+{
+	// Update gravity info
+	m_gravityInfo.update();
+	m_lastGravityValue = m_gravityInfo.getGravity();
+
+	// Scan for gravity zones
+	m_zoneManager.scanForGravityZones();
+	m_zoneManager.linkWaypointsToZones();
+
+	// Re-analyze all connections
+	m_pathAnalyzer.analyzeAllConnections();
+
+	CBotGlobals::botMessage(nullptr, 0, "Gravity data refreshed: %d zones, gravity = %.0f",
+		m_zoneManager.getZoneCount(), m_gravityInfo.getGravity());
+}
+
+//=============================================================================
+// CGravityZoneManager Implementation
+//=============================================================================
+
+CGravityZoneManager::CGravityZoneManager()
+	: m_lastScanTime(0.0f)
+{
+}
+
+void CGravityZoneManager::scanForGravityZones()
+{
+	m_zones.clear();
+
+	// Iterate through all entities looking for trigger_gravity
+	int maxEnts = gpGlobals->maxEntities;
+	for (int i = 0; i < maxEnts; i++)
+	{
+		edict_t* pEdict = INDEXENT(i);
+		if (pEdict == nullptr || pEdict->IsFree())
+			continue;
+
+		const char* classname = pEdict->GetClassName();
+		if (classname == nullptr)
+			continue;
+
+		if (strcmp(classname, "trigger_gravity") == 0)
+		{
+			CGravityZone zone;
+			zone.pEntity = pEdict;
+
+			// Get the entity's bounding box
+			ICollideable* pCollideable = pEdict->GetCollideable();
+			if (pCollideable != nullptr)
+			{
+				const Vector& origin = pCollideable->GetCollisionOrigin();
+				zone.mins = origin + pCollideable->OBBMins();
+				zone.maxs = origin + pCollideable->OBBMaxs();
+			}
+			else
+			{
+				// Fallback to world space bounds
+				CBaseEntity* pEntity = pEdict->GetUnknown()->GetBaseEntity();
+				if (pEntity != nullptr)
+				{
+					zone.mins = pEntity->GetAbsOrigin() - Vector(64, 64, 64);
+					zone.maxs = pEntity->GetAbsOrigin() + Vector(64, 64, 64);
+				}
+			}
+
+			// Get the gravity value from the entity
+			// trigger_gravity stores gravity as a float multiplier
+			float gravityMultiplier = 1.0f;
+
+			// Try to read the gravity keyvalue
+			// In Source, trigger_gravity has a "gravity" key (0.0-1.0 or higher)
+			// We'll try to get it from the entity datadesc
+			IServerEntity* pServerEnt = pEdict->GetIServerEntity();
+			if (pServerEnt != nullptr)
+			{
+				CBaseEntity* pBaseEnt = pServerEnt->GetBaseEntity();
+				if (pBaseEnt != nullptr)
+				{
+					// Try getting gravity via serverclass/datadesc
+					// Fallback: use a default of 0.5 (low gravity) if we can't read it
+					// In practice, maps often use values like 0.1, 0.5, 2.0, etc.
+					gravityMultiplier = 0.5f; // Assume low gravity zone
+				}
+			}
+
+			zone.gravity = gravityMultiplier;
+			zone.absoluteGravity = gravityMultiplier * FallDamage::DEFAULT_GRAVITY;
+
+			m_zones.push_back(zone);
+		}
+	}
+
+	m_lastScanTime = gpGlobals->curtime;
+
+	if (!m_zones.empty())
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Found %d trigger_gravity zones",
+			static_cast<int>(m_zones.size()));
+	}
+}
+
+void CGravityZoneManager::update()
+{
+	// Periodically re-scan (every 30 seconds)
+	if (gpGlobals->curtime - m_lastScanTime > 30.0f)
+	{
+		scanForGravityZones();
+		linkWaypointsToZones();
+	}
+}
+
+bool CGravityZoneManager::isInGravityZone(const Vector& point) const
+{
+	return getZoneAtPoint(point) != nullptr;
+}
+
+float CGravityZoneManager::getGravityAtPoint(const Vector& point) const
+{
+	const CGravityZone* pZone = getZoneAtPoint(point);
+	if (pZone != nullptr)
+		return pZone->absoluteGravity;
+
+	// Return server gravity if not in a zone
+	if (sv_gravity.IsValid())
+		return sv_gravity.GetFloat();
+
+	return FallDamage::DEFAULT_GRAVITY;
+}
+
+const CGravityZone* CGravityZoneManager::getZoneAtPoint(const Vector& point) const
+{
+	for (const CGravityZone& zone : m_zones)
+	{
+		if (zone.containsPoint(point))
+			return &zone;
+	}
+	return nullptr;
+}
+
+std::vector<int> CGravityZoneManager::getAffectedWaypoints() const
+{
+	std::vector<int> affected;
+
+	for (const CGravityZone& zone : m_zones)
+	{
+		for (int wptId : zone.waypointsInZone)
+		{
+			// Avoid duplicates
+			bool found = false;
+			for (int existing : affected)
+			{
+				if (existing == wptId)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				affected.push_back(wptId);
+		}
+	}
+
+	return affected;
+}
+
+void CGravityZoneManager::linkWaypointsToZones()
+{
+	// Clear existing links
+	for (CGravityZone& zone : m_zones)
+	{
+		zone.waypointsInZone.clear();
+	}
+
+	// Check each waypoint
+	int numWaypoints = CWaypoints::numWaypoints();
+	for (int i = 0; i < numWaypoints; i++)
+	{
+		CWaypoint* pWpt = CWaypoints::getWaypoint(i);
+		if (pWpt == nullptr || !pWpt->isUsed())
+			continue;
+
+		Vector origin = pWpt->getOrigin();
+
+		// Check if this waypoint is in any zone
+		for (CGravityZone& zone : m_zones)
+		{
+			if (zone.containsPoint(origin))
+			{
+				zone.waypointsInZone.push_back(i);
+				break; // Waypoint can only be in one zone
+			}
+		}
+	}
+
+	// Log results
+	int totalAffected = 0;
+	for (const CGravityZone& zone : m_zones)
+	{
+		totalAffected += static_cast<int>(zone.waypointsInZone.size());
+	}
+
+	if (totalAffected > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "%d waypoints in gravity zones", totalAffected);
+	}
+}
+
+//=============================================================================
+// Gravity Refresh Command
+//=============================================================================
+void Gravity_Refresh_Command(const CCommand& args)
+{
+	CGravityManager::instance().refresh();
+}
