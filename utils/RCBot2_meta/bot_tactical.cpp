@@ -765,14 +765,129 @@ void CTacticalDataManager::updateDangerFromNavTest()
 
 bool CTacticalDataManager::saveData(const char* mapName)
 {
-	// TODO: Implement file saving
-	return false;
+	if (mapName == nullptr || m_tacticalData.empty())
+		return false;
+
+	char filename[512];
+	CBotGlobals::buildFileName(filename, "waypoints", mapName, "tac", true);
+
+	std::ofstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Failed to save tactical data: %s", filename);
+		return false;
+	}
+
+	// Write header
+	const uint32_t TACTICAL_FILE_VERSION = 1;
+	file.write(reinterpret_cast<const char*>(&TACTICAL_FILE_VERSION), sizeof(uint32_t));
+
+	uint32_t numWaypoints = static_cast<uint32_t>(m_tacticalData.size());
+	file.write(reinterpret_cast<const char*>(&numWaypoints), sizeof(uint32_t));
+
+	// Write tactical data for each waypoint
+	for (const CTacticalInfo& info : m_tacticalData)
+	{
+		int32_t wptId = info.getWaypointId();
+		uint32_t flags = info.getTacticalFlags();
+		float danger = info.getDangerRating();
+		float cover = info.getCoverQuality();
+		float height = info.getHeightAdvantage();
+		int32_t deaths = info.getDeathCount();
+		int32_t kills = info.getKillCount();
+
+		file.write(reinterpret_cast<const char*>(&wptId), sizeof(int32_t));
+		file.write(reinterpret_cast<const char*>(&flags), sizeof(uint32_t));
+		file.write(reinterpret_cast<const char*>(&danger), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&cover), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&height), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&deaths), sizeof(int32_t));
+		file.write(reinterpret_cast<const char*>(&kills), sizeof(int32_t));
+
+		// Write weights
+		const CTacticalWeight& weights = info.getWeights();
+		file.write(reinterpret_cast<const char*>(&weights.balanced), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&weights.aggressive), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&weights.defensive), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&weights.sniper), sizeof(float));
+		file.write(reinterpret_cast<const char*>(&weights.flanker), sizeof(float));
+	}
+
+	file.close();
+	CBotGlobals::botMessage(nullptr, 0, "Saved tactical data for %d waypoints: %s", numWaypoints, filename);
+	return true;
 }
 
 bool CTacticalDataManager::loadData(const char* mapName)
 {
-	// TODO: Implement file loading
-	return false;
+	if (mapName == nullptr)
+		return false;
+
+	char filename[512];
+	CBotGlobals::buildFileName(filename, "waypoints", mapName, "tac", true);
+
+	std::ifstream file(filename, std::ios::binary);
+	if (!file.is_open())
+	{
+		// No tactical data file - use defaults (backward compatibility)
+		return false;
+	}
+
+	// Read header
+	uint32_t version;
+	file.read(reinterpret_cast<char*>(&version), sizeof(uint32_t));
+
+	if (version != 1)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Unsupported tactical data version: %d", version);
+		file.close();
+		return false;
+	}
+
+	uint32_t numWaypoints;
+	file.read(reinterpret_cast<char*>(&numWaypoints), sizeof(uint32_t));
+
+	// Initialize if needed
+	if (m_tacticalData.size() != numWaypoints)
+	{
+		init(numWaypoints);
+	}
+
+	// Read tactical data
+	for (uint32_t i = 0; i < numWaypoints && i < m_tacticalData.size(); i++)
+	{
+		int32_t wptId;
+		uint32_t flags;
+		float danger, cover, height;
+		int32_t deaths, kills;
+
+		file.read(reinterpret_cast<char*>(&wptId), sizeof(int32_t));
+		file.read(reinterpret_cast<char*>(&flags), sizeof(uint32_t));
+		file.read(reinterpret_cast<char*>(&danger), sizeof(float));
+		file.read(reinterpret_cast<char*>(&cover), sizeof(float));
+		file.read(reinterpret_cast<char*>(&height), sizeof(float));
+		file.read(reinterpret_cast<char*>(&deaths), sizeof(int32_t));
+		file.read(reinterpret_cast<char*>(&kills), sizeof(int32_t));
+
+		CTacticalInfo& info = m_tacticalData[i];
+		info.setWaypointId(wptId);
+		info.setTacticalFlags(flags);
+		info.setDangerRating(danger);
+		info.setCoverQuality(cover);
+		info.setHeightAdvantage(height);
+
+		// Read weights
+		CTacticalWeight& weights = info.getWeights();
+		file.read(reinterpret_cast<char*>(&weights.balanced), sizeof(float));
+		file.read(reinterpret_cast<char*>(&weights.aggressive), sizeof(float));
+		file.read(reinterpret_cast<char*>(&weights.defensive), sizeof(float));
+		file.read(reinterpret_cast<char*>(&weights.sniper), sizeof(float));
+		file.read(reinterpret_cast<char*>(&weights.flanker), sizeof(float));
+	}
+
+	file.close();
+	CBotGlobals::botMessage(nullptr, 0, "Loaded tactical data for %d waypoints", numWaypoints);
+	return true;
 }
 
 //=============================================================================
@@ -814,5 +929,597 @@ const char* GetTacticalFlagName(uint32_t flag)
 	if (flag & TacticalFlags::OPEN_AREA)        return "Open_Area";
 	if (flag & TacticalFlags::HIGH_TRAFFIC)     return "High_Traffic";
 	if (flag & TacticalFlags::DANGER_ZONE)      return "Danger_Zone";
+	if (flag & TacticalFlags::CAMPING_SPOT)     return "Camping_Spot";
+	if (flag & TacticalFlags::HEALTH_NEARBY)    return "Health_Nearby";
+	if (flag & TacticalFlags::AMMO_NEARBY)      return "Ammo_Nearby";
+	if (flag & TacticalFlags::ARMOR_NEARBY)     return "Armor_Nearby";
+	if (flag & TacticalFlags::WEAPON_NEARBY)    return "Weapon_Nearby";
+	if (flag & TacticalFlags::FALL_HAZARD)      return "Fall_Hazard";
+	if (flag & TacticalFlags::FLANK_ROUTE)      return "Flank_Route";
 	return "Unknown";
+}
+
+uint32_t ParseTacticalFlag(const char* flagName)
+{
+	if (strcasecmp(flagName, "cover_full") == 0)       return TacticalFlags::COVER_FULL;
+	if (strcasecmp(flagName, "cover_partial") == 0)    return TacticalFlags::COVER_PARTIAL;
+	if (strcasecmp(flagName, "cover_high") == 0)       return TacticalFlags::COVER_HIGH;
+	if (strcasecmp(flagName, "cover_low") == 0)        return TacticalFlags::COVER_LOW;
+	if (strcasecmp(flagName, "sniper_spot") == 0)      return TacticalFlags::SNIPER_SPOT;
+	if (strcasecmp(flagName, "ambush_point") == 0)     return TacticalFlags::AMBUSH_POINT;
+	if (strcasecmp(flagName, "choke_point") == 0)      return TacticalFlags::CHOKE_POINT;
+	if (strcasecmp(flagName, "open_area") == 0)        return TacticalFlags::OPEN_AREA;
+	if (strcasecmp(flagName, "high_traffic") == 0)     return TacticalFlags::HIGH_TRAFFIC;
+	if (strcasecmp(flagName, "danger_zone") == 0)      return TacticalFlags::DANGER_ZONE;
+	if (strcasecmp(flagName, "camping_spot") == 0)     return TacticalFlags::CAMPING_SPOT;
+	if (strcasecmp(flagName, "health_nearby") == 0)    return TacticalFlags::HEALTH_NEARBY;
+	if (strcasecmp(flagName, "ammo_nearby") == 0)      return TacticalFlags::AMMO_NEARBY;
+	if (strcasecmp(flagName, "armor_nearby") == 0)     return TacticalFlags::ARMOR_NEARBY;
+	if (strcasecmp(flagName, "weapon_nearby") == 0)    return TacticalFlags::WEAPON_NEARBY;
+	if (strcasecmp(flagName, "fall_hazard") == 0)      return TacticalFlags::FALL_HAZARD;
+	if (strcasecmp(flagName, "flank_route") == 0)      return TacticalFlags::FLANK_ROUTE;
+	return 0;
+}
+
+EBotPlaystyle ParsePlaystyle(const char* styleName)
+{
+	if (strcasecmp(styleName, "balanced") == 0)    return EBotPlaystyle::BALANCED;
+	if (strcasecmp(styleName, "aggressive") == 0)  return EBotPlaystyle::AGGRESSIVE;
+	if (strcasecmp(styleName, "defensive") == 0)   return EBotPlaystyle::DEFENSIVE;
+	if (strcasecmp(styleName, "support") == 0)     return EBotPlaystyle::SUPPORT;
+	if (strcasecmp(styleName, "sniper") == 0)      return EBotPlaystyle::SNIPER;
+	if (strcasecmp(styleName, "flanker") == 0)     return EBotPlaystyle::FLANKER;
+	if (strcasecmp(styleName, "camper") == 0)      return EBotPlaystyle::CAMPER;
+	if (strcasecmp(styleName, "rusher") == 0)      return EBotPlaystyle::RUSHER;
+	return EBotPlaystyle::BALANCED;
+}
+
+//=============================================================================
+// CTacticalAdvisor Implementation
+//=============================================================================
+
+CTacticalAdvisor::CTacticalAdvisor()
+	: m_pBot(nullptr)
+	, m_currentStyle(EBotPlaystyle::BALANCED)
+	, m_bEnabled(true)
+	, m_bNeedsHealth(false)
+	, m_bNeedsAmmo(false)
+	, m_bUnderThreat(false)
+	, m_bHasAdvantage(false)
+	, m_healthPercent(1.0f)
+	, m_ammoPercent(1.0f)
+	, m_nearbyEnemies(0)
+	, m_nearbyAllies(0)
+	, m_lastSituationUpdate(0.0f)
+	, m_lastStyleSwitch(0.0f)
+	, m_deathStreak(0)
+	, m_killStreak(0)
+{
+}
+
+void CTacticalAdvisor::updateSituation()
+{
+	if (m_pBot == nullptr)
+		return;
+
+	float curTime = gpGlobals->curtime;
+	if (curTime - m_lastSituationUpdate < 0.5f)
+		return;
+
+	m_lastSituationUpdate = curTime;
+
+	// Update health status
+	float maxHealth = m_pBot->getMaxHealth();
+	float curHealth = m_pBot->getHealthPercent() * maxHealth;
+	m_healthPercent = maxHealth > 0 ? curHealth / maxHealth : 1.0f;
+	m_bNeedsHealth = m_healthPercent < 0.5f;
+
+	// Ammo check would need weapon-specific logic
+	m_bNeedsAmmo = false;  // Simplified
+
+	// Check for nearby enemies (simplified)
+	m_nearbyEnemies = 0;
+	m_nearbyAllies = 0;
+
+	edict_t* pEnemy = m_pBot->getEnemy();
+	if (pEnemy != nullptr)
+	{
+		m_nearbyEnemies = 1;
+		m_bUnderThreat = true;
+	}
+	else
+	{
+		m_bUnderThreat = false;
+	}
+
+	// Advantage is having cover and/or height
+	m_bHasAdvantage = false;
+	Vector origin = m_pBot->getOrigin();
+	int nearWpt = CWaypointLocations::NearestWaypoint(origin, 200.0f, -1, true, false, false, nullptr);
+	if (nearWpt >= 0)
+	{
+		const CTacticalInfo* pInfo = CTacticalDataManager::instance().getTacticalInfo(nearWpt);
+		if (pInfo != nullptr)
+		{
+			m_bHasAdvantage = pInfo->getCoverQuality() > 0.5f || pInfo->getHeightAdvantage() > 50.0f;
+		}
+	}
+}
+
+float CTacticalAdvisor::scoreWaypoint(int waypointId) const
+{
+	const CTacticalInfo* pInfo = CTacticalDataManager::instance().getTacticalInfo(waypointId);
+	if (pInfo == nullptr)
+		return 0.5f;
+
+	float score = 1.0f;
+
+	// Apply playstyle modifier
+	switch (m_currentStyle)
+	{
+	case EBotPlaystyle::AGGRESSIVE:
+	case EBotPlaystyle::RUSHER:
+		score *= getAggressiveModifier(*pInfo);
+		break;
+	case EBotPlaystyle::DEFENSIVE:
+	case EBotPlaystyle::CAMPER:
+		score *= getDefensiveModifier(*pInfo);
+		break;
+	case EBotPlaystyle::SNIPER:
+		if (pInfo->hasTacticalFlag(TacticalFlags::SNIPER_SPOT))
+			score *= 1.5f;
+		if (pInfo->hasTacticalFlag(TacticalFlags::COVER_HIGH))
+			score *= 1.3f;
+		break;
+	case EBotPlaystyle::FLANKER:
+		if (pInfo->hasTacticalFlag(TacticalFlags::FLANK_ROUTE))
+			score *= 1.4f;
+		if (pInfo->hasTacticalFlag(TacticalFlags::CHOKE_POINT))
+			score *= 0.6f;  // Avoid chokepoints
+		break;
+	default:
+		score *= pInfo->getWeights().balanced;
+		break;
+	}
+
+	// Apply needs-based modifiers
+	score *= scoreWaypointForNeeds(waypointId);
+
+	return score;
+}
+
+float CTacticalAdvisor::scoreWaypointForNeeds(int waypointId) const
+{
+	const CTacticalInfo* pInfo = CTacticalDataManager::instance().getTacticalInfo(waypointId);
+	if (pInfo == nullptr)
+		return 1.0f;
+
+	float modifier = 1.0f;
+
+	// Health need
+	if (m_bNeedsHealth && pInfo->hasTacticalFlag(TacticalFlags::HEALTH_NEARBY))
+	{
+		modifier *= 1.5f + (1.0f - m_healthPercent);  // More urgent = higher modifier
+	}
+
+	// Ammo need
+	if (m_bNeedsAmmo && pInfo->hasTacticalFlag(TacticalFlags::AMMO_NEARBY))
+	{
+		modifier *= 1.3f;
+	}
+
+	// Under threat - prefer cover
+	if (m_bUnderThreat)
+	{
+		if (pInfo->getCoverQuality() > 0.5f)
+			modifier *= 1.4f;
+		if (pInfo->hasTacticalFlag(TacticalFlags::OPEN_AREA))
+			modifier *= 0.6f;
+	}
+
+	return modifier;
+}
+
+int CTacticalAdvisor::recommendDestination(const Vector& nearOrigin, float maxDist)
+{
+	updateSituation();
+
+	int bestWpt = -1;
+	float bestScore = -1.0f;
+	float maxDistSq = maxDist * maxDist;
+
+	int numWaypoints = CWaypoints::numWaypoints();
+	for (int i = 0; i < numWaypoints; i++)
+	{
+		CWaypoint* pWpt = CWaypoints::getWaypoint(i);
+		if (pWpt == nullptr || !pWpt->isUsed())
+			continue;
+
+		float distSq = (pWpt->getOrigin() - nearOrigin).LengthSqr();
+		if (distSq > maxDistSq)
+			continue;
+
+		float score = scoreWaypoint(i);
+
+		// Distance penalty
+		float distFactor = 1.0f - (sqrtf(distSq) / maxDist) * 0.3f;
+		score *= distFactor;
+
+		if (score > bestScore)
+		{
+			bestScore = score;
+			bestWpt = i;
+		}
+	}
+
+	return bestWpt;
+}
+
+int CTacticalAdvisor::recommendCoverPosition(const Vector& threatDir)
+{
+	if (m_pBot == nullptr)
+		return -1;
+
+	return CTacticalDataManager::instance().findCoverWaypoint(
+		m_pBot->getOrigin(), threatDir, 500.0f);
+}
+
+int CTacticalAdvisor::recommendAmbushPosition(const Vector& targetArea, float radius)
+{
+	std::vector<int> ambushWpts = CTacticalDataManager::instance().findWaypointsWithFlags(
+		TacticalFlags::AMBUSH_POINT, 0);
+
+	if (ambushWpts.empty())
+		return -1;
+
+	// Find closest to target area
+	int bestWpt = -1;
+	float bestDist = FLT_MAX;
+
+	for (int wptId : ambushWpts)
+	{
+		CWaypoint* pWpt = CWaypoints::getWaypoint(wptId);
+		if (pWpt == nullptr)
+			continue;
+
+		float dist = (pWpt->getOrigin() - targetArea).Length();
+		if (dist < radius && dist < bestDist)
+		{
+			bestDist = dist;
+			bestWpt = wptId;
+		}
+	}
+
+	return bestWpt;
+}
+
+int CTacticalAdvisor::recommendFlankingRoute(const Vector& targetPos)
+{
+	if (m_pBot == nullptr)
+		return -1;
+
+	std::vector<int> flankWpts = CTacticalDataManager::instance().findFlankingWaypoints(
+		m_pBot->getOrigin(), targetPos, 800.0f);
+
+	if (flankWpts.empty())
+		return -1;
+
+	// Return first viable flanking waypoint
+	return flankWpts[0];
+}
+
+std::vector<int> CTacticalAdvisor::findWaypointsByFlag(uint32_t flags, float maxDist) const
+{
+	std::vector<int> result;
+
+	if (m_pBot == nullptr)
+		return result;
+
+	Vector origin = m_pBot->getOrigin();
+	float maxDistSq = maxDist * maxDist;
+
+	std::vector<int> flagWpts = CTacticalDataManager::instance().findWaypointsWithFlags(flags, 0);
+
+	for (int wptId : flagWpts)
+	{
+		CWaypoint* pWpt = CWaypoints::getWaypoint(wptId);
+		if (pWpt == nullptr)
+			continue;
+
+		float distSq = (pWpt->getOrigin() - origin).LengthSqr();
+		if (distSq <= maxDistSq)
+		{
+			result.push_back(wptId);
+		}
+	}
+
+	return result;
+}
+
+std::vector<int> CTacticalAdvisor::findHealthWaypoints(float maxDist) const
+{
+	return findWaypointsByFlag(TacticalFlags::HEALTH_NEARBY, maxDist);
+}
+
+std::vector<int> CTacticalAdvisor::findAmmoWaypoints(float maxDist) const
+{
+	return findWaypointsByFlag(TacticalFlags::AMMO_NEARBY, maxDist);
+}
+
+std::vector<int> CTacticalAdvisor::findCoverWaypoints(float maxDist) const
+{
+	return findWaypointsByFlag(TacticalFlags::COVER_FULL | TacticalFlags::COVER_PARTIAL, maxDist);
+}
+
+float CTacticalAdvisor::getAggressiveModifier(const CTacticalInfo& info) const
+{
+	float mod = info.getWeights().aggressive;
+
+	// Aggressive bots prefer high traffic, open areas, near weapons
+	if (info.hasTacticalFlag(TacticalFlags::HIGH_TRAFFIC))
+		mod *= 1.3f;
+	if (info.hasTacticalFlag(TacticalFlags::OPEN_AREA))
+		mod *= 1.1f;
+	if (info.hasTacticalFlag(TacticalFlags::WEAPON_NEARBY))
+		mod *= 1.2f;
+
+	// Avoid defensive positions
+	if (info.hasTacticalFlag(TacticalFlags::CAMPING_SPOT))
+		mod *= 0.7f;
+
+	return mod;
+}
+
+float CTacticalAdvisor::getDefensiveModifier(const CTacticalInfo& info) const
+{
+	float mod = info.getWeights().defensive;
+
+	// Defensive bots prefer cover, camping spots, health nearby
+	if (info.hasTacticalFlag(TacticalFlags::CAMPING_SPOT))
+		mod *= 1.4f;
+	if (info.getCoverQuality() > 0.5f)
+		mod *= 1.0f + info.getCoverQuality() * 0.5f;
+	if (info.hasTacticalFlag(TacticalFlags::HEALTH_NEARBY))
+		mod *= 1.2f;
+
+	// Avoid open/dangerous areas
+	if (info.hasTacticalFlag(TacticalFlags::OPEN_AREA))
+		mod *= 0.6f;
+	if (info.hasTacticalFlag(TacticalFlags::DANGER_ZONE))
+		mod *= 0.5f;
+
+	return mod;
+}
+
+float CTacticalAdvisor::getObjectiveModifier(const CTacticalInfo& info) const
+{
+	float mod = 1.0f;
+
+	// Objective-focused bots prioritize paths toward objectives
+	if (info.hasTacticalFlag(TacticalFlags::OBJECTIVE_NEARBY))
+		mod *= 1.5f;
+
+	// Ignore combat opportunities
+	if (info.hasTacticalFlag(TacticalFlags::AMBUSH_POINT))
+		mod *= 0.9f;
+
+	return mod;
+}
+
+void CTacticalAdvisor::evaluatePlaystyleSwitch()
+{
+	float curTime = gpGlobals->curtime;
+
+	// Don't switch too frequently
+	if (curTime - m_lastStyleSwitch < 30.0f)
+		return;
+
+	EBotPlaystyle suggested = suggestPlaystyle();
+	if (suggested != m_currentStyle)
+	{
+		m_currentStyle = suggested;
+		m_lastStyleSwitch = curTime;
+
+		if (CTacticalModeManager::instance().isDebugMode())
+		{
+			CBotGlobals::botMessage(nullptr, 0, "Bot switched to %s playstyle", GetPlaystyleName(m_currentStyle));
+		}
+	}
+}
+
+bool CTacticalAdvisor::shouldSwitchPlaystyle() const
+{
+	// Switch based on health, score, or situation
+	if (m_healthPercent < 0.3f && m_currentStyle == EBotPlaystyle::AGGRESSIVE)
+		return true;
+
+	if (m_deathStreak >= 3 && m_currentStyle != EBotPlaystyle::DEFENSIVE)
+		return true;
+
+	if (m_killStreak >= 5 && m_currentStyle == EBotPlaystyle::DEFENSIVE)
+		return true;
+
+	return false;
+}
+
+EBotPlaystyle CTacticalAdvisor::suggestPlaystyle() const
+{
+	// Low health -> defensive
+	if (m_healthPercent < 0.3f)
+		return EBotPlaystyle::DEFENSIVE;
+
+	// Death streak -> be more careful
+	if (m_deathStreak >= 3)
+		return EBotPlaystyle::DEFENSIVE;
+
+	// Kill streak -> push advantage
+	if (m_killStreak >= 3)
+		return EBotPlaystyle::AGGRESSIVE;
+
+	// Under threat with low health -> find cover
+	if (m_bUnderThreat && m_healthPercent < 0.5f)
+		return EBotPlaystyle::DEFENSIVE;
+
+	// Has advantage -> push
+	if (m_bHasAdvantage && m_healthPercent > 0.7f)
+		return EBotPlaystyle::AGGRESSIVE;
+
+	return m_currentStyle;  // Keep current
+}
+
+void CTacticalAdvisor::printDebugInfo() const
+{
+	if (m_pBot == nullptr)
+		return;
+
+	CBotGlobals::botMessage(nullptr, 0, "=== Tactical Advisor Debug ===");
+	CBotGlobals::botMessage(nullptr, 0, "Playstyle: %s", GetPlaystyleName(m_currentStyle));
+	CBotGlobals::botMessage(nullptr, 0, "Enabled: %s", m_bEnabled ? "Yes" : "No");
+	CBotGlobals::botMessage(nullptr, 0, "Health: %.0f%%", m_healthPercent * 100.0f);
+	CBotGlobals::botMessage(nullptr, 0, "Needs Health: %s", m_bNeedsHealth ? "Yes" : "No");
+	CBotGlobals::botMessage(nullptr, 0, "Under Threat: %s", m_bUnderThreat ? "Yes" : "No");
+	CBotGlobals::botMessage(nullptr, 0, "Has Advantage: %s", m_bHasAdvantage ? "Yes" : "No");
+	CBotGlobals::botMessage(nullptr, 0, "Kill Streak: %d, Death Streak: %d", m_killStreak, m_deathStreak);
+}
+
+//=============================================================================
+// CTacticalModeManager Implementation
+//=============================================================================
+
+CTacticalModeManager* CTacticalModeManager::s_instance = nullptr;
+
+CTacticalModeManager& CTacticalModeManager::instance()
+{
+	if (s_instance == nullptr)
+		s_instance = new CTacticalModeManager();
+	return *s_instance;
+}
+
+CTacticalModeManager::CTacticalModeManager()
+	: m_bGlobalEnabled(false)
+	, m_bDebugMode(false)
+	, m_defaultStyle(EBotPlaystyle::BALANCED)
+{
+}
+
+CTacticalModeManager::~CTacticalModeManager()
+{
+	for (CTacticalAdvisor* advisor : m_advisors)
+	{
+		delete advisor;
+	}
+	m_advisors.clear();
+}
+
+CTacticalAdvisor* CTacticalModeManager::getAdvisor(CBot* pBot)
+{
+	if (pBot == nullptr)
+		return nullptr;
+
+	// Find existing advisor
+	for (CTacticalAdvisor* advisor : m_advisors)
+	{
+		if (advisor->getBot() == pBot)
+			return advisor;
+	}
+
+	// Create new advisor
+	CTacticalAdvisor* newAdvisor = new CTacticalAdvisor();
+	newAdvisor->setBot(pBot);
+	newAdvisor->setPlaystyle(m_defaultStyle);
+	newAdvisor->setEnabled(m_bGlobalEnabled);
+	m_advisors.push_back(newAdvisor);
+
+	return newAdvisor;
+}
+
+void CTacticalModeManager::update()
+{
+	if (!m_bGlobalEnabled)
+		return;
+
+	for (CTacticalAdvisor* advisor : m_advisors)
+	{
+		if (advisor->isEnabled() && advisor->getBot() != nullptr)
+		{
+			advisor->updateSituation();
+			advisor->evaluatePlaystyleSwitch();
+		}
+	}
+}
+
+//=============================================================================
+// Console Command Handlers
+//=============================================================================
+
+void Tactical_Flag_Command(const CCommand& args)
+{
+	// Usage: rcbot tactical flag <add|remove|list> [flag_name]
+	if (args.ArgC() < 2)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Usage: rcbot tactical flag <add|remove|list> [flag_name]");
+		return;
+	}
+
+	// Need to get nearest waypoint from player
+	// Simplified - would need client context
+	CBotGlobals::botMessage(nullptr, 0, "Tactical flag command - use waypoint editor for now");
+}
+
+void Tactical_Weight_Command(const CCommand& args)
+{
+	CBotGlobals::botMessage(nullptr, 0, "Usage: rcbot tactical weight <playstyle> <value>");
+	CBotGlobals::botMessage(nullptr, 0, "Playstyles: balanced, aggressive, defensive, sniper, flanker");
+}
+
+void Tactical_Scan_Command(const CCommand& args)
+{
+	CBotGlobals::botMessage(nullptr, 0, "Running tactical scan on all waypoints...");
+	CTacticalDataManager::instance().analyzeAllWaypoints();
+}
+
+void Tactical_Show_Command(const CCommand& args)
+{
+	// Show tactical info for nearest waypoint
+	// Would need client context for proper implementation
+	CBotGlobals::botMessage(nullptr, 0, "Use rcbot tactical debug to see tactical reasoning");
+}
+
+void Tactical_Enable_Command(const CCommand& args)
+{
+	bool enable = true;
+	if (args.ArgC() >= 2)
+	{
+		enable = atoi(args.Arg(1)) != 0;
+	}
+
+	CTacticalModeManager::instance().setGlobalEnabled(enable);
+	CBotGlobals::botMessage(nullptr, 0, "Tactical mode %s", enable ? "enabled" : "disabled");
+}
+
+void Tactical_Playstyle_Command(const CCommand& args)
+{
+	if (args.ArgC() < 2)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Usage: rcbot tactical playstyle <style>");
+		CBotGlobals::botMessage(nullptr, 0, "Styles: balanced, aggressive, defensive, support, sniper, flanker, camper, rusher");
+		CBotGlobals::botMessage(nullptr, 0, "Current default: %s", GetPlaystyleName(CTacticalModeManager::instance().getDefaultPlaystyle()));
+		return;
+	}
+
+	EBotPlaystyle style = ParsePlaystyle(args.Arg(1));
+	CTacticalModeManager::instance().setDefaultPlaystyle(style);
+	CBotGlobals::botMessage(nullptr, 0, "Default playstyle set to: %s", GetPlaystyleName(style));
+}
+
+void Tactical_Debug_Command(const CCommand& args)
+{
+	bool enable = !CTacticalModeManager::instance().isDebugMode();
+	if (args.ArgC() >= 2)
+	{
+		enable = atoi(args.Arg(1)) != 0;
+	}
+
+	CTacticalModeManager::instance().setDebugMode(enable);
+	CBotGlobals::botMessage(nullptr, 0, "Tactical debug mode %s", enable ? "enabled" : "disabled");
 }

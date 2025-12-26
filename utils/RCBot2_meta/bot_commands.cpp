@@ -455,6 +455,92 @@ CBotSubcommands AutoRefineSubcommands("refine", CMD_ACCESS_WAYPOINT, {
 	&AnalyzeWaypointsCommand
 }, "Waypoint auto-refinement commands");
 
+// Tactical mode commands
+CBotCommandInline TacticalEnableCommand("enable", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool enable = true;
+	if (args.size() >= 1)
+		enable = atoi(args[0]) != 0;
+
+	CTacticalModeManager::instance().setGlobalEnabled(enable);
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Tactical mode %s", enable ? "enabled" : "disabled");
+	return COMMAND_ACCESSED;
+}, "Enable/disable tactical decision-making for all bots");
+
+CBotCommandInline TacticalPlaystyleCommand("playstyle", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (args.empty())
+	{
+		CBotGlobals::botMessage(pEntity, 0, "Usage: rcbot tactical playstyle <style>");
+		CBotGlobals::botMessage(pEntity, 0, "Styles: balanced, aggressive, defensive, support, sniper, flanker, camper, rusher");
+		CBotGlobals::botMessage(pEntity, 0, "Current default: %s", GetPlaystyleName(CTacticalModeManager::instance().getDefaultPlaystyle()));
+		return COMMAND_ACCESSED;
+	}
+
+	EBotPlaystyle style = ParsePlaystyle(args[0]);
+	CTacticalModeManager::instance().setDefaultPlaystyle(style);
+	CBotGlobals::botMessage(pEntity, 0, "Default playstyle set to: %s", GetPlaystyleName(style));
+	return COMMAND_ACCESSED;
+}, "Set default playstyle for bots");
+
+CBotCommandInline TacticalDebugCommand("debug", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool enable = !CTacticalModeManager::instance().isDebugMode();
+	if (args.size() >= 1)
+		enable = atoi(args[0]) != 0;
+
+	CTacticalModeManager::instance().setDebugMode(enable);
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Tactical debug mode %s", enable ? "enabled" : "disabled");
+	return COMMAND_ACCESSED;
+}, "Toggle tactical debug output");
+
+CBotCommandInline TacticalScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Running tactical scan on all waypoints...");
+	CTacticalDataManager::instance().analyzeAllWaypoints();
+	return COMMAND_ACCESSED;
+}, "Run tactical analysis on all waypoints");
+
+CBotCommandInline TacticalSaveCommand("save", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const char* mapName = CBotGlobals::getMapName();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (CTacticalDataManager::instance().saveData(mapName))
+		CBotGlobals::botMessage(pEntity, 0, "Tactical data saved");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "Failed to save tactical data");
+
+	return COMMAND_ACCESSED;
+}, "Save tactical data to file");
+
+CBotCommandInline TacticalLoadCommand("load", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const char* mapName = CBotGlobals::getMapName();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (CTacticalDataManager::instance().loadData(mapName))
+		CBotGlobals::botMessage(pEntity, 0, "Tactical data loaded");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "No tactical data found (using defaults)");
+
+	return COMMAND_ACCESSED;
+}, "Load tactical data from file");
+
+CBotSubcommands TacticalSubcommands("tactical", CMD_ACCESS_WAYPOINT, {
+	&TacticalEnableCommand,
+	&TacticalPlaystyleCommand,
+	&TacticalDebugCommand,
+	&TacticalScanCommand,
+	&TacticalSaveCommand,
+	&TacticalLoadCommand
+}, "Tactical AI commands");
+
 CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACCESS_DEDICATED, {
 	&WaypointSubcommands,
 	&AddBotCommand,
@@ -469,5 +555,6 @@ CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACC
 	&NavTestSubcommands,   // Nav-test commands
 	&DoorSubcommands,      // Door handling commands
 	&GravitySubcommands,   // Gravity navigation commands
-	&AutoRefineSubcommands // Waypoint auto-refine commands
+	&AutoRefineSubcommands, // Waypoint auto-refine commands
+	&TacticalSubcommands   // Tactical AI commands
 });

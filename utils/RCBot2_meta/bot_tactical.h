@@ -325,6 +325,127 @@ private:
 };
 
 //=============================================================================
+// CTacticalAdvisor
+// Provides tactical recommendations based on waypoint metadata and bot state
+//=============================================================================
+class CTacticalAdvisor
+{
+public:
+	CTacticalAdvisor();
+
+	// Set the bot this advisor is for
+	void setBot(CBot* pBot) { m_pBot = pBot; }
+	CBot* getBot() const { return m_pBot; }
+
+	// Set current playstyle
+	void setPlaystyle(EBotPlaystyle style) { m_currentStyle = style; }
+	EBotPlaystyle getPlaystyle() const { return m_currentStyle; }
+
+	// Enable/disable tactical decision making
+	void setEnabled(bool enabled) { m_bEnabled = enabled; }
+	bool isEnabled() const { return m_bEnabled; }
+
+	// Main recommendation methods
+	int recommendDestination(const Vector& nearOrigin, float maxDist = 1000.0f);
+	int recommendCoverPosition(const Vector& threatDir);
+	int recommendAmbushPosition(const Vector& targetArea, float radius = 500.0f);
+	int recommendFlankingRoute(const Vector& targetPos);
+
+	// Scoring methods
+	float scoreWaypoint(int waypointId) const;
+	float scoreWaypointForNeeds(int waypointId) const;
+
+	// Situational awareness
+	void updateSituation();
+	bool needsHealth() const { return m_bNeedsHealth; }
+	bool needsAmmo() const { return m_bNeedsAmmo; }
+	bool isUnderThreat() const { return m_bUnderThreat; }
+	bool hasAdvantage() const { return m_bHasAdvantage; }
+
+	// Query waypoints by criteria
+	std::vector<int> findWaypointsByFlag(uint32_t flags, float maxDist = 1000.0f) const;
+	std::vector<int> findHealthWaypoints(float maxDist = 1000.0f) const;
+	std::vector<int> findAmmoWaypoints(float maxDist = 1000.0f) const;
+	std::vector<int> findCoverWaypoints(float maxDist = 500.0f) const;
+
+	// Playstyle modifiers
+	float getAggressiveModifier(const CTacticalInfo& info) const;
+	float getDefensiveModifier(const CTacticalInfo& info) const;
+	float getObjectiveModifier(const CTacticalInfo& info) const;
+
+	// Dynamic playstyle switching
+	void evaluatePlaystyleSwitch();
+	bool shouldSwitchPlaystyle() const;
+	EBotPlaystyle suggestPlaystyle() const;
+
+	// Debug
+	void printDebugInfo() const;
+
+private:
+	CBot* m_pBot;
+	EBotPlaystyle m_currentStyle;
+	bool m_bEnabled;
+
+	// Situational state (updated by updateSituation)
+	bool m_bNeedsHealth;
+	bool m_bNeedsAmmo;
+	bool m_bUnderThreat;
+	bool m_bHasAdvantage;
+	float m_healthPercent;
+	float m_ammoPercent;
+	int m_nearbyEnemies;
+	int m_nearbyAllies;
+	float m_lastSituationUpdate;
+
+	// Playstyle switching state
+	float m_lastStyleSwitch;
+	int m_deathStreak;
+	int m_killStreak;
+};
+
+//=============================================================================
+// CTacticalModeManager
+// Global manager for tactical mode settings
+//=============================================================================
+class CTacticalModeManager
+{
+public:
+	static CTacticalModeManager& instance();
+
+	// Enable/disable tactical mode globally
+	void setGlobalEnabled(bool enabled) { m_bGlobalEnabled = enabled; }
+	bool isGlobalEnabled() const { return m_bGlobalEnabled; }
+
+	// Get/set default playstyle for new bots
+	void setDefaultPlaystyle(EBotPlaystyle style) { m_defaultStyle = style; }
+	EBotPlaystyle getDefaultPlaystyle() const { return m_defaultStyle; }
+
+	// Debug mode
+	void setDebugMode(bool enabled) { m_bDebugMode = enabled; }
+	bool isDebugMode() const { return m_bDebugMode; }
+
+	// Get advisor for a specific bot (creates if needed)
+	CTacticalAdvisor* getAdvisor(CBot* pBot);
+
+	// Update all advisors
+	void update();
+
+private:
+	CTacticalModeManager();
+	~CTacticalModeManager();
+
+	CTacticalModeManager(const CTacticalModeManager&) = delete;
+	CTacticalModeManager& operator=(const CTacticalModeManager&) = delete;
+
+	bool m_bGlobalEnabled;
+	bool m_bDebugMode;
+	EBotPlaystyle m_defaultStyle;
+	std::vector<CTacticalAdvisor*> m_advisors;
+
+	static CTacticalModeManager* s_instance;
+};
+
+//=============================================================================
 // Helper functions
 //=============================================================================
 
@@ -336,5 +457,22 @@ const char* GetPlaystyleName(EBotPlaystyle style);
 
 // Get tactical flag name
 const char* GetTacticalFlagName(uint32_t flag);
+
+// Parse tactical flag from string
+uint32_t ParseTacticalFlag(const char* flagName);
+
+// Parse playstyle from string
+EBotPlaystyle ParsePlaystyle(const char* styleName);
+
+//=============================================================================
+// Console command handlers
+//=============================================================================
+void Tactical_Flag_Command(const CCommand& args);
+void Tactical_Weight_Command(const CCommand& args);
+void Tactical_Scan_Command(const CCommand& args);
+void Tactical_Show_Command(const CCommand& args);
+void Tactical_Enable_Command(const CCommand& args);
+void Tactical_Playstyle_Command(const CCommand& args);
+void Tactical_Debug_Command(const CCommand& args);
 
 #endif // __BOT_TACTICAL_H__
