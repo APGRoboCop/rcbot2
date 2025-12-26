@@ -1324,6 +1324,10 @@ std::string CNavTestDatabase::generateReportString()
 		report << " (" << stats.mostProblematicWaypointIssues << " issues)\n";
 	}
 
+	// Count issues by type for recommendations
+	int stuckCount = 0, unreachableCount = 0, pathFailCount = 0;
+	int fallDamageCount = 0, connectionBrokenCount = 0;
+
 	report << "\n--- Issues by Type ---\n";
 	for (int t = 0; t < static_cast<int>(ENavTestIssueType::MAX_ISSUE_TYPES); t++)
 	{
@@ -1334,11 +1338,26 @@ std::string CNavTestDatabase::generateReportString()
 			const char* typeName = "Unknown";
 			switch (type)
 			{
-				case ENavTestIssueType::STUCK: typeName = "Stuck"; break;
-				case ENavTestIssueType::UNREACHABLE: typeName = "Unreachable"; break;
-				case ENavTestIssueType::PATH_FAILURE: typeName = "Path Failure"; break;
-				case ENavTestIssueType::FALL_DAMAGE: typeName = "Fall Damage"; break;
-				case ENavTestIssueType::CONNECTION_BROKEN: typeName = "Connection Broken"; break;
+				case ENavTestIssueType::STUCK:
+					typeName = "Stuck";
+					stuckCount = static_cast<int>(issues.size());
+					break;
+				case ENavTestIssueType::UNREACHABLE:
+					typeName = "Unreachable";
+					unreachableCount = static_cast<int>(issues.size());
+					break;
+				case ENavTestIssueType::PATH_FAILURE:
+					typeName = "Path Failure";
+					pathFailCount = static_cast<int>(issues.size());
+					break;
+				case ENavTestIssueType::FALL_DAMAGE:
+					typeName = "Fall Damage";
+					fallDamageCount = static_cast<int>(issues.size());
+					break;
+				case ENavTestIssueType::CONNECTION_BROKEN:
+					typeName = "Connection Broken";
+					connectionBrokenCount = static_cast<int>(issues.size());
+					break;
 				case ENavTestIssueType::OUT_OF_BOUNDS: typeName = "Out of Bounds"; break;
 				case ENavTestIssueType::SLOW_TRAVERSE: typeName = "Slow Traverse"; break;
 				default: break;
@@ -1347,7 +1366,80 @@ std::string CNavTestDatabase::generateReportString()
 		}
 	}
 
-	report << "====================================\n";
+	// Generate actionable recommendations
+	report << "\n--- Recommendations ---\n";
+
+	bool hasRecommendations = false;
+
+	if (stats.avgCoverage < 0.8f)
+	{
+		report << "* LOW COVERAGE: Only " << (stats.avgCoverage * 100.0f) << "% of waypoints visited.\n";
+		report << "  -> Add more waypoints to improve map coverage\n";
+		report << "  -> Check for isolated waypoint clusters with no connections\n";
+		hasRecommendations = true;
+	}
+
+	if (stuckCount > 0)
+	{
+		report << "* STUCK ISSUES (" << stuckCount << "): Bots getting stuck at certain locations.\n";
+		report << "  -> Check waypoint placement near obstacles, stairs, or tight spaces\n";
+		report << "  -> Consider adding jump or crouch flags to problematic waypoints\n";
+		report << "  -> Use 'rcbot refine analyze' to identify specific stuck locations\n";
+		hasRecommendations = true;
+	}
+
+	if (unreachableCount > 0)
+	{
+		report << "* UNREACHABLE WAYPOINTS (" << unreachableCount << "): Some waypoints cannot be reached.\n";
+		report << "  -> Check waypoint connections - may need additional paths\n";
+		report << "  -> Verify waypoints aren't placed in inaccessible areas\n";
+		report << "  -> Look for one-way drops that need return paths\n";
+		hasRecommendations = true;
+	}
+
+	if (pathFailCount > 0)
+	{
+		report << "* PATH FAILURES (" << pathFailCount << "): Bots abandoning paths before completion.\n";
+		report << "  -> Connections may be blocked by dynamic obstacles\n";
+		report << "  -> Check for doors that need door waypoint flags\n";
+		report << "  -> Verify path distances aren't too long without intermediate waypoints\n";
+		hasRecommendations = true;
+	}
+
+	if (fallDamageCount > 0)
+	{
+		report << "* FALL DAMAGE (" << fallDamageCount << "): Bots taking fall damage on routes.\n";
+		report << "  -> Use 'rcbot gravity info' to check current gravity settings\n";
+		report << "  -> Add intermediate waypoints on tall drops\n";
+		report << "  -> Consider adding ladder or jump waypoints for safer routes\n";
+		report << "  -> Mark dangerous connections with appropriate flags\n";
+		hasRecommendations = true;
+	}
+
+	if (connectionBrokenCount > 0)
+	{
+		report << "* BROKEN CONNECTIONS (" << connectionBrokenCount << "): Waypoint connections not traversable.\n";
+		report << "  -> Remove or repair broken connections\n";
+		report << "  -> Check for geometry changes since waypoints were created\n";
+		report << "  -> Use 'rcbot refine autorefine' to automatically repair issues\n";
+		hasRecommendations = true;
+	}
+
+	if (stats.mostProblematicWaypoint >= 0 && stats.mostProblematicWaypointIssues >= 3)
+	{
+		report << "* HOTSPOT WAYPOINT #" << stats.mostProblematicWaypoint << ": ";
+		report << stats.mostProblematicWaypointIssues << " issues at this location.\n";
+		report << "  -> Priority: Investigate and fix this waypoint first\n";
+		report << "  -> Consider relocating or removing this waypoint\n";
+		hasRecommendations = true;
+	}
+
+	if (!hasRecommendations)
+	{
+		report << "No significant issues detected. Waypoint network appears healthy.\n";
+	}
+
+	report << "\n====================================\n";
 
 	return report.str();
 }

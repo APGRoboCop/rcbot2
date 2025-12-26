@@ -335,7 +335,52 @@ private:
 //=============================================================================
 // CNavTestDatabase
 // Handles persistent storage of nav-test data
-// Uses binary files (.navtest) for storage - can be upgraded to SQLite later
+// Uses binary files for storage - can be upgraded to SQLite later
+//
+// Database Schema (Binary File Format):
+// =====================================
+//
+// SESSION FILES ({mapname}_session_{id}.bin):
+//   - sessionId (int)
+//   - mapName (uint32 length + string)
+//   - startTime (time_t)
+//   - endTime (time_t)
+//   - duration (float)
+//   - totalWaypoints (int)
+//   - visitedWaypoints (int)
+//   - totalIssues (int)
+//   - criticalIssues (int)
+//
+// ISSUE FILES ({mapname}_issues_{id}.bin):
+//   - count (uint32)
+//   - For each issue:
+//     - type (ENavTestIssueType)
+//     - severity (ENavTestIssueSeverity)
+//     - location (3x float: x, y, z)
+//     - sourceWaypointId (int)
+//     - destWaypointId (int)
+//     - connectionId (int)
+//     - timestamp (float)
+//     - botIndex (int)
+//     - occurrenceCount (int)
+//     - serverGravity (float)
+//     - additionalInfo (uint32 length + string)
+//
+// COVERAGE FILES ({mapname}_coverage_{id}.bin):
+//   - count (uint32)
+//   - For each visit:
+//     - waypointId (int)
+//     - botIndex (int)
+//     - timestamp (float)
+//     - timeSpentNearby (float)
+//     - wasDestination (bool)
+//     - reachedSuccessfully (bool)
+//
+// Thread Safety:
+//   - File operations are atomic per-file (one session at a time)
+//   - Each CNavTestDatabase instance maintains its own cache
+//   - For multi-threaded access, use separate instances per thread
+//
 //=============================================================================
 class CNavTestDatabase
 {
