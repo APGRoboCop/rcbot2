@@ -32,6 +32,7 @@
  */
 #include "bot_commands.h"
 #include "bot.h"
+#include <ctime>
 #include "bot_accessclient.h"
 #include "bot_client.h"
 #include "bot_cvars.h"
@@ -44,6 +45,10 @@
 #include "bot_waypoint_locations.h" // for waypoint commands
 #include "bot_waypoint_visibility.h"
 #include "bot_weapons.h"
+#include "bot_navtest.h"            // for nav-test commands
+#include "bot_door.h"               // for door commands
+#include "bot_gravity.h"            // for gravity commands
+#include "bot_waypoint_autorefine.h" // for waypoint auto-refine commands
 #include "ndebugoverlay.h"
 
 #include "bot_tf2_points.h"
@@ -285,6 +290,299 @@ CBotCommandInline CTestCommand("test", 0, [](CClient* pClient, const BotCommandA
 	return COMMAND_NOT_FOUND;
 });
 
+// Nav-test subcommands
+CBotCommandInline NavTestStartCommand("start", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	float duration = 0.0f;
+	if (args[0] && *args[0])
+		duration = static_cast<float>(atof(args[0]));
+
+	if (CNavTestManager::instance().startSession(duration))
+	{
+		// Enable nav-test mode on all bots and give them exploration schedules
+		int botsEnabled = 0;
+		for (int i = 0; i < RCBOT_MAXPLAYERS; i++)
+		{
+			CBot* pBot = CBots::getBot(i);
+			if (pBot != nullptr && pBot->inUse())
+			{
+				pBot->setNavTestMode(true);
+
+				// Clear current schedules and add exploration schedule
+				CBotSchedules* pSchedules = pBot->getSchedule();
+				if (pSchedules != nullptr)
+				{
+					pSchedules->freeMemory();
+					pSchedules->add(new CNavTestExploreSched(-1));
+				}
+				botsEnabled++;
+			}
+		}
+
+		edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+		CBotGlobals::botMessage(pEntity, 0, "Nav-test mode enabled on %d bots", botsEnabled);
+
+		return COMMAND_ACCESSED;
+	}
+	return COMMAND_ERROR;
+}, "Start nav-test session. Usage: rcbot navtest start [duration_seconds]");
+
+CBotCommandInline NavTestStopCommand("stop", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	// Disable nav-test mode on all bots
+	for (int i = 0; i < RCBOT_MAXPLAYERS; i++)
+	{
+		CBot* pBot = CBots::getBot(i);
+		if (pBot != nullptr && pBot->inUse())
+		{
+			pBot->setNavTestMode(false);
+
+			// Clear nav-test schedules
+			CBotSchedules* pSchedules = pBot->getSchedule();
+			if (pSchedules != nullptr && pSchedules->isCurrentSchedule(SCHED_NAVTEST_EXPLORE))
+			{
+				pSchedules->freeMemory();
+			}
+		}
+	}
+
+	CNavTestManager::instance().stopSession();
+	return COMMAND_ACCESSED;
+}, "Stop current nav-test session");
+
+CBotCommandInline NavTestStatusCommand("status", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const CNavTestSession& session = CNavTestManager::instance().getCurrentSession();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (!session.isActive)
+	{
+		CBotGlobals::botMessage(pEntity, 0, "No active nav-test session.");
+		return COMMAND_ACCESSED;
+	}
+
+	float elapsed = static_cast<float>(std::time(nullptr) - session.startTime);
+	CBotGlobals::botMessage(pEntity, 0, "Nav-test Status:");
+	CBotGlobals::botMessage(pEntity, 0, "  Map: %s", session.mapName.c_str());
+	CBotGlobals::botMessage(pEntity, 0, "  Elapsed: %.1f seconds", elapsed);
+	CBotGlobals::botMessage(pEntity, 0, "  Coverage: %d/%d (%.1f%%)",
+		CNavTestManager::instance().getCoverageTracker().getVisitedCount(),
+		session.totalWaypoints,
+		CNavTestManager::instance().getCoverageTracker().getCoveragePercent() * 100.0f);
+	CBotGlobals::botMessage(pEntity, 0, "  Issues: %d", CNavTestManager::instance().getIssueTracker().getIssueCount());
+
+	return COMMAND_ACCESSED;
+}, "Show nav-test session status");
+
+CBotCommandInline NavTestReportCommand("report", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CNavTestManager::instance().generateReport(true, nullptr);
+	return COMMAND_ACCESSED;
+}, "Generate nav-test report");
+
+CBotSubcommands NavTestSubcommands("navtest", CMD_ACCESS_WAYPOINT, {
+	&NavTestStartCommand,
+	&NavTestStopCommand,
+	&NavTestStatusCommand,
+	&NavTestReportCommand
+}, "Nav-test commands for automated waypoint testing");
+
+// Door manager commands
+CBotCommandInline DoorScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CDoorManager::instance().scanMap();
+	return COMMAND_ACCESSED;
+}, "Rescan map for door entities");
+
+CBotCommandInline DoorInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Door Manager: %d doors tracked", CDoorManager::instance().getDoorCount());
+	return COMMAND_ACCESSED;
+}, "Show door manager info");
+
+CBotSubcommands DoorSubcommands("door", CMD_ACCESS_WAYPOINT, {
+	&DoorScanCommand,
+	&DoorInfoCommand
+}, "Door handling commands");
+
+// Gravity info command
+CBotCommandInline GravityInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	const CGravityInfo& info = CGravityManager::instance().getGravityInfo();
+
+	CBotGlobals::botMessage(pEntity, 0, "Gravity Info:");
+	CBotGlobals::botMessage(pEntity, 0, "  Current gravity: %.0f", info.getGravity());
+	CBotGlobals::botMessage(pEntity, 0, "  Max safe fall height: %.0f units", info.getMaxSafeFallHeight());
+	CBotGlobals::botMessage(pEntity, 0, "  Fatal fall height: %.0f units", info.getFatalFallHeight());
+	CBotGlobals::botMessage(pEntity, 0, "  Non-standard gravity: %s", info.isNonStandardGravity() ? "Yes" : "No");
+	CBotGlobals::botMessage(pEntity, 0, "  Dangerous connections: %d", CGravityManager::instance().getDangerousConnectionCount());
+	CBotGlobals::botMessage(pEntity, 0, "  Gravity zones: %d", CGravityManager::instance().getZoneManager().getZoneCount());
+
+	return COMMAND_ACCESSED;
+}, "Show gravity and fall damage info");
+
+CBotCommandInline GravityRefreshCommand("refresh", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Gravity_Refresh_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Refresh gravity data (scan zones, re-analyze connections)");
+
+CBotSubcommands GravitySubcommands("gravity", CMD_ACCESS_WAYPOINT, {
+	&GravityInfoCommand,
+	&GravityRefreshCommand
+}, "Gravity-aware navigation commands");
+
+// Waypoint auto-refine commands
+CBotCommandInline AutoRefineCommand("autorefine", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	// Build a CCommand from args
+	CCommand cmd;
+	Waypoint_AutoRefine_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Auto-refine waypoints based on nav-test data.\n"
+   "Options: analyze-only, dry-run, no-save, no-remove, max-iter=N, stop, rollback [N]");
+
+CBotCommandInline AnalyzeWaypointsCommand("analyze", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool verbose = false;
+	for (size_t i = 0; i < args.size(); i++)
+	{
+		if (strcmp(args[i], "-v") == 0 || strcmp(args[i], "verbose") == 0)
+			verbose = true;
+	}
+
+	CAnalysisResult result = CWaypointAutoRefiner::instance().analyze();
+	CWaypointAutoRefiner::instance().printAnalysis(result, verbose);
+	return COMMAND_ACCESSED;
+}, "Analyze waypoint health and issues. Use -v for verbose output.");
+
+CBotSubcommands AutoRefineSubcommands("refine", CMD_ACCESS_WAYPOINT, {
+	&AutoRefineCommand,
+	&AnalyzeWaypointsCommand
+}, "Waypoint auto-refinement commands");
+
+// Tactical mode commands
+CBotCommandInline TacticalEnableCommand("enable", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool enable = true;
+	if (args.size() >= 1)
+		enable = atoi(args[0]) != 0;
+
+	CTacticalModeManager::instance().setGlobalEnabled(enable);
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Tactical mode %s", enable ? "enabled" : "disabled");
+	return COMMAND_ACCESSED;
+}, "Enable/disable tactical decision-making for all bots");
+
+CBotCommandInline TacticalPlaystyleCommand("playstyle", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (args.empty())
+	{
+		CBotGlobals::botMessage(pEntity, 0, "Usage: rcbot tactical playstyle <style>");
+		CBotGlobals::botMessage(pEntity, 0, "Styles: balanced, aggressive, defensive, support, sniper, flanker, camper, rusher");
+		CBotGlobals::botMessage(pEntity, 0, "Current default: %s", GetPlaystyleName(CTacticalModeManager::instance().getDefaultPlaystyle()));
+		return COMMAND_ACCESSED;
+	}
+
+	EBotPlaystyle style = ParsePlaystyle(args[0]);
+	CTacticalModeManager::instance().setDefaultPlaystyle(style);
+	CBotGlobals::botMessage(pEntity, 0, "Default playstyle set to: %s", GetPlaystyleName(style));
+	return COMMAND_ACCESSED;
+}, "Set default playstyle for bots");
+
+CBotCommandInline TacticalDebugCommand("debug", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	bool enable = !CTacticalModeManager::instance().isDebugMode();
+	if (args.size() >= 1)
+		enable = atoi(args[0]) != 0;
+
+	CTacticalModeManager::instance().setDebugMode(enable);
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Tactical debug mode %s", enable ? "enabled" : "disabled");
+	return COMMAND_ACCESSED;
+}, "Toggle tactical debug output");
+
+CBotCommandInline TacticalScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	CBotGlobals::botMessage(pEntity, 0, "Running tactical scan on all waypoints...");
+	CTacticalDataManager::instance().analyzeAllWaypoints();
+	return COMMAND_ACCESSED;
+}, "Run tactical analysis on all waypoints");
+
+CBotCommandInline TacticalSaveCommand("save", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const char* mapName = CBotGlobals::getMapName();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (CTacticalDataManager::instance().saveData(mapName))
+		CBotGlobals::botMessage(pEntity, 0, "Tactical data saved");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "Failed to save tactical data");
+
+	return COMMAND_ACCESSED;
+}, "Save tactical data to file");
+
+CBotCommandInline TacticalLoadCommand("load", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	const char* mapName = CBotGlobals::getMapName();
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+
+	if (CTacticalDataManager::instance().loadData(mapName))
+		CBotGlobals::botMessage(pEntity, 0, "Tactical data loaded");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "No tactical data found (using defaults)");
+
+	return COMMAND_ACCESSED;
+}, "Load tactical data from file");
+
+CBotSubcommands TacticalSubcommands("tactical", CMD_ACCESS_WAYPOINT, {
+	&TacticalEnableCommand,
+	&TacticalPlaystyleCommand,
+	&TacticalDebugCommand,
+	&TacticalScanCommand,
+	&TacticalSaveCommand,
+	&TacticalLoadCommand
+}, "Tactical AI commands");
+
+// Teleport navigation commands
+#include "bot_teleport.h"
+
+CBotCommandInline TeleportScanCommand("scan", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Teleport_Scan_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Scan map for teleport entities and link to waypoints");
+
+CBotCommandInline TeleportInfoCommand("info", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	Teleport_Info_Command(cmd);
+	return COMMAND_ACCESSED;
+}, "Show teleport information");
+
+CBotCommandInline TeleportCreateWptsCommand("createwpts", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+	if (CTeleportManager::instance().createTeleportWaypoints())
+		CBotGlobals::botMessage(pEntity, 0, "Created teleport waypoints");
+	else
+		CBotGlobals::botMessage(pEntity, 0, "No teleport waypoints needed");
+	return COMMAND_ACCESSED;
+}, "Create waypoints at teleport entrances and exits");
+
+CBotSubcommands TeleportSubcommands("teleport", CMD_ACCESS_WAYPOINT, {
+	&TeleportScanCommand,
+	&TeleportInfoCommand,
+	&TeleportCreateWptsCommand
+}, "Teleport navigation commands");
+
 CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACCESS_DEDICATED, {
 	&WaypointSubcommands,
 	&AddBotCommand,
@@ -295,5 +593,11 @@ CBotSubcommands* CBotGlobals::m_pCommands = new CBotSubcommands("rcbot", CMD_ACC
 	&ConfigSubcommands,
 	&KickBotCommand,
 	&UserSubcommands,
-	&UtilSubcommands
+	&UtilSubcommands,
+	&NavTestSubcommands,   // Nav-test commands
+	&DoorSubcommands,      // Door handling commands
+	&GravitySubcommands,   // Gravity navigation commands
+	&TeleportSubcommands,  // Teleport navigation commands
+	&AutoRefineSubcommands, // Waypoint auto-refine commands
+	&TacticalSubcommands   // Tactical AI commands
 });

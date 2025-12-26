@@ -82,6 +82,8 @@
 
 #include "bot_getprop.h"
 #include "bot_profiling.h"
+#include "bot_navtest.h"
+#include "bot_gravity.h"
 
 #include "rcbot/logging.h"
 
@@ -537,6 +539,9 @@ bool CBot :: checkStuck ()
 				m_fLastWaypointVisible = 0.0f;
 				m_bFailNextMove = true;
 
+				// Report stuck to nav-test system
+				CNavTestManager::instance().onBotStuck(this, 2.0f);
+
 				return true;
 			}
 		}
@@ -577,6 +582,9 @@ bool CBot :: checkStuck ()
 		{
 			m_bThinkStuck = true;
 			m_fPercentMoved = 0.1f;
+
+			// Report stuck to nav-test system (movement-based detection)
+			CNavTestManager::instance().onBotStuck(this, fTime - m_fCheckStuckTime);
 
 			m_pButtons->jump();
 			m_pButtons->duck(0.25f,randomFloat(0.2f,0.4f));
@@ -1168,6 +1176,7 @@ void CBot :: init (const bool bVarInit)
 	m_fFov = BOT_DEFAULT_FOV;
 	m_bOpenFire = true;
 	m_pSquad = nullptr;
+	m_bNavTestMode = false;
 
 	cmd.command_number = 0;
 
@@ -1375,9 +1384,13 @@ edict_t *CBot :: getVisibleSpecial ()
 	return nullptr;
 }
 
-bool CBot::wantToInvestigateSound () 
-{ 
-	return m_fSpawnTime + 10.0f < engine->Time() && !hasEnemy() && m_bWantToInvestigateSound; 
+bool CBot::wantToInvestigateSound ()
+{
+	// In nav-test mode, don't investigate sounds - focus on exploration
+	if (m_bNavTestMode)
+		return false;
+
+	return m_fSpawnTime + 10.0f < engine->Time() && !hasEnemy() && m_bWantToInvestigateSound;
 }
 
 bool CBot :: recentlyHurt (const float fTime) const
@@ -1700,9 +1713,16 @@ void CBot :: checkDependantEntities ()
 
 void CBot :: findEnemy ( edict_t *pOldEnemy )
 {
+	// In nav-test mode, don't look for enemies - focus on exploration
+	if (m_bNavTestMode)
+	{
+		m_pEnemy = nullptr;
+		return;
+	}
+
 	m_pFindEnemyFunc->init();
 
-	if ( pOldEnemy && isEnemy(pOldEnemy,true) ) 
+	if ( pOldEnemy && isEnemy(pOldEnemy,true) )
 		m_pFindEnemyFunc->setOldEnemy(pOldEnemy);
 	/*else if ( CBotGlobals::entityIsAlive(pOldEnemy) ) /// lost enemy
 	{
@@ -2006,6 +2026,10 @@ void CBot :: updateStatistics ()
 
 bool CBot :: wantToListen () const
 {
+	// In nav-test mode, don't listen for players - focus on exploration
+	if (m_bNavTestMode)
+		return false;
+
 	return m_bWantToListen && m_fWantToListenTime < engine->Time() && m_fLastSeeEnemy+2.5f < engine->Time();
 }
 // Listen for players who are shooting

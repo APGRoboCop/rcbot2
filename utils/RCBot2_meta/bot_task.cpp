@@ -56,6 +56,7 @@
 #include "bot_waypoint_visibility.h"
 #include "bot_synergy.h"
 #include "rcbot/utils.h"
+#include "bot_navtest.h"
 
 //caxanga334: SDK 2013 contains macros for std::min and std::max which causes errors when compiling
 //#if SOURCE_ENGINE == SE_SDK2013 || SOURCE_ENGINE == SE_BMS
@@ -6048,4 +6049,234 @@ void CBotTask :: fail ()
 void CBotTask :: complete ()
 {
 	m_iState = STATE_COMPLETE;
+}
+
+/////////////////////////////////
+// Nav-Test Exploration Task
+/////////////////////////////////
+
+void CNavTestExploreTask::init()
+{
+	m_fTime = 0.0f;
+	m_bPathFound = false;
+}
+
+void CNavTestExploreTask::execute(CBot* pBot, CBotSchedule* pSchedule)
+{
+	// Initialize time on first execute
+	if (m_fTime == 0.0f)
+	{
+		m_fTime = engine->Time() + 60.0f; // Max 60 seconds per waypoint
+	}
+
+	// Check timeout
+	if (engine->Time() > m_fTime)
+	{
+		fail();
+		return;
+	}
+
+	// Check if nav-test session is still active
+	CNavTestManager& navTest = CNavTestManager::instance();
+	if (!navTest.isSessionActive())
+	{
+		complete();
+		return;
+	}
+
+	// If no path found yet, find one
+	if (!m_bPathFound)
+	{
+		// Auto-select target waypoint if not specified
+		if (m_iTargetWaypoint < 0)
+		{
+			CMapCoverageTracker& coverage = navTest.getCoverageTracker();
+
+			// First try to find an unvisited waypoint
+			m_iTargetWaypoint = coverage.getUnvisitedWaypoint(pBot->getOrigin());
+
+			// If all visited, get least recently visited
+			if (m_iTargetWaypoint < 0)
+			{
+				m_iTargetWaypoint = coverage.getLeastRecentlyVisited(pBot->getOrigin());
+			}
+
+			// If still no target, we've fully explored - complete
+			if (m_iTargetWaypoint < 0)
+			{
+				CBotGlobals::botMessage(nullptr, 0, "NavTest: All waypoints explored!");
+				complete();
+				return;
+			}
+		}
+
+		// Try to find path to target
+		CWaypoint* pTarget = CWaypoints::getWaypoint(m_iTargetWaypoint);
+		if (pTarget == nullptr || !pTarget->isUsed())
+		{
+			// Invalid waypoint - try again with different target
+			m_iTargetWaypoint = -1;
+			return;
+		}
+
+		// Set bot to navigate to this waypoint
+		IBotNavigator* pNav = pBot->getNavigator();
+		if (pNav != nullptr)
+		{
+			if (pNav->workRoute(pBot->getOrigin(), pTarget->getOrigin(), nullptr, 0, false, false))
+			{
+				m_bPathFound = true;
+			}
+			else
+			{
+				// Path finding failed - report as unreachable
+				int currentWpt = CWaypointLocations::NearestWaypoint(
+					pBot->getOrigin(), 200.0f, -1, true, false, false, nullptr, false, 0, false);
+
+				navTest.getIssueTracker().reportUnreachable(
+					pBot, currentWpt, m_iTargetWaypoint, pBot->getOrigin());
+
+				// Try a different waypoint next time
+				m_iTargetWaypoint = -1;
+			}
+		}
+	}
+	else
+	{
+		// Following path - check if we've reached destination
+		IBotNavigator* pNav = pBot->getNavigator();
+		if (pNav == nullptr || !pNav->hasNextPoint())
+		{
+			// Reached destination or path ended
+			complete();
+			return;
+		}
+
+		// Let normal navigation handle movement
+		pBot->setMoveLookPriority(MOVELOOK_TASK);
+		pBot->setLookAtTask(LOOK_WAYPOINT);
+	}
+}
+
+/////////////////////////////////
+// Nav-Test Wait Task
+/////////////////////////////////
+
+void CNavTestWaitTask::execute(CBot* pBot, CBotSchedule* pSchedule)
+{
+	// Initialize start time
+	if (m_fStartTime == 0.0f)
+	{
+		m_fStartTime = engine->Time();
+	}
+
+	// Check if wait time elapsed
+	if (engine->Time() >= m_fStartTime + m_fWaitTime)
+	{
+		complete();
+		return;
+	}
+
+	// Bot should stay still and look around
+	pBot->setMoveLookPriority(MOVELOOK_TASK);
+	pBot->stopMoving();
+	pBot->setLookAtTask(LOOK_AROUND);
+}
+
+/////////////////////////////////
+// Use Map Teleport Task
+/////////////////////////////////
+
+#include "bot_teleport.h"
+
+void CBotTaskUseTeleport::init()
+{
+	m_fTime = 0.0f;
+	m_fEnterTime = 0.0f;
+	m_bEnteredTrigger = false;
+	m_bTeleported = false;
+	m_vStartPos = Vector(0, 0, 0);
+}
+
+void CBotTaskUseTeleport::execute(CBot* pBot, CBotSchedule* pSchedule)
+{
+	CTeleportManager& teleportMgr = CTeleportManager::instance();
+
+	// Get teleport info
+	const CTeleportInfo* pTeleport = teleportMgr.getTeleport(m_iTeleportIndex);
+	if (pTeleport == nullptr)
+	{
+		fail();
+		return;
+	}
+
+	// Check if on cooldown
+	if (teleportMgr.isTeleportOnCooldown(pBot, m_iTeleportIndex))
+	{
+		fail();
+		return;
+	}
+
+	// Initialize time on first execute
+	if (m_fTime == 0.0f)
+	{
+		m_fTime = engine->Time() + 10.0f; // Max 10 seconds to complete teleport
+		m_vStartPos = pBot->getOrigin();
+	}
+
+	// Check timeout
+	if (engine->Time() > m_fTime)
+	{
+		fail();
+		return;
+	}
+
+	// Check if we've already teleported
+	if (m_bTeleported)
+	{
+		// Mark as used and complete
+		teleportMgr.onBotUseTeleport(pBot, m_iTeleportIndex);
+		complete();
+		return;
+	}
+
+	// Check if we're inside the teleport trigger
+	Vector botOrigin = pBot->getOrigin();
+	bool isInTrigger = pTeleport->containsPoint(botOrigin);
+
+	if (isInTrigger && !m_bEnteredTrigger)
+	{
+		m_bEnteredTrigger = true;
+		m_fEnterTime = engine->Time();
+	}
+
+	if (m_bEnteredTrigger)
+	{
+		// Check if we've been teleported (position changed significantly)
+		float distFromStart = (botOrigin - m_vStartPos).Length();
+		if (distFromStart > 500.0f) // Teleported at least 500 units
+		{
+			m_bTeleported = true;
+			return;
+		}
+
+		// Wait a short time for teleport to happen
+		if (engine->Time() > m_fEnterTime + 2.0f && !m_bTeleported)
+		{
+			// Teleport didn't happen - maybe trigger is broken
+			fail();
+			return;
+		}
+
+		// Stay in the trigger area
+		pBot->stopMoving();
+		pBot->setLookAtTask(LOOK_AROUND);
+	}
+	else
+	{
+		// Move toward the teleport center
+		pBot->setMoveTo(pTeleport->center);
+		pBot->setLookVector(pTeleport->center);
+		pBot->setLookAtTask(LOOK_VECTOR);
+	}
 }

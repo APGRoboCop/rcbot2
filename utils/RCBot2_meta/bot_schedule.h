@@ -106,6 +106,7 @@ typedef enum : std::uint8_t
 	SCHED_PLANT_BOMB,
 	SCHED_WAIT,
 	SCHED_WAIT_FOR_ENEMY,
+	SCHED_NAVTEST_EXPLORE,		// Nav-test exploration mode
 	SCHED_MAX
 	//SCHED_HIDE_FROM_ENEMY
 }eBotSchedule;
@@ -718,6 +719,33 @@ public:
 	{
 		setID(SCHED_PLANT_BOMB);
 	}
+};
+
+/********************************
+ *    Navigation Testing        *
+ ********************************/
+
+/**
+ * Schedule for nav-test exploration mode
+ * Bot will navigate to unvisited/least-visited waypoints to test the waypoint network
+ */
+class CNavTestExploreSched : public CBotSchedule
+{
+public:
+	/**
+	 * Create an exploration schedule
+	 *
+	 * @param iTargetWaypoint   The waypoint to navigate to (-1 for auto-select)
+	 **/
+	CNavTestExploreSched(int iTargetWaypoint = -1);
+
+	void init() override
+	{
+		setID(SCHED_NAVTEST_EXPLORE);
+	}
+
+private:
+	int m_iTargetWaypoint;
 };
 
 #endif

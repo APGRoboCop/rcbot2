@@ -57,6 +57,14 @@ sourceFiles = [
   "utils/RCBot2_meta/bot_sigscan.cpp",
   "utils/RCBot2_meta/bot_cvars.cpp",
   "utils/RCBot2_meta/bot_plugin_meta.cpp",
+  "utils/RCBot2_meta/bot_waypoint_auto.cpp",  # Waypoint auto-generation
+  "utils/RCBot2_meta/bot_waypoint_hl2dm.cpp", # HL2DM waypoint metadata
+  "utils/RCBot2_meta/bot_npc_combat.cpp",     # NPC combat detection
+  "utils/RCBot2_meta/bot_gamemode_config.cpp", # Gamemode detection
+  "utils/RCBot2_meta/bot_navtest.cpp",        # Nav-test system
+  "utils/RCBot2_meta/bot_door.cpp",           # Door handling
+  "utils/RCBot2_meta/bot_tactical.cpp",       # Tactical waypoint metadata
+  "utils/RCBot2_meta/bot_gravity.cpp",        # Gravity-aware navigation
 
   "rcbot/logging.cpp",
   "rcbot/helper.cpp",

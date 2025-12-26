@@ -1582,6 +1582,115 @@ private:
 	float m_flTime;
 };
 
+/********************************
+ *    Navigation Testing        *
+ ********************************/
+
+/**
+ * Task for nav-test exploration - find and navigate to unvisited waypoints
+ */
+class CNavTestExploreTask : public CBotTask
+{
+public:
+	/**
+	 * Create an exploration task
+	 *
+	 * @param iTargetWaypoint   The waypoint to navigate to (-1 for auto-select)
+	 **/
+	CNavTestExploreTask(int iTargetWaypoint = -1)
+		: m_iTargetWaypoint(iTargetWaypoint)
+		, m_fTime(0.0f)
+		, m_bPathFound(false)
+	{
+	}
+
+	void init() override;
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "NavTest Explore (wpt %d)", m_iTargetWaypoint);
+	}
+
+private:
+	int m_iTargetWaypoint;
+	float m_fTime;
+	bool m_bPathFound;
+};
+
+/**
+ * Task to wait at current waypoint during nav-test
+ * Used for testing waypoint reachability and stability
+ */
+class CNavTestWaitTask : public CBotTask
+{
+public:
+	CNavTestWaitTask(float fWaitTime = 2.0f)
+		: m_fWaitTime(fWaitTime)
+		, m_fStartTime(0.0f)
+	{
+	}
+
+	void init() override
+	{
+		m_fStartTime = 0.0f;
+	}
+
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "NavTest Wait (%.1fs)", m_fWaitTime);
+	}
+
+private:
+	float m_fWaitTime;
+	float m_fStartTime;
+};
+
+/**
+ * Task to use a map teleport (trigger_teleport)
+ * Bot will navigate into the teleport trigger and wait to be teleported
+ */
+class CBotTaskUseTeleport : public CBotTask
+{
+public:
+	/**
+	 * Create a teleport task
+	 *
+	 * @param iTeleportIndex  Index into CTeleportManager's teleport list
+	 * @param iDestIndex      Which destination to use (for multi-destination teleports)
+	 */
+	CBotTaskUseTeleport(int iTeleportIndex, int iDestIndex = 0)
+		: m_iTeleportIndex(iTeleportIndex)
+		, m_iDestIndex(iDestIndex)
+		, m_fTime(0.0f)
+		, m_fEnterTime(0.0f)
+		, m_bEnteredTrigger(false)
+		, m_bTeleported(false)
+		, m_vStartPos(0, 0, 0)
+	{
+	}
+
+	void init() override;
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "Use Teleport (index %d, dest %d)",
+			m_iTeleportIndex, m_iDestIndex);
+	}
+
+private:
+	int m_iTeleportIndex;         // Which teleport to use
+	int m_iDestIndex;             // Which destination (for multi-dest teleports)
+	float m_fTime;                // Timeout timer
+	float m_fEnterTime;           // When we entered the trigger
+	bool m_bEnteredTrigger;       // Have we stepped into the trigger?
+	bool m_bTeleported;           // Did we get teleported?
+	Vector m_vStartPos;           // Position before teleporting
+};
+
 /*
 class CAttackTask : public CBotTask
 {

@@ -41,6 +41,7 @@
 #include "bot_task.h"
 #include "bot_waypoint_locations.h"
 #include "bot_weapons.h"
+#include "bot_navtest.h"
 ////////////////////////////////////
 // these must match the SCHED IDs
 const char *szSchedules[SCHED_MAX+1] = 
@@ -99,6 +100,7 @@ const char *szSchedules[SCHED_MAX+1] =
 	"SCHED_PLANT_BOMB",
 	"SCHED_WAIT",
 	"SCHED_WAIT_FOR_ENEMY",
+	"SCHED_NAVTEST_EXPLORE",
 	"SCHED_MAX"
 };
 ////////////////////// unused
@@ -919,3 +921,21 @@ void CBotSchedule :: passEdict(edict_t *p)
 	m_bitsPass |= BITS_SCHED_PASS_EDICT;
 }
 ////////////////////
+
+/////////////////////////////////
+// Nav-Test Exploration Schedule
+/////////////////////////////////
+CNavTestExploreSched::CNavTestExploreSched(int iTargetWaypoint)
+	: m_iTargetWaypoint(iTargetWaypoint)
+{
+	// If no target specified, let the task pick one from unvisited waypoints
+	if (m_iTargetWaypoint >= 0)
+	{
+		addTask(new CFindPathTask(m_iTargetWaypoint));
+		addTask(new CNavTestWaitTask(1.0f)); // Wait briefly at destination
+	}
+	else
+	{
+		addTask(new CNavTestExploreTask(-1)); // Auto-select target
+	}
+}
