@@ -380,11 +380,58 @@ CBotCommandInline NavTestReportCommand("report", CMD_ACCESS_WAYPOINT, [](CClient
 	return COMMAND_ACCESSED;
 }, "Generate nav-test report");
 
+CBotCommandInline NavTestSaveCommand("save", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	CCommand cmd;
+	NavTest_SaveCommand(cmd);
+	return COMMAND_ACCESSED;
+}, "Save nav-test session data to file");
+
+CBotCommandInline NavTestLoadCommand("load", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
+{
+	if (args.empty() || args[0] == nullptr)
+	{
+		edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+		CBotGlobals::botMessage(pEntity, 0, "Usage: rcbot navtest load <session_id>");
+		return COMMAND_ACCESSED;
+	}
+
+	// Build a simple CCommand-like structure for the handler
+	char cmdArgs[256];
+	snprintf(cmdArgs, sizeof(cmdArgs), "load %s", args[0]);
+
+	CNavTestDatabase db;
+	if (db.openDatabase(CBotGlobals::getMapName()))
+	{
+		int sessionId = atoi(args[0]);
+		CNavTestSession session;
+		if (db.loadSession(sessionId, session))
+		{
+			edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+			CBotGlobals::botMessage(pEntity, 0, "Loaded session %d from %s",
+				session.sessionId, session.mapName.c_str());
+			CBotGlobals::botMessage(pEntity, 0, "  Duration: %.1f seconds", session.duration);
+			CBotGlobals::botMessage(pEntity, 0, "  Coverage: %d/%d waypoints",
+				session.visitedWaypoints, session.totalWaypoints);
+			CBotGlobals::botMessage(pEntity, 0, "  Issues: %d (%d critical)",
+				session.totalIssues, session.criticalIssues);
+		}
+		else
+		{
+			edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
+			CBotGlobals::botMessage(pEntity, 0, "Failed to load session %d", sessionId);
+		}
+	}
+	return COMMAND_ACCESSED;
+}, "Load nav-test session data from file");
+
 CBotSubcommands NavTestSubcommands("navtest", CMD_ACCESS_WAYPOINT, {
 	&NavTestStartCommand,
 	&NavTestStopCommand,
 	&NavTestStatusCommand,
-	&NavTestReportCommand
+	&NavTestReportCommand,
+	&NavTestSaveCommand,
+	&NavTestLoadCommand
 }, "Nav-test commands for automated waypoint testing");
 
 // Door manager commands

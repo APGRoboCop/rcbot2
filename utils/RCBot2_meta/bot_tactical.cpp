@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <fstream>
 
 // Static instance
@@ -420,6 +421,9 @@ void CTacticalDataManager::analyzeAllWaypoints()
 		analyzeWaypoint(i);
 	}
 
+	// Scan for health/armor chargers and update HEALTH_NEARBY, ARMOR_NEARBY flags
+	scanForChargers();
+
 	CBotGlobals::botMessage(nullptr, 0, "Tactical analysis complete: %d waypoints analyzed", numWaypoints);
 }
 
@@ -760,6 +764,96 @@ void CTacticalDataManager::updateDangerFromNavTest()
 	{
 		CBotGlobals::botMessage(nullptr, 0, "Nav-test: Updated danger ratings on %d waypoints based on %d issues",
 			dangerUpdates, issues.getIssueCount());
+	}
+}
+
+void CTacticalDataManager::scanForChargers()
+{
+	// Scan for health and suit charger entities in the map
+	// Set HEALTH_NEARBY flag on waypoints near these entities
+
+	if (m_tacticalData.empty())
+		return;
+
+	const float CHARGER_RADIUS = 256.0f;  // Distance to flag waypoints as near health
+	int flagsSet = 0;
+
+	// Iterate through all entities looking for chargers
+	for (int i = gpGlobals->maxClients + 1; i < MAX_ENTITIES; i++)
+	{
+		edict_t* pEdict = engine->PEntityOfEntIndex(i);
+		if (pEdict == nullptr || pEdict->IsFree())
+			continue;
+
+		if (!CBotGlobals::entityIsValid(pEdict))
+			continue;
+
+		const char* szClassName = pEdict->GetClassName();
+		if (szClassName == nullptr)
+			continue;
+
+		bool isHealthCharger = false;
+		bool isArmorCharger = false;
+
+		// Check for health chargers (HL2/HL2DM)
+		if (std::strcmp(szClassName, "item_healthcharger") == 0 ||
+			std::strcmp(szClassName, "func_healthcharger") == 0 ||
+			std::strcmp(szClassName, "item_healthkit") == 0 ||
+			std::strcmp(szClassName, "item_healthvial") == 0)
+		{
+			isHealthCharger = true;
+		}
+		// Check for suit/armor chargers (HL2/HL2DM)
+		else if (std::strcmp(szClassName, "item_suitcharger") == 0 ||
+				 std::strcmp(szClassName, "item_battery") == 0 ||
+				 std::strcmp(szClassName, "item_suit") == 0)
+		{
+			isArmorCharger = true;
+		}
+		// Check for TF2 health packs
+		else if (std::strncmp(szClassName, "item_healthkit", 14) == 0 ||
+				 std::strcmp(szClassName, "func_regenerate") == 0)
+		{
+			isHealthCharger = true;
+		}
+		// Check for TF2 ammo packs
+		else if (std::strncmp(szClassName, "item_ammopack", 13) == 0)
+		{
+			// Flag for ammo instead
+		}
+
+		if (!isHealthCharger && !isArmorCharger)
+			continue;
+
+		Vector chargerOrigin = CBotGlobals::entityOrigin(pEdict);
+
+		// Find waypoints within radius and set appropriate flags
+		for (size_t w = 0; w < m_tacticalData.size(); w++)
+		{
+			CWaypoint* pWpt = CWaypoints::getWaypoint(static_cast<int>(w));
+			if (pWpt == nullptr || !pWpt->isUsed())
+				continue;
+
+			float dist = (pWpt->getOrigin() - chargerOrigin).Length();
+			if (dist <= CHARGER_RADIUS)
+			{
+				if (isHealthCharger)
+				{
+					m_tacticalData[w].addTacticalFlag(TacticalFlags::HEALTH_NEARBY);
+					flagsSet++;
+				}
+				else if (isArmorCharger)
+				{
+					m_tacticalData[w].addTacticalFlag(TacticalFlags::ARMOR_NEARBY);
+					flagsSet++;
+				}
+			}
+		}
+	}
+
+	if (flagsSet > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Tactical: Set HEALTH/ARMOR_NEARBY flags on %d waypoints from charger scan", flagsSet);
 	}
 }
 

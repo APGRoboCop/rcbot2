@@ -58,6 +58,9 @@
 #include "bot_wpt_dist.h"
 #include "bot_gravity.h"
 #include "bot_navtest.h"
+#include "bot_tactical.h"
+#include "bot_door.h"
+#include "bot_teleport.h"
 
 #include "rcbot/logging.h"
 #include "rcbot/utils.h"
@@ -1034,6 +1037,37 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 			// Apply gravity-based fall damage cost modifier
 			fCost = CGravityManager::instance().getModifiedPathCost(iCurrentNode, iSucc, fCost);
 
+			// Apply door state cost modifier - avoid locked doors, factor in door open time
+			CDoorInfo* pBlockingDoor = nullptr;
+			if (CDoorManager::instance().isPathBlockedByDoor(currWpt->getOrigin(), succWpt->getOrigin(), &pBlockingDoor))
+			{
+				if (pBlockingDoor != nullptr)
+				{
+					float fDoorCost = CDoorManager::instance().getPathCostForDoor(pBlockingDoor);
+
+					// If door is locked, make path very expensive (avoid it)
+					if (pBlockingDoor->isLocked())
+					{
+						fCost += 10000.0f;  // Very high cost to effectively block this path
+					}
+					// If door is already open, no extra cost
+					else if (pBlockingDoor->isOpen())
+					{
+						// No additional cost
+					}
+					// If door is opening, small cost for waiting
+					else if (pBlockingDoor->isMoving())
+					{
+						fCost += fDoorCost * 0.5f;
+					}
+					// Door is closed - add full traversal cost
+					else
+					{
+						fCost += fDoorCost;
+					}
+				}
+			}
+
 			if ( !CWaypointDistances::isSet(m_iCurrentWaypoint,iSucc) || CWaypointDistances::getDistance(m_iCurrentWaypoint,iSucc) > fCost )
 				CWaypointDistances::setDistance(m_iCurrentWaypoint,iSucc,fCost);
 
@@ -1100,6 +1134,59 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 				open(succ);
 			}
 
+		}
+
+		// Check for teleport edges from this waypoint
+		// Teleport edges provide shortcuts through map teleporters
+		CTeleportManager& teleportMgr = CTeleportManager::instance();
+		if (teleportMgr.getTeleportCount() > 0)
+		{
+			const CTeleportInfo* pTeleportAtWpt = teleportMgr.getTeleportForWaypoint(iCurrentNode);
+			if (pTeleportAtWpt != nullptr && pTeleportAtWpt->shouldUse)
+			{
+				// This waypoint is at a teleport entrance - add edges to exits
+				for (int exitWpt : pTeleportAtWpt->exitWaypointIds)
+				{
+					if (exitWpt < 0 || exitWpt == iCurrentNode || exitWpt == iLastNode)
+						continue;
+
+					succ = &paths[exitWpt];
+					CWaypoint* succWpt = CWaypoints::getWaypoint(exitWpt);
+
+					if (succWpt == nullptr || !succWpt->isUsed())
+						continue;
+
+					// Teleport cost is nearly zero (instant travel)
+					// Add small base cost to prefer normal paths when similar length
+					fCost = curr->getCost() + pTeleportAtWpt->pathCost;
+
+					if (succ->isOpen() || succ->isClosed())
+					{
+						if (succ->getParent() != -1)
+						{
+							if (fCost >= succ->getCost())
+								continue;
+						}
+						else
+							continue;
+					}
+
+					succ->unClose();
+					succ->setParent(iCurrentNode);
+					succ->setCost(fCost);
+					succ->setWaypoint(exitWpt);
+
+					if (!succ->heuristicSet())
+					{
+						succ->setHeuristic(m_pBot->distanceFrom(succWpt->getOrigin()) + succWpt->distanceFrom(vTo));
+					}
+
+					if (!succ->isOpen())
+					{
+						open(succ);
+					}
+				}
+			}
 		}
 
 		curr->close(); // close chosen node
@@ -2404,6 +2491,17 @@ int CWaypoints :: addWaypoint (edict_t *pPlayer, const Vector& vOrigin, const in
 	{
 		CWaypointLocations::AutoPath(pPlayer,iIndex);
 	}
+
+	// Run tactical analysis on newly created waypoint
+	// This adds tactical metadata (cover quality, height advantage, etc.)
+	CTacticalDataManager& tacticalMgr = CTacticalDataManager::instance();
+	if (tacticalMgr.getTacticalInfo(iIndex) == nullptr)
+	{
+		// Initialize tactical data if needed
+		int numWaypoints = CWaypoints::numWaypoints();
+		tacticalMgr.init(numWaypoints);
+	}
+	tacticalMgr.analyzeWaypoint(iIndex);
 
 	return iIndex;
 }

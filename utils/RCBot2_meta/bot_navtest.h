@@ -195,9 +195,11 @@ public:
 
 	// Get least recently visited waypoint (for exploration priority)
 	int getLeastRecentlyVisited() const;
+	int getLeastRecentlyVisited(const Vector& fromOrigin) const;
 
 	// Get unvisited waypoint (for exploration priority)
 	int getUnvisitedWaypoint() const;
+	int getUnvisitedWaypoint(const Vector& fromOrigin) const;
 
 	// Get all visit records
 	const std::vector<CNavTestWaypointVisit>& getVisits() const { return m_visits; }
@@ -237,6 +239,7 @@ public:
 	// Report issue with helper function
 	void reportStuck(int botIndex, const Vector& location, int nearWaypointId, float duration);
 	void reportUnreachable(int botIndex, int sourceWpt, int destWpt);
+	void reportUnreachable(CBot* pBot, int sourceWpt, int destWpt, const Vector& location);
 	void reportPathFailure(int botIndex, int sourceWpt, int destWpt, const std::string& reason);
 	void reportFallDamage(int botIndex, const Vector& location, int fromWpt, int toWpt, float damage, float gravity);
 	void reportConnectionBroken(int botIndex, int fromWpt, int toWpt);
@@ -330,11 +333,135 @@ private:
 };
 
 //=============================================================================
+// CNavTestDatabase
+// Handles persistent storage of nav-test data
+// Uses binary files for storage - can be upgraded to SQLite later
+//
+// Database Schema (Binary File Format):
+// =====================================
+//
+// SESSION FILES ({mapname}_session_{id}.bin):
+//   - sessionId (int)
+//   - mapName (uint32 length + string)
+//   - startTime (time_t)
+//   - endTime (time_t)
+//   - duration (float)
+//   - totalWaypoints (int)
+//   - visitedWaypoints (int)
+//   - totalIssues (int)
+//   - criticalIssues (int)
+//
+// ISSUE FILES ({mapname}_issues_{id}.bin):
+//   - count (uint32)
+//   - For each issue:
+//     - type (ENavTestIssueType)
+//     - severity (ENavTestIssueSeverity)
+//     - location (3x float: x, y, z)
+//     - sourceWaypointId (int)
+//     - destWaypointId (int)
+//     - connectionId (int)
+//     - timestamp (float)
+//     - botIndex (int)
+//     - occurrenceCount (int)
+//     - serverGravity (float)
+//     - additionalInfo (uint32 length + string)
+//
+// COVERAGE FILES ({mapname}_coverage_{id}.bin):
+//   - count (uint32)
+//   - For each visit:
+//     - waypointId (int)
+//     - botIndex (int)
+//     - timestamp (float)
+//     - timeSpentNearby (float)
+//     - wasDestination (bool)
+//     - reachedSuccessfully (bool)
+//
+// Thread Safety:
+//   - File operations are atomic per-file (one session at a time)
+//   - Each CNavTestDatabase instance maintains its own cache
+//   - For multi-threaded access, use separate instances per thread
+//
+//=============================================================================
+class CNavTestDatabase
+{
+public:
+	CNavTestDatabase();
+	~CNavTestDatabase();
+
+	// Database file management
+	bool openDatabase(const char* mapName);
+	void closeDatabase();
+	bool isDatabaseOpen() const { return m_bIsOpen; }
+
+	// Session management
+	bool saveSession(const CNavTestSession& session);
+	bool loadSession(int sessionId, CNavTestSession& session);
+	std::vector<CNavTestSession> getAllSessions();
+	int getNextSessionId();
+
+	// Issue storage
+	bool saveIssues(const std::vector<CNavTestIssue>& issues, int sessionId);
+	bool loadIssues(int sessionId, std::vector<CNavTestIssue>& issues);
+	bool appendIssue(const CNavTestIssue& issue, int sessionId);
+
+	// Coverage storage
+	bool saveCoverage(const std::vector<CNavTestWaypointVisit>& visits, int sessionId);
+	bool loadCoverage(int sessionId, std::vector<CNavTestWaypointVisit>& visits);
+
+	// Query functions
+	std::vector<CNavTestIssue> getIssuesByType(ENavTestIssueType type);
+	std::vector<CNavTestIssue> getIssuesByWaypoint(int waypointId);
+	std::vector<CNavTestIssue> getIssuesBySeverity(ENavTestIssueSeverity severity);
+	int getIssueFrequency(int waypointId);
+
+	// Aggregate statistics
+	struct AggregateStats
+	{
+		int totalSessions;
+		int totalIssues;
+		int uniqueIssueWaypoints;
+		float avgCoverage;
+		int mostProblematicWaypoint;
+		int mostProblematicWaypointIssues;
+	};
+	AggregateStats getAggregateStats();
+
+	// Report generation
+	bool generateReport(const char* filename);
+	bool generateHTMLReport(const char* filename);
+	std::string generateReportString();
+
+	// Cleanup
+	bool deleteSession(int sessionId);
+	bool clearAllData();
+
+private:
+	// File paths
+	std::string m_databasePath;
+	std::string m_mapName;
+	bool m_bIsOpen;
+
+	// Cached data for queries
+	std::vector<CNavTestSession> m_cachedSessions;
+	std::vector<CNavTestIssue> m_cachedIssues;
+	bool m_bCacheValid;
+
+	// Internal helpers
+	std::string getSessionFilePath(int sessionId);
+	std::string getIssuesFilePath(int sessionId);
+	std::string getCoverageFilePath(int sessionId);
+	void invalidateCache();
+	void rebuildCache();
+};
+
+//=============================================================================
 // Console command handlers
 //=============================================================================
 void NavTest_StartCommand(const CCommand& args);
 void NavTest_StopCommand(const CCommand& args);
 void NavTest_StatusCommand(const CCommand& args);
 void NavTest_ReportCommand(const CCommand& args);
+void NavTest_SaveCommand(const CCommand& args);
+void NavTest_LoadCommand(const CCommand& args);
 
 #endif // __BOT_NAVTEST_H__
