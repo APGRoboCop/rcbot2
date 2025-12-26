@@ -143,6 +143,21 @@ struct CTeleportInfo
 	float pathCost;                // Cost to use this teleport in pathfinding
 	bool shouldUse;                // Should bots use this teleport?
 
+	// Directionality
+	bool isBidirectional;          // Can teleport work both ways?
+	int returnTeleportIndex;       // Index of return teleport (if bidirectional)
+
+	// Multi-destination handling
+	enum class EDestinationMode : uint8_t
+	{
+		SINGLE,          // Only one destination
+		RANDOM,          // Random destination each use
+		SEQUENTIAL,      // Cycle through destinations
+		CLOSEST          // Use closest destination to goal
+	};
+	EDestinationMode destMode;     // How to select destination
+	int lastDestinationUsed;       // For sequential mode
+
 	CTeleportInfo()
 		: pEntity(nullptr)
 		, type(ETeleportType::UNKNOWN)
@@ -158,6 +173,10 @@ struct CTeleportInfo
 		, couldBeTrapped(false)
 		, pathCost(0.0f)
 		, shouldUse(true)
+		, isBidirectional(false)
+		, returnTeleportIndex(-1)
+		, destMode(EDestinationMode::SINGLE)
+		, lastDestinationUsed(0)
 	{
 	}
 
@@ -185,6 +204,12 @@ struct CTeleportInfo
 
 	// Get the best (safest) destination
 	const CTeleportDestination* getSafestDestination() const;
+
+	// Get next destination based on mode
+	const CTeleportDestination* getNextDestination(const Vector& goalPos = Vector(0, 0, 0));
+
+	// Get destination for a specific goal (closest to goal)
+	const CTeleportDestination* getDestinationForGoal(const Vector& goalPos) const;
 };
 
 //=============================================================================
@@ -289,6 +314,11 @@ public:
 	// Tactical integration
 	bool isTeleportTacticallySound(CBot* pBot, int teleportIndex) const;
 	float getTacticalValue(CBot* pBot, int teleportIndex) const;
+	void flagTeleportExitsAsAmbush();  // Mark teleport exits as ambush points
+
+	// Bidirectionality detection
+	void detectBidirectionalTeleports();
+	bool hasBidirectionalReturn(int teleportIndex) const;
 
 	// Debug/Visualization
 	void debugDrawTeleports() const;

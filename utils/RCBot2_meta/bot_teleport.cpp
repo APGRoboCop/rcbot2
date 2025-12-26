@@ -35,6 +35,7 @@
 #include "bot_waypoint.h"
 #include "bot_waypoint_locations.h"
 #include "bot_gravity.h"
+#include "bot_tactical.h"
 
 #include <algorithm>
 #include <cstring>
@@ -68,6 +69,66 @@ const CTeleportDestination* CTeleportInfo::getSafestDestination() const
 	return safest;
 }
 
+const CTeleportDestination* CTeleportInfo::getNextDestination(const Vector& goalPos)
+{
+	if (destinations.empty())
+		return nullptr;
+
+	if (destinations.size() == 1)
+		return &destinations[0];
+
+	switch (destMode)
+	{
+		case EDestinationMode::SINGLE:
+			return &destinations[0];
+
+		case EDestinationMode::RANDOM:
+		{
+			int idx = rand() % static_cast<int>(destinations.size());
+			return &destinations[idx];
+		}
+
+		case EDestinationMode::SEQUENTIAL:
+		{
+			lastDestinationUsed = (lastDestinationUsed + 1) % static_cast<int>(destinations.size());
+			return &destinations[lastDestinationUsed];
+		}
+
+		case EDestinationMode::CLOSEST:
+			return getDestinationForGoal(goalPos);
+
+		default:
+			return &destinations[0];
+	}
+}
+
+const CTeleportDestination* CTeleportInfo::getDestinationForGoal(const Vector& goalPos) const
+{
+	if (destinations.empty())
+		return nullptr;
+
+	if (destinations.size() == 1)
+		return &destinations[0];
+
+	const CTeleportDestination* closest = nullptr;
+	float closestDist = FLT_MAX;
+
+	for (const CTeleportDestination& dest : destinations)
+	{
+		if (!dest.isValid)
+			continue;
+
+		float dist = (dest.position - goalPos).Length();
+		if (dist < closestDist)
+		{
+			closestDist = dist;
+			closest = &dest;
+		}
+	}
+
+	return closest != nullptr ? closest : &destinations[0];
+}
+
 //=============================================================================
 // CTeleportManager Implementation
 //=============================================================================
@@ -94,6 +155,12 @@ void CTeleportManager::init()
 	clear();
 	scanForTeleports();
 	linkWaypointsToTeleports();
+
+	// Detect one-way vs two-way teleports
+	detectBidirectionalTeleports();
+
+	// Flag teleport exits as tactical ambush points
+	flagTeleportExitsAsAmbush();
 }
 
 void CTeleportManager::clear()
@@ -970,6 +1037,185 @@ bool CTeleportManager::traceTeleportPath(const Vector& start, const Vector& end)
 	trace_t tr;
 	UTIL_TraceLine(start, end, MASK_PLAYERSOLID_BRUSHONLY, nullptr, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
 	return tr.fraction >= 1.0f;
+}
+
+void CTeleportManager::detectBidirectionalTeleports()
+{
+	// Check each teleport to see if there's a return teleport at any destination
+	for (size_t i = 0; i < m_teleports.size(); i++)
+	{
+		CTeleportInfo& teleportA = m_teleports[i];
+		teleportA.isBidirectional = false;
+		teleportA.returnTeleportIndex = -1;
+
+		// Check if any destination has a teleport that returns to our entrance
+		for (const CTeleportDestination& destA : teleportA.destinations)
+		{
+			if (!destA.isValid)
+				continue;
+
+			// Look for another teleport at this destination
+			for (size_t j = 0; j < m_teleports.size(); j++)
+			{
+				if (i == j)
+					continue;
+
+				CTeleportInfo& teleportB = m_teleports[j];
+
+				// Is teleport B located at our destination?
+				if (teleportB.containsPoint(destA.position) ||
+				    (destA.position - teleportB.center).Length() < 128.0f)
+				{
+					// Does teleport B go back to our entrance?
+					for (const CTeleportDestination& destB : teleportB.destinations)
+					{
+						if (!destB.isValid)
+							continue;
+
+						if (teleportA.containsPoint(destB.position) ||
+						    (destB.position - teleportA.center).Length() < 128.0f)
+						{
+							// Found bidirectional pair!
+							teleportA.isBidirectional = true;
+							teleportA.returnTeleportIndex = static_cast<int>(j);
+							teleportB.isBidirectional = true;
+							teleportB.returnTeleportIndex = static_cast<int>(i);
+							break;
+						}
+					}
+				}
+
+				if (teleportA.isBidirectional)
+					break;
+			}
+
+			if (teleportA.isBidirectional)
+				break;
+		}
+	}
+
+	// Log results
+	int bidirectionalCount = 0;
+	for (const CTeleportInfo& tp : m_teleports)
+	{
+		if (tp.isBidirectional)
+			bidirectionalCount++;
+	}
+
+	if (bidirectionalCount > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Detected %d bidirectional teleport pairs", bidirectionalCount / 2);
+	}
+}
+
+bool CTeleportManager::hasBidirectionalReturn(int teleportIndex) const
+{
+	const CTeleportInfo* pTeleport = getTeleport(teleportIndex);
+	if (pTeleport == nullptr)
+		return false;
+
+	return pTeleport->isBidirectional && pTeleport->returnTeleportIndex >= 0;
+}
+
+void CTeleportManager::flagTeleportExitsAsAmbush()
+{
+	// Mark teleport exits as potential ambush points in tactical system
+	// Players teleporting in are vulnerable for a moment
+
+	CTacticalDataManager& tacticalMgr = CTacticalDataManager::instance();
+
+	int flaggedCount = 0;
+
+	for (const CTeleportInfo& teleport : m_teleports)
+	{
+		if (!teleport.shouldUse)
+			continue;
+
+		for (int exitWpt : teleport.exitWaypointIds)
+		{
+			if (exitWpt < 0)
+				continue;
+
+			CTacticalInfo* pInfo = tacticalMgr.getTacticalInfo(exitWpt);
+			if (pInfo != nullptr)
+			{
+				// Flag as potential ambush point - enemies coming from teleport
+				// are momentarily disoriented and vulnerable
+				pInfo->addTacticalFlag(TacticalFlags::AMBUSH_POINT);
+				pInfo->addTacticalFlag(TacticalFlags::HIGH_TRAFFIC);
+				flaggedCount++;
+			}
+		}
+	}
+
+	if (flaggedCount > 0)
+	{
+		CBotGlobals::botMessage(nullptr, 0, "Flagged %d teleport exits as tactical ambush points", flaggedCount);
+	}
+}
+
+void CTeleportManager::debugDrawTeleports() const
+{
+#ifndef __linux__
+	extern IVDebugOverlay* debugoverlay;
+	if (debugoverlay == nullptr)
+		return;
+
+	for (size_t i = 0; i < m_teleports.size(); i++)
+	{
+		const CTeleportInfo& teleport = m_teleports[i];
+
+		// Draw teleport trigger box
+		int r = 0, g = 255, b = 255;  // Cyan for teleports
+
+		// Change color based on safety
+		switch (teleport.overallSafety)
+		{
+			case ETeleportSafety::SAFE:
+				r = 0; g = 255; b = 0;  // Green
+				break;
+			case ETeleportSafety::RISKY:
+				r = 255; g = 255; b = 0;  // Yellow
+				break;
+			case ETeleportSafety::DANGEROUS:
+				r = 255; g = 0; b = 0;  // Red
+				break;
+			case ETeleportSafety::TELEFRAG_RISK:
+				r = 255; g = 0; b = 255;  // Magenta
+				break;
+			default:
+				break;
+		}
+
+		// Draw entrance box
+		debugoverlay->AddBoxOverlay(teleport.center,
+			teleport.mins - teleport.center, teleport.maxs - teleport.center,
+			QAngle(0, 0, 0), r, g, b, 50, 1.0f);
+
+		// Draw lines to each destination
+		for (const CTeleportDestination& dest : teleport.destinations)
+		{
+			if (!dest.isValid)
+				continue;
+
+			// Draw line from entrance to destination
+			debugoverlay->AddLineOverlayAlpha(teleport.center, dest.position,
+				r, g, b, 200, false, 1.0f);
+
+			// Draw a small sphere at destination
+			debugoverlay->AddBoxOverlay(dest.position,
+				Vector(-16, -16, -16), Vector(16, 16, 16),
+				QAngle(0, 0, 0), r, g, b, 100, 1.0f);
+		}
+
+		// Draw bidirectional indicator
+		if (teleport.isBidirectional)
+		{
+			debugoverlay->AddTextOverlay(teleport.center + Vector(0, 0, 32),
+				1.0f, "<->");
+		}
+	}
+#endif
 }
 
 //=============================================================================
