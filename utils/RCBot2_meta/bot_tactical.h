@@ -309,6 +309,9 @@ public:
 	// Updates danger ratings and weights based on nav-test issue data
 	void updateDangerFromNavTest();
 
+	// Scan for health/suit charger entities and update HEALTH_NEARBY flags
+	void scanForChargers();
+
 private:
 	CTacticalDataManager();
 	~CTacticalDataManager();
