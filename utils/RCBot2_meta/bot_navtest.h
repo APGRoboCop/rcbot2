@@ -36,9 +36,11 @@
 #include <string>
 #include <cstdint>
 #include <ctime>
+#include "mathlib/vector.h"
 
 class CBot;
 class CWaypoint;
+class CCommand;
 
 //=============================================================================
 // Nav-Test Issue Types

@@ -241,7 +241,7 @@ bool CGravityPathAnalyzer::shouldAvoidPath(CBot* pBot, int fromWpt, int toWpt)
 	return false;
 }
 
-float CGravityPathAnalyzer::getPathCost(int fromWpt, int toWpt)
+float CGravityPathAnalyzer::getPathCost(int fromWpt, int toWpt) const
 {
 	const CWaypointFallInfo* pInfo = getFallInfo(fromWpt, toWpt);
 	if (pInfo == nullptr)
@@ -251,8 +251,9 @@ float CGravityPathAnalyzer::getPathCost(int fromWpt, int toWpt)
 		if (pFrom == nullptr || pTo == nullptr)
 			return 1.0f;
 
-		CWaypointFallInfo info = analyzeConnection(pFrom, pTo);
-		return m_gravityInfo.getPathCostModifier(info.heightDifference);
+		// Calculate height difference directly (const-safe)
+		float heightDiff = pFrom->getOrigin().z - pTo->getOrigin().z;
+		return m_gravityInfo.getPathCostModifier(heightDiff);
 	}
 
 	return m_gravityInfo.getPathCostModifier(pInfo->heightDifference);
@@ -356,13 +357,26 @@ CGravityManager& CGravityManager::instance()
 }
 
 CGravityManager::CGravityManager()
-	: m_lastGravityValue(FallDamage::DEFAULT_GRAVITY)
+	: m_pZoneManager(new CGravityZoneManager())
+	, m_lastGravityValue(FallDamage::DEFAULT_GRAVITY)
 	, m_lastUpdateTime(0.0f)
 {
 }
 
 CGravityManager::~CGravityManager()
 {
+	delete m_pZoneManager;
+	m_pZoneManager = nullptr;
+}
+
+CGravityZoneManager& CGravityManager::getZoneManager()
+{
+	return *m_pZoneManager;
+}
+
+const CGravityZoneManager& CGravityManager::getZoneManager() const
+{
+	return *m_pZoneManager;
 }
 
 void CGravityManager::update()
@@ -458,14 +472,14 @@ void CGravityManager::refresh()
 	m_lastGravityValue = m_gravityInfo.getGravity();
 
 	// Scan for gravity zones
-	m_zoneManager.scanForGravityZones();
-	m_zoneManager.linkWaypointsToZones();
+	m_pZoneManager->scanForGravityZones();
+	m_pZoneManager->linkWaypointsToZones();
 
 	// Re-analyze all connections
 	m_pathAnalyzer.analyzeAllConnections();
 
 	CBotGlobals::botMessage(nullptr, 0, "Gravity data refreshed: %d zones, gravity = %.0f",
-		m_zoneManager.getZoneCount(), m_gravityInfo.getGravity());
+		m_pZoneManager->getZoneCount(), m_gravityInfo.getGravity());
 }
 
 //=============================================================================
@@ -508,13 +522,10 @@ void CGravityZoneManager::scanForGravityZones()
 			}
 			else
 			{
-				// Fallback to world space bounds
-				CBaseEntity* pEntity = pEdict->GetUnknown()->GetBaseEntity();
-				if (pEntity != nullptr)
-				{
-					zone.mins = pEntity->GetAbsOrigin() - Vector(64, 64, 64);
-					zone.maxs = pEntity->GetAbsOrigin() + Vector(64, 64, 64);
-				}
+				// Fallback: use edict origin with default bounds
+				// Can't use CBaseEntity::GetAbsOrigin() as CBaseEntity is incomplete
+				zone.mins = Vector(-64, -64, -64);
+				zone.maxs = Vector(64, 64, 64);
 			}
 
 			// Get the gravity value from the entity

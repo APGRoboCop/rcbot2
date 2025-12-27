@@ -244,6 +244,10 @@ public:
 		return true;
 	}
 
+	// Entity finding utilities
+	static edict_t* findEntityByClassname(edict_t* pStart, const char* szClassname);
+	static edict_t* findEntityByClassnameNearest(const Vector& vOrigin, const char* szClassname, float fRadius, edict_t* pStart = nullptr);
+
 private:
 	static eModId m_iCurrentMod;
 	static CBotMod *m_pCurrentMod;

@@ -1103,9 +1103,7 @@ void CTacticalAdvisor::updateSituation()
 	m_lastSituationUpdate = curTime;
 
 	// Update health status
-	float maxHealth = m_pBot->getMaxHealth();
-	float curHealth = m_pBot->getHealthPercent() * maxHealth;
-	m_healthPercent = maxHealth > 0 ? curHealth / maxHealth : 1.0f;
+	m_healthPercent = m_pBot->getHealthPercent();
 	m_bNeedsHealth = m_healthPercent < 0.5f;
 
 	// Ammo check would need weapon-specific logic

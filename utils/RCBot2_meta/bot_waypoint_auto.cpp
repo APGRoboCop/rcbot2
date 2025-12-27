@@ -33,6 +33,7 @@
 
 #include "bot_waypoint_auto.h"
 #include "bot_globals.h"
+#include "bot_mods.h"
 #include "bot_waypoint_locations.h"
 #include "bot_configfile.h"
 #include "bot_cvars.h"
@@ -136,7 +137,7 @@ bool CWaypointAutoGenerator::detectCorner(const Vector& vCurrent, const Vector& 
 	// Calculate direction vectors
 	Vector vDir1 = vCurrent - vPrevious;
 	vDir1.z = 0; // Ignore vertical component
-	vDir1 = vDir1.Normalize();
+	vDir1.NormalizeInPlace();
 
 	if (vDir1.Length() < 0.1f)
 		return false;
@@ -312,15 +313,19 @@ bool CWaypointTypeDetector::hasEntityNearby(const Vector& vOrigin, const char* s
 
 const std::vector<CWaypointTypeDetector::EntityTypeMapping>& CWaypointTypeDetector::getEntityMappings()
 {
-	switch (CBotGlobals::getGameInfo()->getGameRules())
+	CBotMod* pMod = CBotGlobals::getCurrentMod();
+	if (!pMod)
+		return m_TF2Mappings;
+
+	switch (pMod->getModId())
 	{
-	case BOTGAMERULES_TEAMPLAY_CSS:
+	case MOD_CSS:
 		return m_CSMappings;
-	case BOTGAMERULES_DOD:
+	case MOD_DOD:
 		return m_DODMappings;
-	case BOTGAMERULES_HL2DM:
+	case MOD_HLDM2:
 		return m_HL2DMMappings;
-	case BOTGAMERULES_TEAMPLAY:
+	case MOD_TF2:
 	default:
 		return m_TF2Mappings;
 	}
