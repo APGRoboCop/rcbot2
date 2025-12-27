@@ -1,115 +1,82 @@
 # RCBot2 Documentation
 
-Welcome to the comprehensive documentation for RCBot2!
+Welcome to the RCBot2 documentation!
 
-## Table of Contents
+---
 
-### Getting Started
-- **[Installation Guide](#installation)** - Installing RCBot2 on your server
-- **[Quick Start](#quick-start)** - Get up and running in minutes
-- **[Command Reference](commands.md)** - Complete list of console commands
-- **[Configuration Guide](configuration.md)** - Configure bots and server settings
+## Documentation Files
 
-### For Server Operators
-- **[Waypoint Guide](waypoints.md)** - Download, install, and create waypoints
-- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
-- **[Performance Tuning](performance.md)** - Optimize bot performance
-- **[Game-Specific Guides](game-guides/)** - Guides for TF2, DOD:S, CS:S, etc.
+| Document | Description |
+|----------|-------------|
+| **[USAGE.md](USAGE.md)** | Installation, commands, configuration, troubleshooting, SourceMod API |
+| **[waypoints.md](waypoints.md)** | Creating, editing, auto-testing, and refining waypoints |
+| **[BUILDING.md](BUILDING.md)** | Compiling RCBot2 from source |
+| **[ML.md](ML.md)** | Machine learning features (not yet implemented) |
 
-### For Developers
-- **[Development Guide](../claude.md)** - Architecture, coding guidelines, workflow
-- **[Building Guide](building.md)** - Compile RCBot2 from source
-- **[API Reference](api.md)** - SourceMod natives and integration
-- **[Contributing Guide](contributing.md)** - How to contribute to RCBot2
-
-### Project Information
-- **[Project Roadmap](../roadmap.md)** - Future plans and development priorities
-- **[Changelog](CHANGELOG.md)** - Version history and changes
-- **[FAQ](faq.md)** - Frequently asked questions
-- **[License](../LICENSE)** - GNU AGPL-3.0 license information
-
-## Installation
-
-### Requirements
-
-- Source Engine dedicated server (TF2, DOD:S, HL2:DM, CS:S, etc.)
-- MetaMod:Source 1.10+ installed
-- SourceMod (optional, for extended functionality)
-
-### Quick Install
-
-1. [Install MetaMod:Source](https://wiki.alliedmods.net/Installing_Metamod:Source) on your server
-2. Download the [latest RCBot2 release](https://github.com/ethanbissbort/rcbot2/releases)
-3. Extract into your game directory (e.g., `tf/` or `cstrike/`)
-4. Download waypoints for your maps from the [waypoint repository](http://rcbot.bots-united.com/waypoints.php)
-5. Extract waypoints to `rcbot2/waypoints/{game}/`
-6. Restart your server
-7. Type `rcbotd` in console to verify installation
-
-See the full installation guide for detailed instructions.
+---
 
 ## Quick Start
+
+### Installation
+
+1. Install [MetaMod:Source](https://wiki.alliedmods.net/Installing_Metamod:Source) on your server
+2. Download [RCBot2](https://github.com/ethanbissbort/rcbot2/releases)
+3. Extract to your game directory
+4. Download [waypoints](http://rcbot.bots-united.com/waypoints.php) for your maps
+5. Restart server
+6. Verify: `rcbotd`
 
 ### Adding Bots
 
 ```
-rcbot_create               # Create one bot
-rcbot_quota 8              # Set bot count to 8
-rcbot_create_class scout   # Create a specific class (TF2)
+rcbot addbot               // Add one bot
+rcbot_quota 8              // Maintain 8 bots
+rcbot addbot soldier       // Add specific class (TF2)
 ```
 
 ### Managing Bots
 
 ```
-rcbot_removeall            # Remove all bots
-rcbot_debug 2              # Enable debug output
-rcbot_change_classes 1     # Allow bots to change classes
+rcbot kickbot              // Remove one bot
+rcbot_removeall            // Remove all bots
+rcbot debug 2              // Enable debug
 ```
 
-### Waypoint Commands
+### Waypoints
 
 ```
-rcbot_autowaypoint on      # Enable automatic waypointing
-rcbot_wpt_save             # Save waypoints
-rcbot_wpt_load             # Load waypoints
+rcbot wpt on               // Show waypoints
+rcbot wpt load             // Load waypoints
+rcbot wpt save             // Save waypoints
 ```
 
-For complete command reference, see [commands.md](commands.md).
-
-## Support and Community
-
-### Getting Help
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/ethanbissbort/rcbot2/issues)
-- **Discord**: [Bots United Discord](https://discord.gg/5v5YvKG4Hr)
-- **Forums**: [Official RCBot2 Forums](http://rcbot.bots-united.com/forums/)
-
-### Resources
-
-- **Official Website**: http://rcbot.bots-united.com/
-- **Waypoint Downloads**: http://rcbot.bots-united.com/waypoints.php
-- **AlliedModders Wiki**: https://wiki.alliedmods.net/
-
-## Contributing
-
-We welcome contributions! See the [Contributing Guide](contributing.md) for details on:
-
-- Reporting bugs
-- Submitting code
-- Creating waypoints
-- Improving documentation
-- Testing features
-
-## License
-
-RCBot2 is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
-
-This means any modifications must have sources available to players on your server.
-
-See [LICENSE](../LICENSE) for full license text.
+For complete command reference, see [USAGE.md](USAGE.md).
 
 ---
 
-**Last Updated**: 2025-11-21
-**Version**: 1.7+
-**Maintainer**: RCBot2 Community
+## Supported Games
+
+- Team Fortress 2
+- Day of Defeat: Source
+- Half-Life 2: Deathmatch
+- Counter-Strike: Source
+
+---
+
+## Resources
+
+- **Website**: http://rcbot.bots-united.com/
+- **Waypoints**: http://rcbot.bots-united.com/waypoints.php
+- **GitHub**: https://github.com/ethanbissbort/rcbot2
+- **Discord**: [Bots United](https://discord.gg/5v5YvKG4Hr)
+- **Forums**: http://rcbot.bots-united.com/forums/
+
+---
+
+## License
+
+RCBot2 is released under the **GNU Affero General Public License v3.0**.
+
+---
+
+**Last Updated**: 2025-12-27
