@@ -2,6 +2,8 @@
 
 Complete guide to compiling RCBot2 on Windows and Linux.
 
+---
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -9,6 +11,9 @@ Complete guide to compiling RCBot2 on Windows and Linux.
 - [Building on Linux](#building-on-linux)
 - [Building on Windows](#building-on-windows)
 - [Build Options](#build-options)
+- [Output Structure](#output-structure)
+- [Build Scripts](#build-scripts)
+- [Continuous Integration](#continuous-integration)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -52,10 +57,8 @@ ambuild --version
 ### Download MetaMod:Source
 
 ```bash
-# Clone MetaMod:Source
 git clone https://github.com/alliedmodders/metamod-source --recursive
 cd metamod-source
-# Use version 1.11+
 git checkout 1.11-dev
 ```
 
@@ -112,7 +115,6 @@ sudo dnf install glibc-devel.i686 libstdc++-devel.i686  # For 32-bit
 ### 2. Clone RCBot2
 
 ```bash
-# Use --depth 1 for faster clone (skips full history)
 git clone --depth 1 https://github.com/ethanbissbort/rcbot2.git
 cd rcbot2
 ```
@@ -132,12 +134,13 @@ python ../configure.py \
 ```
 
 **Configuration Options:**
-- `-s TF2` - Build for Team Fortress 2 (see [Build Options](#build-options) for all games)
+- `-s TF2` - Build for Team Fortress 2
 - `--mms-path` - Path to MetaMod:Source
 - `--hl2sdk-root` - Root directory containing HL2SDK folders
-- `--sm-path` - Path to SourceMod (optional, enables SourceMod natives)
+- `--sm-path` - Path to SourceMod (optional)
 - `--enable-debug` - Build with debug symbols
 - `--enable-optimize` - Build with optimizations
+- `--targets x86_64` - Build for 64-bit (HL2DM)
 
 ### 4. Build
 
@@ -150,7 +153,6 @@ Build output will be in `build/package/`.
 ### 5. Install
 
 ```bash
-# Copy to your game server directory
 cp -r package/* /path/to/game/server/tf/
 ```
 
@@ -160,17 +162,17 @@ cp -r package/* /path/to/game/server/tf/
 
 ### 1. Install Visual Studio
 
-Download and install [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/).
+Download [Visual Studio 2022 Community](https://visualstudio.microsoft.com/downloads/).
 
 **Required components:**
 - Desktop development with C++
 - Windows 10 SDK
 - MSVC v143 build tools
-- C++ CMake tools (optional, for other projects)
+- C++ CMake tools (optional)
 
 ### 2. Install Python 3
 
-Download from [python.org](https://www.python.org/downloads/) and install.
+Download from [python.org](https://www.python.org/downloads/).
 
 Ensure Python is in your PATH:
 ```cmd
@@ -179,7 +181,7 @@ python --version
 
 ### 3. Install Git
 
-Download from [git-scm.com](https://git-scm.com/download/win) and install.
+Download from [git-scm.com](https://git-scm.com/download/win).
 
 ### 4. Clone RCBot2
 
@@ -190,7 +192,7 @@ cd rcbot2
 
 ### 5. Configure Build
 
-Open **x86 Native Tools Command Prompt for VS 2022** (important for 32-bit builds).
+Open **x86 Native Tools Command Prompt for VS 2022**.
 
 ```cmd
 mkdir build
@@ -203,27 +205,21 @@ python ..\configure.py ^
   --sm-path C:\path\to\sourcemod
 ```
 
-**Note**: Use full paths on Windows.
-
 ### 6. Build
 
 ```cmd
 ambuild
 ```
 
-Build output will be in `build\package\`.
-
 ### 7. Install
 
-Copy contents of `build\package\` to your game server directory (e.g., `C:\SrcDS\tf\`).
+Copy contents of `build\package\` to your game server directory.
 
 ---
 
 ## Build Options
 
 ### Supported Games (SDK)
-
-Use `-s` or `--sdks` flag to specify target game(s):
 
 | Game | SDK Flag | Notes |
 |------|----------|-------|
@@ -265,9 +261,9 @@ python configure.py -s TF2 --sm-path ~/sourcemod --mms-path ... --hl2sdk-root ..
 
 RCBot2 builds 32-bit binaries by default (Source Engine is 32-bit).
 
-To specify architecture explicitly:
+For 64-bit builds (HL2DM on Linux):
 ```bash
-python configure.py -s TF2 --targets x86 --mms-path ... --hl2sdk-root ...
+python configure.py -s hl2dm --targets x86_64 --mms-path ... --hl2sdk-root ...
 ```
 
 ---
@@ -286,7 +282,7 @@ package/
 │       └── RCBot2Meta.vdf  # MetaMod plugin definition
 └── rcbot2/
     ├── config/           # Configuration files
-    └── waypoints/        # Waypoint directory (empty)
+    └── waypoints/        # Waypoint directory
 ```
 
 ---
@@ -354,97 +350,10 @@ ambuild
 cd ..
 ```
 
-Usage:
-```cmd
-build.bat
-```
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### "ambuild: command not found"
-
-AMBuild not installed or not in PATH.
-
-**Solution:**
-```bash
-python -m pip install --user ambuild
-# Add ~/.local/bin to PATH on Linux
-export PATH=$PATH:~/.local/bin
-```
-
-#### "Could not find HL2SDK"
-
-SDK path is incorrect or SDK not downloaded.
-
-**Solution:**
-- Verify `--hl2sdk-root` points to directory containing `hl2sdk-tf2`, `hl2sdk-dods`, etc.
-- Ensure SDKs are cloned with correct branch names
-
-#### "Python version too old"
-
-Python 2 is deprecated.
-
-**Solution:**
-```bash
-# Install Python 3
-sudo apt-get install python3 python3-pip  # Ubuntu/Debian
-# Use python3 explicitly:
-python3 configure.py ...
-```
-
-#### Build fails with "undefined reference"
-
-Missing SDK or MetaMod:Source.
-
-**Solution:**
-- Ensure all dependencies are downloaded
-- Check `--mms-path` and `--hl2sdk-root` are correct
-- Verify MetaMod:Source was cloned with `--recursive`
-
-#### "Permission denied" on Linux
-
-Build directory permissions issue.
-
-**Solution:**
-```bash
-chmod -R u+w build/
-```
-
-#### Visual Studio version mismatch (Windows)
-
-Wrong command prompt or VS version.
-
-**Solution:**
-- Use "x86 Native Tools Command Prompt for VS 2022"
-- Ensure MSVC v143 build tools are installed
-- Update Visual Studio to latest version
-
-#### "Git not found" during configure
-
-Git required for versioning.
-
-**Solution:**
-```bash
-# Install git
-sudo apt-get install git  # Linux
-# Or download from git-scm.com for Windows
-```
-
----
-
-## Clean Build
-
-To clean build artifacts:
+### Clean Build
 
 ```bash
-# Remove build directory
 rm -rf build/
-
-# Reconfigure and rebuild
 mkdir build
 cd build
 python ../configure.py ...
@@ -453,36 +362,11 @@ ambuild
 
 ---
 
-## Advanced Options
-
-### Breakpad Symbols
-
-Enable uploading breakpad symbols to Accelerator (for crash reporting):
-
-```bash
-python configure.py -s TF2 --breakpad-upload --mms-path ... --hl2sdk-root ...
-```
-
-### Custom Build Directory
-
-```bash
-python configure.py -s TF2 --mms-path ... --hl2sdk-root ...
-# AMBuild creates "obj-linux-x86_64" or similar based on platform
-```
-
-### Parallel Builds
-
-AMBuild automatically uses multiple cores. To limit:
-
-```bash
-ambuild -j 4  # Use 4 cores
-```
-
----
-
 ## Continuous Integration
 
-GitHub Actions workflow example (`.github/workflows/build.yml`):
+### GitHub Actions Example
+
+`.github/workflows/build.yml`:
 
 ```yaml
 name: Build RCBot2
@@ -525,22 +409,119 @@ jobs:
 
 ---
 
+## Troubleshooting
+
+### "ambuild: command not found"
+
+AMBuild not installed or not in PATH.
+
+**Solution:**
+```bash
+python -m pip install --user ambuild
+export PATH=$PATH:~/.local/bin  # Linux
+```
+
+### "Could not find HL2SDK"
+
+SDK path is incorrect or SDK not downloaded.
+
+**Solution:**
+- Verify `--hl2sdk-root` points to directory containing `hl2sdk-tf2`, etc.
+- Ensure SDKs are cloned with correct branch names
+
+### "Python version too old"
+
+**Solution:**
+```bash
+sudo apt-get install python3 python3-pip
+python3 configure.py ...
+```
+
+### Build fails with "undefined reference"
+
+Missing SDK or MetaMod:Source.
+
+**Solution:**
+- Ensure all dependencies are downloaded
+- Check paths are correct
+- Verify MetaMod:Source was cloned with `--recursive`
+
+### "Permission denied" on Linux
+
+**Solution:**
+```bash
+chmod -R u+w build/
+```
+
+### Visual Studio version mismatch (Windows)
+
+**Solution:**
+- Use "x86 Native Tools Command Prompt for VS 2022"
+- Ensure MSVC v143 build tools are installed
+
+### "Git not found" during configure
+
+**Solution:**
+```bash
+sudo apt-get install git  # Linux
+```
+
+### "Failed to load plugin" at runtime
+
+Missing dependencies or wrong architecture.
+
+**Solution (Linux):**
+```bash
+ldd addons/rcbot2meta/bin/rcbot.2.tf2.so
+sudo apt-get install lib32stdc++6
+```
+
+**Verify architecture:**
+```bash
+file addons/rcbot2meta/bin/rcbot.2.tf2.so
+# Should show: ELF 32-bit
+```
+
+---
+
+## Advanced Options
+
+### Parallel Builds
+
+AMBuild automatically uses multiple cores. To limit:
+```bash
+ambuild -j 4  # Use 4 cores
+```
+
+### Breakpad Symbols
+
+For crash reporting:
+```bash
+python configure.py -s TF2 --breakpad-upload --mms-path ... --hl2sdk-root ...
+```
+
+### ONNX Runtime Support
+
+See [ML Documentation](ML.md#onnx-runtime-integration) for building with ML support.
+
+---
+
 ## Next Steps
 
 After building:
 
 1. **Install** the plugin on your server
-2. **Configure** bot settings (see [Configuration Guide](configuration.md))
+2. **Configure** bot settings (see [Usage Guide](USAGE.md#configuration))
 3. **Download waypoints** for your maps (see [Waypoint Guide](waypoints.md))
 4. **Test** the bots on your server
 
 ---
 
 **See Also**:
-- [Installation Guide](README.md#installation) - Installing pre-built binaries
-- [Development Guide](../claude.md) - Development workflow
-- [Troubleshooting](troubleshooting.md) - Common issues
+- [Usage Guide](USAGE.md) - Installation and configuration
+- [Waypoint Guide](waypoints.md) - Waypoint documentation
+- [ML Documentation](ML.md) - ML build options
 
 ---
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-12-27
