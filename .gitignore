@@ -35,3 +35,4 @@ apg-load
 # Build directories
 build-release/
 build-debug/
+obj.x86_64/
