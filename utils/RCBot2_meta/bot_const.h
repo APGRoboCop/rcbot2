@@ -31,6 +31,8 @@
 #ifndef __BOT_CONST_H__
 #define __BOT_CONST_H__
 
+#include "mathlib/vector.h"
+#include "utlvector.h"
 #include "shareddefs.h"
 #include <cstdint>
 #include <cstring>

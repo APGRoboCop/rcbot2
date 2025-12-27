@@ -34,9 +34,14 @@
 
 #include <vector>
 #include <cstdint>
+#include <cmath>
+#include <cfloat>
+#include "mathlib/vector.h"
+#include "edict.h"
 
 class CBot;
 class CWaypoint;
+class CGravityZoneManager;
 
 //=============================================================================
 // Fall Damage Constants
@@ -151,7 +156,7 @@ public:
 	bool shouldAvoidPath(CBot* pBot, int fromWpt, int toWpt);
 
 	// Get path cost modifier for a connection
-	float getPathCost(int fromWpt, int toWpt);
+	float getPathCost(int fromWpt, int toWpt) const;
 
 	// Find alternative route avoiding dangerous falls
 	std::vector<int> findSafePath(int startWpt, int endWpt, float maxFallDamage = 25.0f);
@@ -192,9 +197,9 @@ public:
 	// Get path analyzer
 	CGravityPathAnalyzer& getPathAnalyzer() { return m_pathAnalyzer; }
 
-	// Get zone manager
-	CGravityZoneManager& getZoneManager() { return m_zoneManager; }
-	const CGravityZoneManager& getZoneManager() const { return m_zoneManager; }
+	// Get zone manager (allocated lazily in cpp file)
+	CGravityZoneManager& getZoneManager();
+	const CGravityZoneManager& getZoneManager() const;
 
 	// Check if gravity has changed since last analysis
 	bool hasGravityChanged() const;
@@ -239,7 +244,7 @@ private:
 
 	CGravityInfo m_gravityInfo;
 	CGravityPathAnalyzer m_pathAnalyzer;
-	CGravityZoneManager m_zoneManager;
+	CGravityZoneManager* m_pZoneManager;
 
 	float m_lastGravityValue;
 	float m_lastUpdateTime;

@@ -34,6 +34,8 @@
 #define __BOT_FORTRESS_H__
 
 #include "bot_utility.h"
+#include "bot.h"
+#include "edict.h"
 
 //#include <stack>
 

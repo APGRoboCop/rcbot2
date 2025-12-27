@@ -276,7 +276,7 @@ void CNPCCombatManager::scanForNPCs(const Vector& vOrigin, float fRadius)
 			bool bAlreadyTracked = false;
 			for (const TrackedNPC& tracked : m_TrackedNPCs)
 			{
-				if (tracked.hEntity.Get() == pEntity)
+				if (tracked.hEntity.get() == pEntity)
 				{
 					bAlreadyTracked = true;
 					break;
@@ -307,7 +307,7 @@ void CNPCCombatManager::scanForNPCs(const Vector& vOrigin, float fRadius)
 
 void CNPCCombatManager::updateNPC(TrackedNPC& npc)
 {
-	edict_t* pEntity = npc.hEntity.Get();
+	edict_t* pEntity = npc.hEntity.get();
 
 	if (!pEntity || pEntity->IsFree())
 	{
@@ -338,7 +338,7 @@ edict_t* CNPCCombatManager::getBestNPCTarget(CBot* pBot)
 		if (!npc.bAlive)
 			continue;
 
-		edict_t* pEntity = npc.hEntity.Get();
+		edict_t* pEntity = npc.hEntity.get();
 		if (!pEntity || pEntity->IsFree())
 			continue;
 
@@ -367,7 +367,7 @@ edict_t* CNPCCombatManager::getNearestHostileNPC(const Vector& vOrigin, float fM
 		if (npc.threatLevel == ENPCThreatLevel::HARMLESS)
 			continue;
 
-		edict_t* pEntity = npc.hEntity.Get();
+		edict_t* pEntity = npc.hEntity.get();
 		if (!pEntity || pEntity->IsFree())
 			continue;
 
@@ -394,7 +394,7 @@ edict_t* CNPCCombatManager::getHighestThreatNPC(const Vector& vOrigin, float fMa
 		if (!npc.bAlive)
 			continue;
 
-		edict_t* pEntity = npc.hEntity.Get();
+		edict_t* pEntity = npc.hEntity.get();
 		if (!pEntity || pEntity->IsFree())
 			continue;
 
@@ -515,7 +515,7 @@ void CNPCCombatManager::markAsPriority(edict_t* pNPC)
 
 	for (TrackedNPC& npc : m_TrackedNPCs)
 	{
-		if (npc.hEntity.Get() == pNPC)
+		if (npc.hEntity.get() == pNPC)
 		{
 			npc.bPriorityTarget = true;
 			break;
@@ -545,7 +545,7 @@ float CNPCCombatManager::calculatePriorityScore(CBot* pBot, const TrackedNPC& np
 	const float fDistance = (npc.vLastKnownPos - vBotOrigin).Length();
 
 	// Base score from NPC database priority
-	const NPCInfo* pInfo = CNPCDatabase::getInstance().getNPCInfo(npc.hEntity.Get()->GetClassName());
+	const NPCInfo* pInfo = CNPCDatabase::getInstance().getNPCInfo(npc.hEntity.get()->GetClassName());
 	float fScore = pInfo ? static_cast<float>(pInfo->iPriority) : 50.0f;
 
 	// Boost score for priority targets
@@ -566,7 +566,7 @@ void CNPCCombatManager::cleanupDeadNPCs()
 	m_TrackedNPCs.erase(
 		std::remove_if(m_TrackedNPCs.begin(), m_TrackedNPCs.end(),
 			[](const TrackedNPC& npc) {
-				return !npc.bAlive || !npc.hEntity.Get() || npc.hEntity.Get()->IsFree();
+				return !npc.bAlive || !npc.hEntity.get() || npc.hEntity.get()->IsFree();
 			}),
 		m_TrackedNPCs.end()
 	);

@@ -1279,6 +1279,68 @@ void CBotGlobals::teleportPlayer (const edict_t *pPlayer, const Vector& v_dest)
 	if ( CClient *pClient = CClients::get(pPlayer) )
 		pClient->teleportTo(v_dest);
 }
+
+edict_t* CBotGlobals::findEntityByClassname(edict_t* pStart, const char* szClassname)
+{
+	int startIndex = pStart ? ENTINDEX(pStart) + 1 : 0;
+
+	for (int i = startIndex; i < MAX_ENTITIES; i++)
+	{
+		edict_t* pEdict = engine->PEntityOfEntIndex(i);
+		if (!entityIsValid(pEdict))
+			continue;
+
+		const char* className = pEdict->GetClassName();
+		if (className && Q_stristr(className, szClassname))
+			return pEdict;
+	}
+	return nullptr;
+}
+
+edict_t* CBotGlobals::findEntityByClassnameNearest(const Vector& vOrigin, const char* szClassname, float fRadius, edict_t* pStart)
+{
+	edict_t* pNearest = nullptr;
+	float fNearestDist = fRadius * fRadius;
+
+	int startIndex = pStart ? ENTINDEX(pStart) + 1 : 0;
+
+	for (int i = startIndex; i < MAX_ENTITIES; i++)
+	{
+		edict_t* pEdict = engine->PEntityOfEntIndex(i);
+		if (!entityIsValid(pEdict))
+			continue;
+
+		const char* className = pEdict->GetClassName();
+		if (!className)
+			continue;
+
+		// Support wildcard matching (e.g., "weapon_*")
+		bool matches = false;
+		const char* wildcard = strchr(szClassname, '*');
+		if (wildcard)
+		{
+			size_t prefixLen = wildcard - szClassname;
+			matches = (Q_strnicmp(className, szClassname, prefixLen) == 0);
+		}
+		else
+		{
+			matches = (Q_stricmp(className, szClassname) == 0);
+		}
+
+		if (matches)
+		{
+			Vector vEntityOrigin = entityOrigin(pEdict);
+			float fDist = (vEntityOrigin - vOrigin).LengthSqr();
+			if (fDist < fNearestDist)
+			{
+				fNearestDist = fDist;
+				pNearest = pEdict;
+			}
+		}
+	}
+	return pNearest;
+}
+
 /*
 
 static void TeleportEntity( CBaseEntity *pSourceEntity, TeleportListEntry_t &entry, const Vector *newPosition, const QAngle *newAngles, const Vector *newVelocity )

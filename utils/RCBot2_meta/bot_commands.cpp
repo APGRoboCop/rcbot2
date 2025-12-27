@@ -49,6 +49,7 @@
 #include "bot_door.h"               // for door commands
 #include "bot_gravity.h"            // for gravity commands
 #include "bot_waypoint_autorefine.h" // for waypoint auto-refine commands
+#include "bot_tactical.h"            // for tactical mode commands
 #include "ndebugoverlay.h"
 
 #include "bot_tf2_points.h"

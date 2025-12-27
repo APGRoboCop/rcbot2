@@ -34,9 +34,11 @@
 
 #include <vector>
 #include <cstdint>
+#include "mathlib/vector.h"
 
 class CWaypoint;
 class CBot;
+class CCommand;
 
 //=============================================================================
 // Tactical Flags

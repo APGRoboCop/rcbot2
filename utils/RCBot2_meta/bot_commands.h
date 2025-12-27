@@ -134,6 +134,7 @@ class CBotSubcommands : public CBotCommand
 {
 public:
 	CBotSubcommands(const char* cmd, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands) : CBotCommand(cmd, iAccessLevel, nullptr), m_theCommands{subcommands} {}
+	CBotSubcommands(const char* cmd, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands, const char* help) : CBotCommand(cmd, iAccessLevel, help), m_theCommands{subcommands} {}
 	
 	eBotCommandResult execute(CClient* pClient, const BotCommandArgs& args) override;
 	
