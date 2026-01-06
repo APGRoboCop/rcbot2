@@ -1,6 +1,9 @@
 name: Build
 
-on: ["push", "workflow_dispatch"]
+on: 
+  push:
+    tags:
+      - 'v*' # Triggers the workflow for any tag starting with 'v', e.g., v1.0.0, v2.0-beta
 
 jobs:
   build_main:
