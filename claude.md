@@ -8,24 +8,126 @@
 
 ## Table of Contents
 
-1. [Project Overview](#1-project-overview)
-2. [Architecture](#2-architecture)
-3. [Build System](#3-build-system)
-4. [Code Organization](#4-code-organization)
-5. [Development Guidelines](#5-development-guidelines)
-6. [Security Considerations](#6-security-considerations)
-7. [Testing](#7-testing)
-8. [Contributing](#8-contributing)
+1. [AI Agent Instructions](#1-ai-agent-instructions)
+2. [Project Overview](#2-project-overview)
+3. [Architecture](#3-architecture)
+4. [Build System](#4-build-system)
+5. [Code Organization](#5-code-organization)
+6. [Development Guidelines](#6-development-guidelines)
+7. [Security Considerations](#7-security-considerations)
+8. [Testing](#8-testing)
+9. [Contributing](#9-contributing)
 
 ---
 
-## 1. Project Overview
+## 1. AI Agent Instructions
 
-### 1.1 What is RCBot2?
+### 1.1 Todo List Requirements
+
+**MANDATORY**: When working on any task in this repository, the AI agent MUST generate a comprehensive, detailed todo list that:
+
+1. **Breaks down the task** into discrete, actionable steps
+2. **Includes all sub-tasks** - no step is too small to document
+3. **Specifies file paths** where changes will be made
+4. **Notes dependencies** between tasks (what must be done before what)
+5. **Includes verification steps** (testing, building, validation)
+6. **Estimates complexity** for each item (simple/moderate/complex)
+
+### 1.2 Todo List Persistence
+
+Every generated todo list MUST be saved to the `claude/` directory in the repository root using the following format:
+
+**Filename Format**: `todo_YYYY-MM-DD_HH-MM-SS_nnnnnn.md`
+
+- Uses **America/Toronto timezone** (Eastern Time)
+- Atomic timestamp with microseconds for uniqueness
+- Example: `todo_2026-01-05_14-32-45_123456.md`
+
+**File Structure**:
+```markdown
+# Todo List: [Brief Task Description]
+
+**Generated**: YYYY-MM-DD HH:MM:SS America/Toronto
+**Task Summary**: [One-line description of the overall goal]
+
+## Tasks
+
+- [ ] Task 1 description
+  - File(s): `path/to/file.cpp`
+  - Complexity: simple|moderate|complex
+  - Dependencies: none|Task N
+
+- [ ] Task 2 description
+  - File(s): `path/to/file.cpp`, `path/to/other.h`
+  - Complexity: simple|moderate|complex
+  - Dependencies: Task 1
+
+## Verification
+
+- [ ] Build succeeds
+- [ ] Tests pass
+- [ ] Documentation updated (if applicable)
+
+## Notes
+
+[Any additional context, considerations, or potential issues]
+```
+
+### 1.3 Todo List Usage
+
+- **Create the todo list BEFORE starting work** on any non-trivial task
+- **Update task status** as work progresses (mark items complete)
+- **Add new tasks** discovered during implementation
+- **Reference the todo file** in commit messages when relevant
+
+### 1.4 Task Completion Protocol
+
+**CRITICAL**: After completing EACH task item, the AI agent MUST:
+
+1. **Update the todo file** - Mark the completed item with `[x]` and add a completion timestamp
+2. **Re-review the entire todo list** - Before proceeding to the next task:
+   - Verify the original goal is still being addressed
+   - Confirm remaining tasks are still relevant and correctly ordered
+   - Check that no scope creep or deviation has occurred
+   - Ensure the next task aligns with the overall objective
+3. **Add course-correction notes** if any deviation is detected in the `## Notes` section
+
+This prevents the agent from "going off track" during long or complex implementations.
+
+### 1.5 Todo List Retention Policy
+
+**NEVER delete todo list files.** All todo lists are permanent records that:
+
+- Provide audit trails for completed work
+- Enable review of past decisions and approaches
+- Support debugging if issues arise from previous changes
+- Document the evolution of task understanding
+
+### 1.6 Repository Synchronization
+
+**MANDATORY**: Todo list files MUST be pushed to the repository:
+
+1. **Initial commit** - Push the todo file immediately after creation
+2. **Progress commits** - Push updates after completing each task item (or batch of related items)
+3. **Final commit** - Ensure the completed todo file is pushed before ending the session
+
+**Commit message format for todo updates:**
+```
+chore(todo): Update todo list - [brief description]
+
+- Completed: [task description]
+- Remaining: [N] tasks
+```
+
+---
+
+## 2. Project Overview
+
+### 2.1 What is RCBot2?
 
 RCBot2 is an AI-powered bot plugin for Source Engine games, providing intelligent AI-controlled bots with advanced navigation, tactical decision-making, and game-specific behaviors. Originally created by Cheeseh, this enhanced fork adds ML/AI infrastructure, comprehensive SourceMod integration, and improved waypoint systems.
 
-### 1.2 Supported Games
+### 2.2 Supported Games
 
 | Game | Status | Implementation | Notes |
 |------|--------|----------------|-------|
@@ -36,7 +138,7 @@ RCBot2 is an AI-powered bot plugin for Source Engine games, providing intelligen
 | Black Mesa | Beta | - | Cooperative |
 | Synergy | Beta | - | Cooperative |
 
-### 1.3 Key Features (This Fork)
+### 2.3 Key Features (This Fork)
 
 - **ML/AI Infrastructure**: ONNX Runtime integration for behavior cloning and inference
 - **SourceMod Integration**: 70+ natives across 7 implementation phases
@@ -44,7 +146,7 @@ RCBot2 is an AI-powered bot plugin for Source Engine games, providing intelligen
 - **HL2DM Enhancements**: NPC combat system, cooperative mode, Gravity Gun API
 - **Configuration-Based Gamemode Detection**: No recompilation for new maps
 
-### 1.4 Codebase Statistics
+### 2.4 Codebase Statistics
 
 | Metric | Value |
 |--------|-------|
@@ -56,9 +158,9 @@ RCBot2 is an AI-powered bot plugin for Source Engine games, providing intelligen
 
 ---
 
-## 2. Architecture
+## 3. Architecture
 
-### 2.1 Core Components
+### 3.1 Core Components
 
 ```
 RCBot2 Plugin
@@ -85,7 +187,7 @@ RCBot2 Plugin
     └── Compressed format (bot_waypoint_compress.cpp)
 ```
 
-### 2.2 Design Patterns
+### 3.2 Design Patterns
 
 **Polymorphic Game Support**
 ```cpp
@@ -111,7 +213,7 @@ class CBotDOD : public CBot { /* DOD:S-specific */ };
 - `CCoopModeDetector`, `CNPCDatabase`, `CNPCCombatManager`
 - Proper deleted copy constructors and assignment operators
 
-### 2.3 Directory Structure
+### 3.3 Directory Structure
 
 ```
 rcbot2/
@@ -139,9 +241,9 @@ rcbot2/
 
 ---
 
-## 3. Build System
+## 4. Build System
 
-### 3.1 Overview
+### 4.1 Overview
 
 RCBot2 uses **AMBuild2** (AlliedModders Build System) for cross-platform compilation.
 
@@ -149,7 +251,7 @@ RCBot2 uses **AMBuild2** (AlliedModders Build System) for cross-platform compila
 - **Platforms**: Linux (x86, x64), Windows (x86, x64)
 - **Compilers**: GCC/Clang (Linux), MSVC 2019+ (Windows)
 
-### 3.2 Quick Build
+### 4.2 Quick Build
 
 ```bash
 # Clone with submodules
@@ -170,7 +272,7 @@ python3 ../configure.py \
 ambuild
 ```
 
-### 3.3 Build Outputs
+### 4.3 Build Outputs
 
 | Target | Platform | Size |
 |--------|----------|------|
@@ -180,7 +282,7 @@ ambuild
 | `rcbot.2.dods.so` | Linux | ~11 MB |
 | `rcbot.2.css.so` | Linux | ~11 MB |
 
-### 3.4 Dependencies
+### 4.4 Dependencies
 
 **Required:**
 - GCC 9+ (Linux) or Visual Studio 2019+ (Windows)
@@ -193,7 +295,7 @@ ambuild
 - SourceMod SDK (for extension)
 - ONNX Runtime 1.16+ (for ML features)
 
-### 3.5 Common Build Issues
+### 4.5 Common Build Issues
 
 | Issue | Solution |
 |-------|----------|
@@ -206,9 +308,9 @@ See `guides/BUILD_GUIDE.md` for complete build documentation.
 
 ---
 
-## 4. Code Organization
+## 5. Code Organization
 
-### 4.1 Key Source Files
+### 5.1 Key Source Files
 
 | File | Lines | Purpose |
 |------|-------|---------|
@@ -221,7 +323,7 @@ See `guides/BUILD_GUIDE.md` for complete build documentation.
 | `entprops.cpp` | 2,650 | Entity properties |
 | `bot_npc_combat.cpp` | 671 | NPC combat (HL2DM coop) |
 
-### 4.2 Header Conventions
+### 5.2 Header Conventions
 
 ```cpp
 #ifndef __BOT_EXAMPLE_H__
@@ -245,7 +347,7 @@ private:
 #endif
 ```
 
-### 4.3 Naming Conventions
+### 5.3 Naming Conventions
 
 | Type | Convention | Example |
 |------|------------|---------|
@@ -258,9 +360,9 @@ private:
 
 ---
 
-## 5. Development Guidelines
+## 6. Development Guidelines
 
-### 5.1 Code Style
+### 6.1 Code Style
 
 - Use C++17 features where appropriate
 - Prefer `std::vector`, `std::unique_ptr` over raw containers/pointers
@@ -268,7 +370,7 @@ private:
 - Keep functions under 100 lines when possible
 - Add comments for complex algorithms
 
-### 5.2 Memory Management
+### 6.2 Memory Management
 
 **Prefer smart pointers for new code:**
 ```cpp
@@ -290,7 +392,7 @@ if (hEnemy.isValid()) {
 }
 ```
 
-### 5.3 Error Handling
+### 6.3 Error Handling
 
 **Check pointers before use:**
 ```cpp
@@ -315,7 +417,7 @@ std::snprintf(buffer, sizeof(buffer), "Player: %s", name);
 std::sprintf(buffer, "Player: %s", name);  // No size limit
 ```
 
-### 5.4 Adding New Features
+### 6.4 Adding New Features
 
 1. Create feature branch: `git checkout -b feature/my-feature`
 2. Add header and implementation files
@@ -325,7 +427,7 @@ std::sprintf(buffer, "Player: %s", name);  // No size limit
 6. Test on all relevant games
 7. Submit pull request
 
-### 5.5 Game-Specific Development
+### 6.5 Game-Specific Development
 
 **TF2 Development** (`bot_fortress.cpp`):
 - All 9 classes have unique behaviors
@@ -339,9 +441,9 @@ std::sprintf(buffer, "Player: %s", name);  // No size limit
 
 ---
 
-## 6. Security Considerations
+## 7. Security Considerations
 
-### 6.1 Known Vulnerabilities
+### 7.1 Known Vulnerabilities
 
 The codebase contains buffer handling issues that require attention:
 
@@ -352,7 +454,7 @@ The codebase contains buffer handling issues that require attention:
 | Unsafe `sprintf` | 26+ | CRITICAL | bot_task.cpp (26 instances) |
 | Null dereference risks | 50+ | HIGH | Various API call sites |
 
-### 6.2 Secure Coding Practices
+### 7.2 Secure Coding Practices
 
 **String Handling:**
 ```cpp
@@ -382,7 +484,7 @@ if (pEntity != nullptr) {
 }
 ```
 
-### 6.3 Priority Files for Security Review
+### 7.3 Priority Files for Security Review
 
 1. `utils/RCBot2_meta/bot_globals.cpp` - 25+ unsafe operations
 2. `utils/RCBot2_meta/bot_task.cpp` - 26+ sprintf calls (ignores bufferSize param)
@@ -391,9 +493,9 @@ if (pEntity != nullptr) {
 
 ---
 
-## 7. Testing
+## 8. Testing
 
-### 7.1 Manual Testing
+### 8.1 Manual Testing
 
 **Basic Bot Testing:**
 ```
@@ -416,7 +518,7 @@ rcbot wpt add             # Add waypoint
 rcbot wpt save            # Save waypoints
 ```
 
-### 7.2 Game-Specific Testing
+### 8.2 Game-Specific Testing
 
 | Game | Test Focus |
 |------|------------|
@@ -425,7 +527,7 @@ rcbot wpt save            # Save waypoints
 | DOD:S | Capture points, bomb objectives |
 | CSS | Combat, navigation (buy menu WIP) |
 
-### 7.3 Performance Targets
+### 8.3 Performance Targets
 
 - Feature extraction: <0.1ms per bot
 - ONNX inference: <1.0ms per bot
@@ -433,9 +535,9 @@ rcbot wpt save            # Save waypoints
 
 ---
 
-## 8. Contributing
+## 9. Contributing
 
-### 8.1 Getting Started
+### 9.1 Getting Started
 
 1. Fork the repository
 2. Clone with submodules: `git clone --recursive`
@@ -444,7 +546,7 @@ rcbot wpt save            # Save waypoints
 5. Test on relevant games
 6. Submit pull request
 
-### 8.2 Pull Request Guidelines
+### 9.2 Pull Request Guidelines
 
 - Clear, descriptive title
 - Explain what the change does and why
@@ -452,7 +554,7 @@ rcbot wpt save            # Save waypoints
 - Include testing notes
 - Update documentation if needed
 
-### 8.3 Code Review Checklist
+### 9.3 Code Review Checklist
 
 - [ ] Follows naming conventions
 - [ ] No new buffer overflow vulnerabilities
@@ -461,7 +563,7 @@ rcbot wpt save            # Save waypoints
 - [ ] Tested on at least one supported game
 - [ ] Documentation updated
 
-### 8.4 Resources
+### 9.4 Resources
 
 - **GitHub Issues**: [Report bugs](https://github.com/ethanbissbort/rcbot2/issues)
 - **Discord**: [Bots United](https://discord.gg/5v5YvKG4Hr)
