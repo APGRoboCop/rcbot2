@@ -80,6 +80,45 @@ Every generated todo list MUST be saved to the `claude/` directory in the reposi
 - **Add new tasks** discovered during implementation
 - **Reference the todo file** in commit messages when relevant
 
+### 1.4 Task Completion Protocol
+
+**CRITICAL**: After completing EACH task item, the AI agent MUST:
+
+1. **Update the todo file** - Mark the completed item with `[x]` and add a completion timestamp
+2. **Re-review the entire todo list** - Before proceeding to the next task:
+   - Verify the original goal is still being addressed
+   - Confirm remaining tasks are still relevant and correctly ordered
+   - Check that no scope creep or deviation has occurred
+   - Ensure the next task aligns with the overall objective
+3. **Add course-correction notes** if any deviation is detected in the `## Notes` section
+
+This prevents the agent from "going off track" during long or complex implementations.
+
+### 1.5 Todo List Retention Policy
+
+**NEVER delete todo list files.** All todo lists are permanent records that:
+
+- Provide audit trails for completed work
+- Enable review of past decisions and approaches
+- Support debugging if issues arise from previous changes
+- Document the evolution of task understanding
+
+### 1.6 Repository Synchronization
+
+**MANDATORY**: Todo list files MUST be pushed to the repository:
+
+1. **Initial commit** - Push the todo file immediately after creation
+2. **Progress commits** - Push updates after completing each task item (or batch of related items)
+3. **Final commit** - Ensure the completed todo file is pushed before ending the session
+
+**Commit message format for todo updates:**
+```
+chore(todo): Update todo list - [brief description]
+
+- Completed: [task description]
+- Remaining: [N] tasks
+```
+
 ---
 
 ## 2. Project Overview
