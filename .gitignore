@@ -1,3 +1,8 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
 # Build outputs
 build/
 build_linux/
