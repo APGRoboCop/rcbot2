@@ -40,6 +40,9 @@
 #include "irecipientfilter.h"
 #endif
 
+// Always include debug overlay header for IVDebugOverlay interface
+#include "engine/ivdebugoverlay.h"
+
 #include "bot_cvars.h"
 
 #if defined(_WIN64) || defined(_WIN32)
@@ -117,9 +120,7 @@ IEffects *g_pEffects = nullptr;
 #endif
 IBotManager *g_pBotManager = nullptr;
 CGlobalVars *gpGlobals = nullptr;
-#ifndef SM_EXT
 IVDebugOverlay *debugoverlay = nullptr;
-#endif
 IServerGameEnts *servergameents = nullptr; // for accessing the server game entities
 IServerGameDLL *servergamedll = nullptr;
 IServerTools *servertools = nullptr;
@@ -379,9 +380,7 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	GET_V_IFACE_ANY(GetServerFactory, g_pBotManager, IBotManager, INTERFACEVERSION_PLAYERBOTMANAGER)
 	GET_V_IFACE_ANY(GetServerFactory, servertools, IServerTools, VSERVERTOOLS_INTERFACE_VERSION)
 
-#if !defined(SM_EXT) && !defined(__linux__)
 	GET_V_IFACE_CURRENT(GetEngineFactory,debugoverlay, IVDebugOverlay, VDEBUG_OVERLAY_INTERFACE_VERSION)
-#endif
 	GET_V_IFACE_ANY(GetServerFactory, servergamedll, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL)
 	GET_V_IFACE_ANY(GetServerFactory, gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS)
 
