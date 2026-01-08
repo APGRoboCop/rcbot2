@@ -152,7 +152,8 @@ for sdk_target in MMS.sdk_targets:
   sdk = sdk_target.sdk
   cxx = sdk_target.cxx
 
-  name = projectName + '.' + sdk['extension']
+  # Use kebab-case for plugin naming (Metamod prefers this over dot-case)
+  name = projectName + '-' + sdk['extension'].replace('.', '-')
   sdk_name = sdk['name']
   binary = MMS.HL2Library(builder, cxx, name, sdk)
 

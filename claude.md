@@ -306,6 +306,97 @@ ambuild
 
 See `guides/BUILD_GUIDE.md` for complete build documentation.
 
+### 4.6 AI Agent Build Checklist
+
+**IMPORTANT**: When building RCBot2 in a new code session, follow this exact sequence to ensure a successful build:
+
+#### Step 1: Install System Dependencies (Ubuntu/Debian)
+
+```bash
+# Add 32-bit architecture support
+sudo dpkg --add-architecture i386
+sudo apt-get update
+
+# Install build tools and multilib support for 32-bit builds
+sudo apt-get install -y \
+    gcc-multilib g++-multilib \
+    libc6-dev-i386 lib32stdc++6 \
+    python3 python3-pip \
+    git
+```
+
+#### Step 2: Install AMBuild
+
+```bash
+pip3 install git+https://github.com/alliedmodders/ambuild
+```
+
+#### Step 3: Initialize Git Submodules
+
+```bash
+# Initialize hl2sdk-manifests first (required by build system)
+git submodule update --init hl2sdk-manifests
+
+# Initialize required SDK submodules
+git submodule update --init \
+    alliedmodders/hl2sdk-hl2dm \
+    alliedmodders/hl2sdk-tf2 \
+    alliedmodders/metamod-source \
+    alliedmodders/sourcemod
+
+# CRITICAL: Initialize SourceMod's nested submodules (required for header files)
+cd alliedmodders/sourcemod
+git submodule update --init --recursive
+cd ../..
+```
+
+#### Step 4: Configure and Build
+
+```bash
+# For 32-bit builds (most Source servers are 32-bit)
+mkdir -p build-release && cd build-release
+python3 ../configure.py \
+    --hl2sdk-root=../alliedmodders \
+    --mms-path=../alliedmodders/metamod-source \
+    --sm-path=../alliedmodders/sourcemod \
+    --sdks=hl2dm,tf2 \
+    --targets=x86 \
+    --enable-optimize
+ambuild
+
+# For 64-bit builds
+python3 ../configure.py \
+    --targets=x86_64 \
+    # ... other options same as above
+```
+
+#### Step 5: Copy Outputs to plugin-out
+
+```bash
+# Copy binaries to plugin-out folder
+cp package/addons/rcbot2/bin/RCBot2Meta_i486.so ../../plugin-out/
+cp package/addons/rcbot2/bin/rcbot-2-hl2dm.so ../../plugin-out/
+cp package/addons/rcbot2/bin/rcbot-2-tf2.so ../../plugin-out/
+```
+
+#### Common Build Environment Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `ModuleNotFoundError: No module named 'ambuild2'` | AMBuild not installed | `pip3 install git+https://github.com/alliedmodders/ambuild` |
+| `wrong ELF class: ELFCLASS64` | 64-bit binary on 32-bit server | Rebuild with `--targets=x86` |
+| `sp_vm_types.h not found` | SourceMod submodules not initialized | `cd alliedmodders/sourcemod && git submodule update --init --recursive` |
+| `failed to create executable with gcc -m32` | Missing multilib | `apt-get install gcc-multilib g++-multilib` |
+| `Exec format error` (sandbox environments) | 32-bit execution not supported | Build 64-bit only, or use different environment |
+| Orphan submodule paths in git | Stale index entries | `git rm --cached -r <path>` then re-clone |
+
+#### Plugin Naming Convention
+
+- Use **kebab-case** (not dot-case) for plugin filenames
+- Loader looks for: `rcbot-2-hl2dm.so`, `rcbot-2-tf2.so`, etc.
+- 32-bit binaries: `addons/rcbot2/bin/`
+- 64-bit binaries: `addons/rcbot2/bin/x64/`
+
 ---
 
 ## 5. Code Organization
