@@ -36,6 +36,10 @@
 #include <map>
 #include <cstdint>
 
+// SDK types
+#include "mathlib/vector.h"
+#include "edict.h"
+
 class CBot;
 class CWaypoint;
 class CBotSchedule;

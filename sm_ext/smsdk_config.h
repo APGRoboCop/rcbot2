@@ -89,6 +89,7 @@ extern SourceMod::ISourceMod *sm_main;
 #ifdef SMEXT_ENABLE_FORWARDSYS
 #include <IForwardSys.h>
 extern SourceMod::IForwardManager *sm_forwards;
+extern SourceMod::IForwardManager *forwards;  // Alias for standard SM naming
 #endif
 
 #ifdef SMEXT_ENABLE_HANDLESYS

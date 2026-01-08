@@ -41,6 +41,7 @@ bool SM_AcquireInterfaces(char *error, std::size_t maxlength)
 
 #ifdef SMEXT_ENABLE_FORWARDSYS
 	SM_FIND_IFACE_OR_FAIL(FORWARDMANAGER, sm_forwards, error, maxlength);
+	forwards = sm_forwards;  // Set alias
 #endif
 #ifdef SMEXT_ENABLE_HANDLESYS
 	SM_FIND_IFACE_OR_FAIL(HANDLESYSTEM, sm_handlesys, error, maxlength);
@@ -96,6 +97,7 @@ void SM_UnsetInterfaces()
 	sm_main = nullptr;
 #ifdef SMEXT_ENABLE_FORWARDSYS
 	sm_forwards = nullptr;
+	forwards = nullptr;  // Clear alias
 #endif
 #ifdef SMEXT_ENABLE_HANDLESYS
 	sm_handlesys = nullptr;
@@ -147,6 +149,8 @@ IShareSys *sharesys = nullptr;
 SourceMod::ISourceMod *sm_main = nullptr;
 #ifdef SMEXT_ENABLE_FORWARDSYS
 SourceMod::IForwardManager *sm_forwards = nullptr;
+// Alias for code that uses the standard SourceMod naming convention
+IForwardManager *forwards = nullptr;
 #endif
 #ifdef SMEXT_ENABLE_HANDLESYS
 SourceMod::IHandleSys *sm_handlesys = nullptr;

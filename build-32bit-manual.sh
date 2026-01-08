@@ -115,6 +115,7 @@ COMMON_SOURCES=(
     "utils/RCBot2_meta/bot_door.cpp"
     "utils/RCBot2_meta/bot_tactical.cpp"
     "utils/RCBot2_meta/bot_gravity.cpp"
+    "utils/RCBot2_meta/bot_teleport.cpp"
     "rcbot/logging.cpp"
     "rcbot/helper.cpp"
     "rcbot/entprops.cpp"

@@ -493,7 +493,7 @@ bool CBot :: FVisible ( edict_t *pEdict, const bool bCheckHead )
 	return CBotGlobals::isVisible(m_pEdict,eye,pEdict);//CBotGlobals::entityOrigin(pEdict)+Vector(0,0,50.0f));
 }
 
-inline QAngle CBot :: eyeAngles () const
+QAngle CBot :: eyeAngles () const
 {
 	return CBotGlobals::playerAngles(m_pEdict);
 }

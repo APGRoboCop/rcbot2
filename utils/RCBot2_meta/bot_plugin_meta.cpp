@@ -37,11 +37,11 @@
 
 #ifndef SM_EXT
 #include "ndebugoverlay.h"
-#include "irecipientfilter.h"
 #endif
 
-// Always include debug overlay header for IVDebugOverlay interface
+// Always include these headers for IVDebugOverlay and recipient filter classes
 #include "engine/ivdebugoverlay.h"
+#include "irecipientfilter.h"
 
 #include "bot_cvars.h"
 
@@ -165,7 +165,7 @@ CON_COMMAND(rcbotd, "access the bot commands on a server")
 	}
 }
 
-#ifndef SM_EXT
+// Recipient filter classes for HUD messages (used by both SM_EXT and non-SM_EXT builds)
 class CBotRecipientFilter : public IRecipientFilter
 {
 public:
@@ -218,12 +218,10 @@ private:
 	int m_iMaxCount;
 	int m_iPlayerSlot[RCBOT_MAXPLAYERS];
 };
-#endif
 
 ///////////////
 // hud message
 ///////////////
-#ifndef SM_EXT
 void RCBotPluginMeta::HudTextMessage(const edict_t* pEntity, const char* szMessage)
 {
 	int msgid = 0;
@@ -306,7 +304,6 @@ void RCBotPluginMeta::BroadcastTextMessage(const char* szMessage)
 		engine->MessageEnd();
 	}
 }
-#endif
 
 void RCBotPluginMeta::Hook_PlayerRunCmd(CUserCmd *ucmd, IMoveHelper *moveHelper)
 {

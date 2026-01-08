@@ -41,6 +41,28 @@
 #include <cstring>
 #include <cmath>
 
+// Local trace filter for world/brush-only traces (ignores all entities)
+// Named differently to avoid conflict with SDK's CTraceFilterWorldOnly
+class CTeleportTraceFilter : public CTraceFilter
+{
+public:
+	virtual ~CTeleportTraceFilter() = default;
+	bool ShouldHitEntity(IHandleEntity *pHandleEntity, int contentsMask) override
+	{
+		return false; // Don't hit any entities, only world geometry
+	}
+};
+
+// Helper function to replace UTIL_TraceLine (which is server-side only)
+static void TeleportTraceLine(const Vector& start, const Vector& end, unsigned int mask, trace_t* tr)
+{
+	Ray_t ray;
+	CTeleportTraceFilter filter;
+	std::memset(tr, 0, sizeof(trace_t));
+	ray.Init(start, end);
+	enginetrace->TraceRay(ray, mask, &filter, tr);
+}
+
 // Static instance
 CTeleportManager* CTeleportManager::s_instance = nullptr;
 
@@ -240,15 +262,11 @@ void CTeleportManager::scanTriggerTeleports()
 		}
 		else
 		{
-			// Fallback for point teleports
-			CBaseEntity* pEntity = pEdict->GetUnknown()->GetBaseEntity();
-			if (pEntity != nullptr)
-			{
-				Vector origin = pEntity->GetAbsOrigin();
-				teleport.center = origin;
-				teleport.mins = origin - Vector(32, 32, 32);
-				teleport.maxs = origin + Vector(32, 32, 32);
-			}
+			// Fallback for point teleports - use CBotGlobals utility
+			Vector origin = CBotGlobals::entityOrigin(pEdict);
+			teleport.center = origin;
+			teleport.mins = origin - Vector(32, 32, 32);
+			teleport.maxs = origin + Vector(32, 32, 32);
 		}
 
 		m_teleports.push_back(teleport);
@@ -283,14 +301,18 @@ void CTeleportManager::findTeleportDestinations(CTeleportInfo& teleport)
 		if (strcmp(classname, "info_teleport_destination") == 0 ||
 		    strcmp(classname, "info_target") == 0)
 		{
-			CBaseEntity* pEntity = pEdict->GetUnknown()->GetBaseEntity();
-			if (pEntity == nullptr)
+			IServerEntity* pServerEntity = pEdict->GetIServerEntity();
+			if (pServerEntity == nullptr)
+				continue;
+
+			ICollideable* pCollideable = pServerEntity->GetCollideable();
+			if (pCollideable == nullptr)
 				continue;
 
 			CTeleportDestination dest;
 			dest.pTargetEntity = pEdict;
-			dest.position = pEntity->GetAbsOrigin();
-			dest.angles = pEntity->GetAbsAngles();
+			dest.position = pCollideable->GetCollisionOrigin();
+			dest.angles = pCollideable->GetCollisionAngles();
 			dest.isValid = true;
 
 			// Find nearest waypoint to destination
@@ -307,7 +329,7 @@ void CTeleportManager::findTeleportDestinations(CTeleportInfo& teleport)
 			// Check for ground and fall height
 			trace_t tr;
 			Vector endPos = dest.position - Vector(0, 0, 1024);
-			UTIL_TraceLine(dest.position, endPos, MASK_PLAYERSOLID_BRUSHONLY, nullptr, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+			TeleportTraceLine(dest.position, endPos, MASK_PLAYERSOLID_BRUSHONLY, &tr);
 
 			if (tr.DidHit())
 			{
@@ -722,8 +744,8 @@ bool CTeleportManager::isExitTrapped(const CTeleportDestination& dest) const
 	trace_t tr;
 
 	// Check for ceiling
-	UTIL_TraceLine(dest.position, dest.position + Vector(0, 0, 72),
-		MASK_PLAYERSOLID_BRUSHONLY, nullptr, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+	TeleportTraceLine(dest.position, dest.position + Vector(0, 0, 72),
+		MASK_PLAYERSOLID_BRUSHONLY, &tr);
 
 	if (tr.fraction < 1.0f)
 	{
@@ -742,8 +764,8 @@ bool CTeleportManager::isExitTrapped(const CTeleportDestination& dest) const
 
 	for (const Vector& dir : directions)
 	{
-		UTIL_TraceLine(dest.position, dest.position + dir * 32.0f,
-			MASK_PLAYERSOLID_BRUSHONLY, nullptr, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+		TeleportTraceLine(dest.position, dest.position + dir * 32.0f,
+			MASK_PLAYERSOLID_BRUSHONLY, &tr);
 
 		if (tr.fraction < 0.5f)
 			blockedSides++;
@@ -1035,7 +1057,7 @@ float CTeleportManager::calculatePathCost(const CTeleportInfo& teleport) const
 bool CTeleportManager::traceTeleportPath(const Vector& start, const Vector& end) const
 {
 	trace_t tr;
-	UTIL_TraceLine(start, end, MASK_PLAYERSOLID_BRUSHONLY, nullptr, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+	TeleportTraceLine(start, end, MASK_PLAYERSOLID_BRUSHONLY, &tr);
 	return tr.fraction >= 1.0f;
 }
 
