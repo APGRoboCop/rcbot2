@@ -112,7 +112,7 @@ jobs:
       run: |
         mkdir post
         cd post
-        python3 ../configure.py --sdks=present --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" --symbol-files --target ${{ matrix.am_arch }} --enable-optimize
+        python3 ../configure.py --sdks=present --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" --symbol-files --targets=${{ matrix.am_arch }} --enable-optimize
         ambuild
 
     - uses: benjlevesque/short-sha@v2.2

@@ -37,6 +37,7 @@ DEV_ONLY=false
 RELEASE_ONLY=false
 SKIP_DEPS=false
 VERBOSE=false
+TARGET_ARCHS=""
 
 for arg in "$@"; do
     case $arg in
@@ -45,6 +46,9 @@ for arg in "$@"; do
         --release-only) RELEASE_ONLY=true ;;
         --skip-deps) SKIP_DEPS=true ;;
         --verbose) VERBOSE=true ;;
+        --targets=*) TARGET_ARCHS="${arg#*=}" ;;
+        --x86-only) TARGET_ARCHS="x86" ;;
+        --x64-only) TARGET_ARCHS="x86_64" ;;
         --help)
             echo "RCBot2 Linux Build Script"
             echo "Usage: $0 [OPTIONS]"
@@ -55,7 +59,15 @@ for arg in "$@"; do
             echo "  --release-only  Build release configuration only"
             echo "  --skip-deps     Skip dependency installation"
             echo "  --verbose       Show verbose output"
+            echo "  --targets=ARCH  Specify target architectures (x86, x86_64, or x86,x86_64)"
+            echo "  --x86-only      Build 32-bit binaries only (for 32-bit game servers)"
+            echo "  --x64-only      Build 64-bit binaries only"
             echo "  --help          Show this help message"
+            echo ""
+            echo "Target Architecture Notes:"
+            echo "  Most Source engine game servers (HL2DM, TF2, CSS, etc.) are 32-bit."
+            echo "  Use --x86-only for these servers. The plugin will fail to load with"
+            echo "  'wrong ELF class: ELFCLASS64' if you use 64-bit binaries on a 32-bit server."
             exit 0
             ;;
     esac
@@ -760,6 +772,17 @@ configure_build() {
     else
         config_args+=("--enable-optimize")
         log_info "Optimize configuration enabled"
+    fi
+
+    # Add target architecture if specified
+    if [ -n "$TARGET_ARCHS" ]; then
+        config_args+=("--targets=${TARGET_ARCHS}")
+        log_info "Target architectures: $TARGET_ARCHS"
+    else
+        # Default to x86 for most game servers (HL2DM, TF2, CSS are 32-bit)
+        config_args+=("--targets=x86")
+        log_info "Target architectures: x86 (default - most game servers are 32-bit)"
+        log_warning "Use --x86-only or --x64-only to change target. See --help for details."
     fi
 
     # Add ONNX support if available

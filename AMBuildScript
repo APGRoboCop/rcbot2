@@ -40,6 +40,7 @@ class MMSConfig(object):
       if builder.backend == 'amb2':
         target_archs.append('x86_64')
 
+    skipped_archs = []
     for arch in target_archs:
         try:
             cxx = builder.DetectCxx(target_arch = arch)
@@ -48,12 +49,36 @@ class MMSConfig(object):
             # Error if archs were manually overridden.
             if builder.options.targets:
                 raise
+            skipped_archs.append((arch, str(e)))
             print('Skipping target {}: {}'.format(arch, e))
             continue
         self.all_targets.append(cxx)
 
     if not self.all_targets:
         raise Exception('No suitable C/C++ compiler was found.')
+
+    # Warn about skipped architectures with helpful guidance
+    if skipped_archs:
+        print('')
+        print('=' * 70)
+        print('WARNING: Some target architectures were skipped')
+        print('=' * 70)
+        for arch, error in skipped_archs:
+            print('  {} - {}'.format(arch, error))
+        print('')
+        if any(arch == 'x86' for arch, _ in skipped_archs):
+            print('IMPORTANT: 32-bit (x86) compilation failed!')
+            print('Most Source engine game servers (HL2DM, TF2, CSS, DODS) are 32-bit.')
+            print('If you only have 64-bit binaries, the plugin will fail to load with:')
+            print('  "wrong ELF class: ELFCLASS64"')
+            print('')
+            print('To fix on Ubuntu/Debian, install 32-bit development libraries:')
+            print('  sudo dpkg --add-architecture i386')
+            print('  sudo apt-get update')
+            print('  sudo apt-get install gcc-multilib g++-multilib libc6-dev-i386')
+            print('')
+        print('=' * 70)
+        print('')
     
   def AddVersioning(self, binary):
     binary.compiler.sourcedeps += self.generated_headers
