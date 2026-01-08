@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 #include <cmath>
+#include <ctime>
 
 #ifdef MATH_LIB_FIX
 // GCC9 Developers broke compatibility with math options so we need to redeclare them
@@ -38,5 +39,30 @@ extern "C"
 	float __powf_finite(float x, double y) { return powf(x, y); }
 	double __remainder_finite(double x, double y) { return remainder(x, y); }
 	float __remainderf_finite(float x, double y) { return remainderf(x, y); }
+}
+#endif
+
+// Stub implementations for tier0 platform functions that aren't exported by older Source engines
+// These are needed because tier1 static library references them but the engine doesn't provide them
+#if defined(_LINUX) || defined(__linux__)
+extern "C"
+{
+	// Thread-safe localtime wrapper - used by tier1/strtools.cpp
+	struct tm* Plat_localtime(const time_t* timep, struct tm* result)
+	{
+		return localtime_r(timep, result);
+	}
+
+	// Thread-safe gmtime wrapper
+	struct tm* Plat_gmtime(const time_t* timep, struct tm* result)
+	{
+		return gmtime_r(timep, result);
+	}
+
+	// Check if running in debugger - always return false for plugins
+	int Plat_IsInDebugSession()
+	{
+		return 0;
+	}
 }
 #endif
