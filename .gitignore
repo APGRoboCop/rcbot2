@@ -41,3 +41,7 @@ apg-load
 build-release/
 build-debug/
 obj.x86_64/
+
+# Manual build output directories
+build-manual-32/
+build-x86/

@@ -6,33 +6,49 @@ This directory contains the successfully compiled release binaries for RCBot2 AI
 
 - **Build Date**: January 8, 2026
 - **Configuration**: Release (optimized)
-- **Architecture**: x86_64 (64-bit Linux)
-- **Compiler**: Clang 18.1
+- **Architectures**: x86 (32-bit) and x86_64 (64-bit) Linux
+- **Compiler**: GCC/Clang
 - **SDK Targets**: HL2DM, TF2
 - **Naming Convention**: kebab-case (Metamod-compatible)
 
-## Files
+## Directory Structure
 
-### Core Plugin Files
-
-1. **RCBot2Meta.x64.so**
-   - Main Metamod:Source plugin loader
-   - Required for loading RCBot2 into the game server
-   - Place in: `addons/rcbot2/bin/`
-
-2. **rcbot-2-hl2dm.so**
-   - RCBot2 plugin for Half-Life 2: Deathmatch
-   - Includes SourceMod extension integration
-   - Place in: `addons/rcbot2/bin/x64/`
-
-3. **rcbot-2-tf2.so**
-   - RCBot2 plugin for Team Fortress 2
-   - Includes SourceMod extension integration
-   - Place in: `addons/rcbot2/bin/x64/`
+```
+plugin-out/
+├── RCBot2Meta.x64.so       # 64-bit Metamod loader
+├── RCBot2Meta_i486.so      # 32-bit Metamod loader
+├── x64/                    # 64-bit plugins
+│   ├── rcbot-2-hl2dm.so
+│   └── rcbot-2-tf2.so
+└── x86/                    # 32-bit plugins
+    ├── rcbot-2-hl2dm.so
+    └── rcbot-2-tf2.so
+```
 
 ## Installation
 
-1. Copy these files to your game server's RCBot2 directory structure:
+### For 32-bit Servers (Most Common)
+
+Most Source engine servers (HL2DM, TF2, CSS, DODS) are **32-bit**.
+
+1. Copy files to your server:
+   ```
+   your-server/
+   ├── addons/
+   │   └── rcbot2/
+   │       └── bin/
+   │           ├── RCBot2Meta_i486.so
+   │           ├── rcbot-2-hl2dm.so   (from x86/)
+   │           └── rcbot-2-tf2.so     (from x86/)
+   ```
+
+2. For 32-bit servers, plugins go directly in `bin/`, NOT in a subdirectory.
+
+### For 64-bit Servers
+
+Some newer Source engine builds may use 64-bit:
+
+1. Copy files to your server:
    ```
    your-server/
    ├── addons/
@@ -40,31 +56,21 @@ This directory contains the successfully compiled release binaries for RCBot2 AI
    │       └── bin/
    │           ├── RCBot2Meta.x64.so
    │           └── x64/
-   │               ├── rcbot-2-hl2dm.so
-   │               └── rcbot-2-tf2.so
+   │               ├── rcbot-2-hl2dm.so   (from x64/)
+   │               └── rcbot-2-tf2.so     (from x64/)
    ```
 
-2. Ensure you have Metamod:Source installed on your server
+2. For 64-bit servers, plugins go in `bin/x64/`.
 
-3. Load the plugin via Metamod:Source
+## Troubleshooting
 
-## Architecture Notes
+### Error: "wrong ELF class: ELFCLASS64"
 
-**IMPORTANT**: These are 64-bit binaries. Most Source engine game servers (HL2DM, TF2, CSS, DODS) are **32-bit**.
+This means you're using 64-bit plugins on a 32-bit server. Use the files from the `x86/` folder instead.
 
-If you see the error:
-```
-wrong ELF class: ELFCLASS64
-```
+### Error: "wrong ELF class: ELFCLASS32"
 
-You need to rebuild with 32-bit target:
-```bash
-./build-linux.sh --x86-only
-```
-
-For 32-bit builds:
-- Loader: `RCBot2Meta_i486.so` goes in `addons/rcbot2/bin/`
-- Plugins: `rcbot-2-*.so` go in `addons/rcbot2/bin/` (not x64/)
+This means you're using 32-bit plugins on a 64-bit server. Use the files from the `x64/` folder instead.
 
 ## Features
 
