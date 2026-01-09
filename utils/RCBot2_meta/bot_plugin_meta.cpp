@@ -35,12 +35,8 @@
 #include "shake.h"    //bir3yk
 #endif
 
-#ifndef SM_EXT
+// Always include ndebugoverlay.h for debug overlay support (includes null stub)
 #include "ndebugoverlay.h"
-#endif
-
-// Always include these headers for IVDebugOverlay and recipient filter classes
-#include "engine/ivdebugoverlay.h"
 #include "irecipientfilter.h"
 
 #include "bot_cvars.h"
@@ -121,6 +117,7 @@ IEffects *g_pEffects = nullptr;
 IBotManager *g_pBotManager = nullptr;
 CGlobalVars *gpGlobals = nullptr;
 IVDebugOverlay *debugoverlay = nullptr;
+CNullDebugOverlay g_NullDebugOverlay;
 IServerGameEnts *servergameents = nullptr; // for accessing the server game entities
 IServerGameDLL *servergamedll = nullptr;
 IServerTools *servertools = nullptr;
@@ -377,7 +374,14 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	GET_V_IFACE_ANY(GetServerFactory, g_pBotManager, IBotManager, INTERFACEVERSION_PLAYERBOTMANAGER)
 	GET_V_IFACE_ANY(GetServerFactory, servertools, IServerTools, VSERVERTOOLS_INTERFACE_VERSION)
 
-	GET_V_IFACE_CURRENT(GetEngineFactory,debugoverlay, IVDebugOverlay, VDEBUG_OVERLAY_INTERFACE_VERSION)
+	// Debug overlay is optional - older engines may not have it
+	debugoverlay = static_cast<IVDebugOverlay*>(ismm->VInterfaceMatch(ismm->GetEngineFactory(), VDEBUG_OVERLAY_INTERFACE_VERSION, 0));
+	if (debugoverlay == nullptr)
+	{
+		META_LOG(g_PLAPI, "Warning: IVDebugOverlay interface not available, using null stub");
+		debugoverlay = &g_NullDebugOverlay;
+	}
+
 	GET_V_IFACE_ANY(GetServerFactory, servergamedll, IServerGameDLL, INTERFACEVERSION_SERVERGAMEDLL)
 	GET_V_IFACE_ANY(GetServerFactory, gameclients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS)
 
