@@ -116,12 +116,6 @@ extern "C"
 		return nullptr;
 	}
 
-	// CommandLine - return null (plugin doesn't need command line access)
-	void* CommandLine_Tier0()
-	{
-		return nullptr;
-	}
-
 	// KeyValuesSystem - return null
 	void* KeyValuesSystem()
 	{
@@ -139,6 +133,40 @@ extern "C"
 	{
 		// DevMsg is typically only shown in developer mode, stub it silently
 	}
+}
+
+//=============================================================================
+// ICommandLine stub implementation
+// CommandLine_Tier0() must return a valid object pointer, not nullptr
+//=============================================================================
+class CCommandLineStub
+{
+public:
+	virtual void CreateCmdLine(const char* commandline) {}
+	virtual void CreateCmdLine(int argc, char** argv) {}
+	virtual const char* GetCmdLine(void) const { return ""; }
+	virtual const char* CheckParm(const char* psz, const char** ppszValue = nullptr) const { return nullptr; }
+	virtual void RemoveParm(const char* parm) {}
+	virtual void AppendParm(const char* pszParm, const char* pszValues) {}
+	virtual const char* ParmValue(const char* psz, const char* pDefaultVal = nullptr) const { return pDefaultVal; }
+	virtual int ParmValue(const char* psz, int nDefaultVal) const { return nDefaultVal; }
+	virtual float ParmValue(const char* psz, float flDefaultVal) const { return flDefaultVal; }
+	virtual int ParmCount() const { return 0; }
+	virtual int FindParm(const char* psz) const { return 0; }
+	virtual const char* GetParm(int nIndex) const { return ""; }
+	virtual void SetParm(int nIndex, const char* pNewParm) {}
+	virtual const char* ParmValueByIndex(int nIndex, const char* pDefaultVal = nullptr) const { return pDefaultVal; }
+	virtual bool HasParm(const char* psz) const { return false; }
+	virtual const char** GetParms() const { return nullptr; }
+	virtual void CreateCmdLine1(const char* commandline, bool bParseParamFiles) {}
+	virtual void CreateCmdLine1(int argc, char** argv, bool bParseParamFiles) {}
+};
+
+static CCommandLineStub g_CommandLineStub;
+
+extern "C" void* CommandLine_Tier0()
+{
+	return &g_CommandLineStub;
 }
 
 // DevMsg with C++ linkage - use asm label to specify the mangled name
