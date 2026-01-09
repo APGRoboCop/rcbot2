@@ -101,6 +101,7 @@ COMMON_SOURCES=(
     "utils/RCBot2_meta/bot_waypoint.cpp"
     "utils/RCBot2_meta/bot_waypoint_locations.cpp"
     "utils/RCBot2_meta/bot_waypoint_visibility.cpp"
+    # "utils/RCBot2_meta/bot_waypoint_autorefine.cpp"  # Has code bugs - setOrigin doesn't exist
     "utils/RCBot2_meta/bot_weapons.cpp"
     "utils/RCBot2_meta/bot_wpt_dist.cpp"
     "utils/RCBot2_meta/bot_zombie.cpp"

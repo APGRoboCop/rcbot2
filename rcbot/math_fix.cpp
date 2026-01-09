@@ -45,6 +45,14 @@ extern "C"
 // Stub implementations for tier0 platform functions that aren't exported by older Source engines
 // These are needed because tier1 static library references them but the engine doesn't provide them
 #if defined(_LINUX) || defined(__linux__)
+
+#include <cstdio>
+#include <cstdarg>
+#include <pthread.h>
+
+// Forward declare Color class to match SDK signature
+class Color;
+
 extern "C"
 {
 	// Thread-safe localtime wrapper - used by tier1/strtools.cpp
@@ -64,5 +72,107 @@ extern "C"
 	{
 		return 0;
 	}
+
+	// Console/debug message functions - output to stdout
+	// These use C linkage to match the mangled names
+	void Msg(const char* pMsg, ...)
+	{
+		va_list args;
+		va_start(args, pMsg);
+		vprintf(pMsg, args);
+		va_end(args);
+	}
+
+	void Warning(const char* pMsg, ...)
+	{
+		va_list args;
+		va_start(args, pMsg);
+		vprintf(pMsg, args);
+		va_end(args);
+	}
+
+	void DevMsg(const char* pMsg, ...)
+	{
+		// DevMsg is typically only shown in developer mode, stub it silently
+	}
+
+	void Error(const char* pMsg, ...)
+	{
+		va_list args;
+		va_start(args, pMsg);
+		vfprintf(stderr, pMsg, args);
+		va_end(args);
+	}
+
+	// COM_TimestampedLog - logging with timestamps, stub silently
+	void COM_TimestampedLog(const char* pMsg, ...)
+	{
+	}
+
+	// HushAsserts - silence asserts
+	void HushAsserts()
+	{
+	}
+
+	// GetCPUInformation - return null (not needed for plugin operation)
+	void* GetCPUInformation()
+	{
+		return nullptr;
+	}
+
+	// CommandLine - return null (plugin doesn't need command line access)
+	void* CommandLine_Tier0()
+	{
+		return nullptr;
+	}
+
+	// KeyValuesSystem - return null
+	void* KeyValuesSystem()
+	{
+		return nullptr;
+	}
+
+	// Thread ID
+	unsigned long ThreadGetCurrentId()
+	{
+		return static_cast<unsigned long>(pthread_self());
+	}
 }
+
+// C++ linkage functions (these have different mangled names)
+void ConMsg(const char* pMsg, ...)
+{
+	va_list args;
+	va_start(args, pMsg);
+	vprintf(pMsg, args);
+	va_end(args);
+}
+
+void ConColorMsg(const Color& clr, const char* pMsg, ...)
+{
+	va_list args;
+	va_start(args, pMsg);
+	vprintf(pMsg, args);  // Ignore color, just print
+	va_end(args);
+}
+
+// CThreadFastMutex::Lock stub - this is trickier because it's a class method
+// The symbol is: CThreadFastMutex::Lock(unsigned int, unsigned int) volatile
+// We need to define a matching class
+class CThreadFastMutex
+{
+public:
+	volatile void Lock(unsigned int, unsigned int) volatile
+	{
+		// Stub - do nothing, single-threaded assumption for older engines
+	}
+};
+
+// Force the symbol to be emitted
+static void __attribute__((used)) __force_CThreadFastMutex_symbol()
+{
+	CThreadFastMutex mutex;
+	mutex.Lock(0, 0);
+}
+
 #endif

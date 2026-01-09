@@ -36,7 +36,10 @@
 #include <string>
 #include <cstdint>
 #include <ctime>
-#include "mathlib/vector.h"
+
+// This header needs bot.h to be included first for SDK platform defines
+// Include bot.h before including this header
+#include "bot.h"
 
 class CBot;
 class CWaypoint;

@@ -21,7 +21,7 @@ public:
 
 class CBotVisibles {
 public:
-	bool isVisible(edict_t *pEntity);
+	bool isVisible(const edict_t *pEntity) const;
 };
 
 enum RCBotProfileVar : std::uint8_t {
