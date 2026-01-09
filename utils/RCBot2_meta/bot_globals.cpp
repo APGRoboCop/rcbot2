@@ -563,8 +563,12 @@ bool CBotGlobals::initModFolder() {
 
 bool CBotGlobals :: gameStart ()
 {
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Starting gameStart(), engine=%p", static_cast<void*>(engine));
+
 	char szGameFolder[512];
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Calling engine->GetGameDir...");
 	engine->GetGameDir(szGameFolder,512);
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] GetGameDir returned: %s", szGameFolder);
 	/*
 	CFileSystemPassThru a;
 	a.InitPassThru(filesystem,true);
@@ -572,7 +576,9 @@ bool CBotGlobals :: gameStart ()
 */
 	//filesystem->GetCurrentDirectory(szSteamFolder,512);
 
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Calling CStrings::getString...");
 	const std::size_t iLength = std::strlen(CStrings::getString(szGameFolder));
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Game folder length: %zu", iLength);
 
 	std::size_t pos = iLength - 1;
 
@@ -581,20 +587,27 @@ bool CBotGlobals :: gameStart ()
 		pos--;
 	}
 	pos++;
-	
-	m_szModFolder = CStrings::getString(&szGameFolder[pos]);
 
+	m_szModFolder = CStrings::getString(&szGameFolder[pos]);
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Mod folder: %s", m_szModFolder);
+
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Reading mods...");
 	CBotMods::readMods();
-	
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Mods read, getting mod for folder...");
+
 	m_pCurrentMod = CBotMods::getMod(m_szModFolder);
+	logger->Log(LogLevel::INFO, "[DIAG-gameStart] Current mod pointer: %p", static_cast<void*>(m_pCurrentMod));
 
 	if ( m_pCurrentMod != nullptr)
 	{
 		m_iCurrentMod = m_pCurrentMod->getModId();
+		logger->Log(LogLevel::INFO, "[DIAG-gameStart] Mod ID: %d, calling initMod()...", static_cast<int>(m_iCurrentMod));
 
 		m_pCurrentMod->initMod();
+		logger->Log(LogLevel::INFO, "[DIAG-gameStart] initMod() complete, calling CBots::init()...");
 
 		CBots::init();
+		logger->Log(LogLevel::INFO, "[DIAG-gameStart] CBots::init() complete, returning true");
 
 		return true;
 	}

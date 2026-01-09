@@ -110,16 +110,43 @@ extern "C"
 	{
 	}
 
-	// GetCPUInformation - return null (not needed for plugin operation)
+	// GetCPUInformation - return valid pointer to static CPUInformation
+	// Code in the SDK dereferences this, so it cannot be nullptr
+	struct CPUInformationStub
+	{
+		int m_Size;
+		bool m_bRDTSC : 1, m_bCMOV : 1, m_bFCMOV : 1, m_bSSE : 1,
+		     m_bSSE2 : 1, m_b3DNow : 1, m_bMMX : 1, m_bHT : 1;
+		unsigned char m_nLogicalProcessors;
+		unsigned char m_nPhysicalProcessors;
+		bool m_bSSE3 : 1, m_bSSSE3 : 1, m_bSSE4a : 1, m_bSSE41 : 1,
+		     m_bSSE42 : 1, m_bAVX : 1;
+		long long m_Speed;
+		char* m_szProcessorID;
+		unsigned int m_nModel;
+		unsigned int m_nFeatures[3];
+		char* m_szProcessorBrand;
+		unsigned int m_nL1CacheSizeKb;
+		unsigned int m_nL1CacheDesc;
+		unsigned int m_nL2CacheSizeKb;
+		unsigned int m_nL2CacheDesc;
+		unsigned int m_nL3CacheSizeKb;
+		unsigned int m_nL3CacheDesc;
+	};
+	static CPUInformationStub g_CPUInfo = {
+		sizeof(CPUInformationStub), // m_Size
+		true, true, true, true,     // RDTSC, CMOV, FCMOV, SSE
+		true, false, true, false,   // SSE2, 3DNow, MMX, HT
+		1, 1,                        // 1 logical, 1 physical processor
+		true, true, false, true,    // SSE3, SSSE3, SSE4a, SSE41
+		true, false,                // SSE42, AVX
+		2000000000LL,               // 2 GHz
+		nullptr, 0, {0, 0, 0},      // processor ID, model, features
+		nullptr, 0, 0, 0, 0, 0, 0   // brand, cache info
+	};
 	void* GetCPUInformation()
 	{
-		return nullptr;
-	}
-
-	// KeyValuesSystem - return null
-	void* KeyValuesSystem()
-	{
-		return nullptr;
+		return &g_CPUInfo;
 	}
 
 	// Thread ID
@@ -133,6 +160,124 @@ extern "C"
 	{
 		// DevMsg is typically only shown in developer mode, stub it silently
 	}
+}
+
+//=============================================================================
+// IKeyValuesSystem stub implementation
+// KeyValuesSystem() MUST return a valid object, not nullptr!
+// The SDK's KeyValues class calls this for memory allocation.
+//=============================================================================
+#include <cstdlib>
+#include <map>
+#include <string>
+
+typedef int HKeySymbol;
+#define INVALID_KEY_SYMBOL (-1)
+
+class CKeyValuesSystemStub
+{
+public:
+	virtual void RegisterSizeofKeyValues(int size) { (void)size; }
+
+	virtual void* AllocKeyValuesMemory(int size)
+	{
+		return std::malloc(static_cast<size_t>(size));
+	}
+
+	virtual void FreeKeyValuesMemory(void* pMem)
+	{
+		std::free(pMem);
+	}
+
+	virtual HKeySymbol GetSymbolForString(const char* name, bool bCreate = true)
+	{
+		if (!name || !*name)
+			return INVALID_KEY_SYMBOL;
+
+		std::string str(name);
+		auto it = m_StringToSymbol.find(str);
+		if (it != m_StringToSymbol.end())
+			return it->second;
+
+		if (!bCreate)
+			return INVALID_KEY_SYMBOL;
+
+		HKeySymbol sym = static_cast<HKeySymbol>(m_SymbolToString.size());
+		m_StringToSymbol[str] = sym;
+		m_SymbolToString[sym] = str;
+		return sym;
+	}
+
+	virtual const char* GetStringForSymbol(HKeySymbol symbol)
+	{
+		auto it = m_SymbolToString.find(symbol);
+		if (it != m_SymbolToString.end())
+			return it->second.c_str();
+		return "";
+	}
+
+	virtual void AddKeyValuesToMemoryLeakList(void* pMem, HKeySymbol name)
+	{
+		(void)pMem; (void)name;
+	}
+
+	virtual void RemoveKeyValuesFromMemoryLeakList(void* pMem)
+	{
+		(void)pMem;
+	}
+
+	virtual void AddFileKeyValuesToCache(const void* _kv, const char* resourceName, const char* pathID)
+	{
+		(void)_kv; (void)resourceName; (void)pathID;
+	}
+
+	virtual bool LoadFileKeyValuesFromCache(void* _outKv, const char* resourceName, const char* pathID, void* filesystem) const
+	{
+		(void)_outKv; (void)resourceName; (void)pathID; (void)filesystem;
+		return false; // Never load from cache
+	}
+
+	virtual void InvalidateCache() {}
+
+	virtual void InvalidateCacheForFile(const char* resourceName, const char* pathID)
+	{
+		(void)resourceName; (void)pathID;
+	}
+
+	virtual void SetKeyValuesExpressionSymbol(const char* name, bool bValue)
+	{
+		if (name && *name)
+			m_ExpressionSymbols[std::string(name)] = bValue;
+	}
+
+	virtual bool GetKeyValuesExpressionSymbol(const char* name)
+	{
+		if (!name || !*name)
+			return false;
+		auto it = m_ExpressionSymbols.find(std::string(name));
+		if (it != m_ExpressionSymbols.end())
+			return it->second;
+		return false;
+	}
+
+	virtual HKeySymbol GetSymbolForStringCaseSensitive(HKeySymbol& hCaseInsensitiveSymbol, const char* name, bool bCreate = true)
+	{
+		hCaseInsensitiveSymbol = GetSymbolForString(name, bCreate);
+		return hCaseInsensitiveSymbol;
+	}
+
+private:
+	std::map<std::string, HKeySymbol> m_StringToSymbol;
+	std::map<HKeySymbol, std::string> m_SymbolToString;
+	std::map<std::string, bool> m_ExpressionSymbols;
+};
+
+static CKeyValuesSystemStub g_KeyValuesSystemStub;
+
+// KeyValuesSystem must return valid object
+void* KeyValuesSystem()
+{
+	return &g_KeyValuesSystemStub;
 }
 
 //=============================================================================

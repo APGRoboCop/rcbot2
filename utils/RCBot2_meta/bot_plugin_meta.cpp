@@ -388,14 +388,26 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	gpGlobals = ismm->GetCGlobals();
 
 	META_LOG(g_PLAPI, "Starting plugin.");
+	META_LOG(g_PLAPI, "[DIAG] Step 1: Basic interfaces loaded successfully");
+	fflush(stdout);
 
 	/* Load the VSP listener.  This is usually needed for IServerPluginHelpers. */
+	META_LOG(g_PLAPI, "[DIAG] Step 2: Adding listener...");
+	fflush(stdout);
 	ismm->AddListener(this, this);
+	META_LOG(g_PLAPI, "[DIAG] Step 2: Listener added");
+	fflush(stdout);
 	if ((vsp_callbacks = ismm->GetVSPInfo(nullptr)) == nullptr)
 	{
+		META_LOG(g_PLAPI, "[DIAG] Step 2: Enabling VSP listener...");
+		fflush(stdout);
 		ismm->EnableVSPListener();
 	}
+	META_LOG(g_PLAPI, "[DIAG] Step 2: VSP setup complete");
+	fflush(stdout);
 
+	META_LOG(g_PLAPI, "[DIAG] Step 3: Adding SourceHook hooks...");
+	fflush(stdout);
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, LevelInit, server, this, &RCBotPluginMeta::Hook_LevelInit, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, ServerActivate, server, this, &RCBotPluginMeta::Hook_ServerActivate, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, GameFrame, server, this, &RCBotPluginMeta::Hook_GameFrame, true);
@@ -407,27 +419,57 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	SH_ADD_HOOK_MEMFUNC(IServerGameClients, ClientCommand, gameclients, this, &RCBotPluginMeta::Hook_ClientCommand, false);
 	//Hook FireEvent to our function - unstable for TF2? [APG]RoboCop[CL]
 	SH_ADD_HOOK_MEMFUNC(IGameEventManager2, FireEvent, gameevents, this, &RCBotPluginMeta::FireGameEvent, false);
+	META_LOG(g_PLAPI, "[DIAG] Step 3: SourceHook hooks added");
+	fflush(stdout);
 
 #if SOURCE_ENGINE >= SE_ORANGEBOX
+	META_LOG(g_PLAPI, "[DIAG] Step 4: Registering ConVars...");
+	fflush(stdout);
 	g_pCVar = icvar;
 	ConVar_Register(0, &s_BaseAccessor);
+	META_LOG(g_PLAPI, "[DIAG] Step 4: ConVars registered");
+	fflush(stdout);
 #else
 	ConCommandBaseMgr::OneTimeInit(&s_BaseAccessor);
 #endif
 
 #if SOURCE_ENGINE!=SE_DARKMESSIAH
 	// read loglevel from startup param for early logging
+	META_LOG(g_PLAPI, "[DIAG] Step 5: Reading rcbot_loglevel from command line...");
+	fflush(stdout);
 	ConVarRef rcbot_loglevel("rcbot_loglevel");
-	rcbot_loglevel.SetValue(CommandLine()->ParmValue("+rcbot_loglevel", rcbot_loglevel.GetInt()));
+	META_LOG(g_PLAPI, "[DIAG] Step 5: ConVarRef created, calling CommandLine()...");
+	fflush(stdout);
+	void* cmdLine = CommandLine();
+	META_LOG(g_PLAPI, "[DIAG] Step 5: CommandLine() returned %p", cmdLine);
+	fflush(stdout);
+	if (cmdLine != nullptr) {
+		rcbot_loglevel.SetValue(CommandLine()->ParmValue("+rcbot_loglevel", rcbot_loglevel.GetInt()));
+	}
+	META_LOG(g_PLAPI, "[DIAG] Step 5: Loglevel setup complete");
+	fflush(stdout);
 #endif
 
 	// Read Signatures and Offsets
+	META_LOG(g_PLAPI, "[DIAG] Step 6: Initializing mod folder...");
+	fflush(stdout);
 	CBotGlobals::initModFolder();
+	META_LOG(g_PLAPI, "[DIAG] Step 6: Mod folder initialized");
+	fflush(stdout);
+
+	META_LOG(g_PLAPI, "[DIAG] Step 7: Reading RCBot folder...");
+	fflush(stdout);
 	CBotGlobals::readRCBotFolder();
+	META_LOG(g_PLAPI, "[DIAG] Step 7: RCBot folder read");
+	fflush(stdout);
 
 	char filename[512];
 	// Load RCBOT2 hook data
+	META_LOG(g_PLAPI, "[DIAG] Step 8: Building hookinfo filename...");
+	fflush(stdout);
 	CBotGlobals::buildFileName(filename, "hookinfo", BOT_CONFIG_FOLDER, "ini");
+	META_LOG(g_PLAPI, "[DIAG] Step 8: Hook file: %s", filename);
+	fflush(stdout);
 
 	std::fstream fp(filename, std::fstream::in);
 
@@ -458,16 +500,30 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 		rcbot_datamap_offset.SetValue(val);
 #endif
 
+	META_LOG(g_PLAPI, "[DIAG] Step 9: Creating GameRules objects...");
+	fflush(stdout);
 	g_pGameRules_Obj = new CGameRulesObject(kvl, gameServerFactory);
 	g_pGameRules_Create_Obj = new CCreateGameRulesObject(kvl, gameServerFactory);
+	META_LOG(g_PLAPI, "[DIAG] Step 9: GameRules objects created");
+	fflush(stdout);
 
 	if (fp)
 		fp.close();
 
+	META_LOG(g_PLAPI, "[DIAG] Step 10: Calling CBotGlobals::gameStart()...");
+	fflush(stdout);
 	if (!CBotGlobals::gameStart())
+	{
+		META_LOG(g_PLAPI, "[DIAG] Step 10: gameStart() FAILED!");
+		fflush(stdout);
 		return false;
+	}
+	META_LOG(g_PLAPI, "[DIAG] Step 10: gameStart() succeeded");
+	fflush(stdout);
 
 	CBotMod *pMod = CBotGlobals::getCurrentMod(); // `*pMod` Unused? [APG]RoboCop[CL]
+	META_LOG(g_PLAPI, "[DIAG] Step 11: Current mod pointer: %p", static_cast<void*>(pMod));
+	fflush(stdout);
 
 #ifdef OVERRIDE_RUNCMD
 	// TODO figure out a more robust gamedata fix instead of vtable
@@ -482,17 +538,27 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 
 #endif
 
+	META_LOG(g_PLAPI, "[DIAG] Step 12: Calling ENGINE_CALL(LogPrint)...");
+	fflush(stdout);
 	ENGINE_CALL(LogPrint)("All hooks started!\n");
+	META_LOG(g_PLAPI, "[DIAG] Step 12: ENGINE_CALL(LogPrint) complete");
+	fflush(stdout);
 
 	//MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
 	//ConVar_Register( 0 );
 	//InitCVars( interfaceFactory ); // register any cvars we have defined
 
+	META_LOG(g_PLAPI, "[DIAG] Step 13: Seeding random number generators...");
+	fflush(stdout);
 	std::srand( static_cast<unsigned>(time(nullptr)) );  // initialize the random seed
 	MTRand_int32::seed( static_cast<unsigned>(time(nullptr)) );
+	META_LOG(g_PLAPI, "[DIAG] Step 13: RNG seeded");
+	fflush(stdout);
 
 	// Find the RCBOT2 Path from metamod VDF
 	extern IFileSystem* filesystem;
+	META_LOG(g_PLAPI, "[DIAG] Step 14: Loading rcbot2.vdf (filesystem=%p)...", static_cast<void*>(filesystem));
+	fflush(stdout);
 	KeyValues* mainkv = new KeyValues("metamodplugin");
 
 	const char* rcbot2path; //Unused? [APG]RoboCop[CL]
@@ -500,6 +566,8 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 
 	mainkv->LoadFromFile(filesystem, "addons/metamod/rcbot2.vdf", "MOD");
 	KeyValues* temp = mainkv->FindKey("Metamod Plugin");
+	META_LOG(g_PLAPI, "[DIAG] Step 14: KeyValues loaded, temp=%p", static_cast<void*>(temp));
+	fflush(stdout);
 
 	if (temp)
 		rcbot2path = temp->GetString("rcbot2path", "\0");
@@ -510,27 +578,58 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	//eventListener2 = new CRCBotEventListener();
 
 	// Initialize bot variables
+	META_LOG(g_PLAPI, "[DIAG] Step 15: Setting up bot profiles...");
+	fflush(stdout);
 	CBotProfiles::setupProfiles();
+	META_LOG(g_PLAPI, "[DIAG] Step 15: Bot profiles setup complete");
+	fflush(stdout);
 
 
 	//CBotEvents::setupEvents();
+	META_LOG(g_PLAPI, "[DIAG] Step 16: Setting up waypoint types...");
+	fflush(stdout);
 	CWaypointTypes::setup();
+	META_LOG(g_PLAPI, "[DIAG] Step 16: Waypoint types setup complete");
+	fflush(stdout);
+
+	META_LOG(g_PLAPI, "[DIAG] Step 17: Setting up waypoint visibility...");
+	fflush(stdout);
 	CWaypoints::setupVisibility();
+	META_LOG(g_PLAPI, "[DIAG] Step 17: Waypoint visibility setup complete");
+	fflush(stdout);
 
-	CBotConfigFile::reset();	
+	META_LOG(g_PLAPI, "[DIAG] Step 18: Loading bot config file...");
+	fflush(stdout);
+	CBotConfigFile::reset();
 	CBotConfigFile::load();
+	META_LOG(g_PLAPI, "[DIAG] Step 18: Bot config file loaded");
+	fflush(stdout);
 
+	META_LOG(g_PLAPI, "[DIAG] Step 19: Setting up menus...");
+	fflush(stdout);
 	CBotMenuList::setupMenus();
+	META_LOG(g_PLAPI, "[DIAG] Step 19: Menus setup complete");
+	fflush(stdout);
 
-	//CRCBotPlugin::ShowLicense();	
+	//CRCBotPlugin::ShowLicense();
 
 	//RandomSeed((unsigned)time(NULL));
 
+	META_LOG(g_PLAPI, "[DIAG] Step 20: Initializing class interface...");
+	fflush(stdout);
 	CClassInterface::init();
+	META_LOG(g_PLAPI, "[DIAG] Step 20: Class interface initialized");
+	fflush(stdout);
 
+	META_LOG(g_PLAPI, "[DIAG] Step 21: Setting up RCBOT2 CVars...");
+	fflush(stdout);
 	RCBOT2_Cvar_setup(g_pCVar);
+	META_LOG(g_PLAPI, "[DIAG] Step 21: CVars setup complete");
+	fflush(stdout);
 
 	// Bot Quota Settings
+	META_LOG(g_PLAPI, "[DIAG] Step 22: Loading bot quota settings...");
+	fflush(stdout);
 	char bq_line[128];
 
 	int bot_count = 0;
@@ -578,6 +677,13 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 			}
 		}
 	}
+	META_LOG(g_PLAPI, "[DIAG] Step 22: Bot quota loaded");
+	fflush(stdout);
+
+	META_LOG(g_PLAPI, "[DIAG] ========================================");
+	META_LOG(g_PLAPI, "[DIAG] Plugin initialization COMPLETE!");
+	META_LOG(g_PLAPI, "[DIAG] ========================================");
+	fflush(stdout);
 
 	return true;
 }
