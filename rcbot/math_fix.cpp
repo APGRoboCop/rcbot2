@@ -49,6 +49,8 @@ extern "C"
 #include <cstdio>
 #include <cstdarg>
 #include <pthread.h>
+#include <vector>
+#include <string>
 
 // Forward declare Color class to match SDK signature
 class Color;
@@ -73,8 +75,7 @@ extern "C"
 		return 0;
 	}
 
-	// Console/debug message functions - output to stdout
-	// These use C linkage to match the mangled names
+	// C linkage console functions
 	void Msg(const char* pMsg, ...)
 	{
 		va_list args;
@@ -89,11 +90,6 @@ extern "C"
 		va_start(args, pMsg);
 		vprintf(pMsg, args);
 		va_end(args);
-	}
-
-	void DevMsg(const char* pMsg, ...)
-	{
-		// DevMsg is typically only shown in developer mode, stub it silently
 	}
 
 	void Error(const char* pMsg, ...)
@@ -137,9 +133,22 @@ extern "C"
 	{
 		return static_cast<unsigned long>(pthread_self());
 	}
+
+	// DevMsg with C linkage (tier1 static library references this)
+	void DevMsg(const char* pMsg, ...)
+	{
+		// DevMsg is typically only shown in developer mode, stub it silently
+	}
 }
 
-// C++ linkage functions (these have different mangled names)
+// DevMsg with C++ linkage - use asm label to specify the mangled name
+// Symbol: _Z6DevMsgPKcz
+void __attribute__((used)) DevMsg_cpp(const char* pMsg, ...) asm("_Z6DevMsgPKcz");
+void DevMsg_cpp(const char* pMsg, ...)
+{
+	// DevMsg is typically only shown in developer mode, stub it silently
+}
+
 void ConMsg(const char* pMsg, ...)
 {
 	va_list args;
@@ -156,23 +165,30 @@ void ConColorMsg(const Color& clr, const char* pMsg, ...)
 	va_end(args);
 }
 
-// CThreadFastMutex::Lock stub - this is trickier because it's a class method
-// The symbol is: CThreadFastMutex::Lock(unsigned int, unsigned int) volatile
-// We need to define a matching class
+// CThreadFastMutex::Lock stub
+// Symbol: _ZNV16CThreadFastMutex4LockEjj = CThreadFastMutex::Lock(unsigned int, unsigned int) volatile
+// The 'V' in the mangled name indicates the method is volatile-qualified on 'this'
 class CThreadFastMutex
 {
 public:
-	volatile void Lock(unsigned int, unsigned int) volatile
+	// Use __attribute__((noinline, used)) to force symbol emission
+	__attribute__((noinline, used))
+	void Lock(unsigned int spinCount, unsigned int timeout) volatile
 	{
 		// Stub - do nothing, single-threaded assumption for older engines
+		(void)spinCount;
+		(void)timeout;
 	}
 };
 
-// Force the symbol to be emitted
-static void __attribute__((used)) __force_CThreadFastMutex_symbol()
+// Create a global instance to ensure class methods are emitted
+static volatile CThreadFastMutex g_stubMutex;
+
+// Force the symbol to be used
+__attribute__((constructor))
+static void __force_CThreadFastMutex_symbol_init()
 {
-	CThreadFastMutex mutex;
-	mutex.Lock(0, 0);
+	g_stubMutex.Lock(0, 0);
 }
 
 #endif

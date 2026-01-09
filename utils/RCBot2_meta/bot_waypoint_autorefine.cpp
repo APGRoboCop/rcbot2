@@ -858,7 +858,7 @@ bool CWaypointAutoRefiner::relocateWaypoint(int waypointId, const Vector& newPos
 	}
 
 	// Update position
-	pWpt->setOrigin(newPosition);
+	pWpt->move(newPosition);
 
 	// Validate connections still work
 	for (int pathId : oldPaths)
