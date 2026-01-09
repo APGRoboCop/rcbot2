@@ -166,17 +166,22 @@ extern "C"
 // IKeyValuesSystem stub implementation
 // KeyValuesSystem() MUST return a valid object, not nullptr!
 // The SDK's KeyValues class calls this for memory allocation.
+// Using simple arrays to avoid static initialization order issues with std::map
 //=============================================================================
 #include <cstdlib>
-#include <map>
-#include <string>
+#include <cstring>
 
 typedef int HKeySymbol;
 #define INVALID_KEY_SYMBOL (-1)
+#define MAX_KEY_SYMBOLS 4096
 
 class CKeyValuesSystemStub
 {
 public:
+	CKeyValuesSystemStub() : m_nSymbolCount(0) {
+		std::memset(m_Symbols, 0, sizeof(m_Symbols));
+	}
+
 	virtual void RegisterSizeofKeyValues(int size) { (void)size; }
 
 	virtual void* AllocKeyValuesMemory(int size)
@@ -194,25 +199,28 @@ public:
 		if (!name || !*name)
 			return INVALID_KEY_SYMBOL;
 
-		std::string str(name);
-		auto it = m_StringToSymbol.find(str);
-		if (it != m_StringToSymbol.end())
-			return it->second;
+		// Simple linear search (OK for limited symbols)
+		for (int i = 0; i < m_nSymbolCount; i++) {
+			if (m_Symbols[i] && std::strcmp(m_Symbols[i], name) == 0)
+				return i;
+		}
 
-		if (!bCreate)
+		if (!bCreate || m_nSymbolCount >= MAX_KEY_SYMBOLS)
 			return INVALID_KEY_SYMBOL;
 
-		HKeySymbol sym = static_cast<HKeySymbol>(m_SymbolToString.size());
-		m_StringToSymbol[str] = sym;
-		m_SymbolToString[sym] = str;
-		return sym;
+		// Create new symbol
+		size_t len = std::strlen(name) + 1;
+		m_Symbols[m_nSymbolCount] = static_cast<char*>(std::malloc(len));
+		if (m_Symbols[m_nSymbolCount]) {
+			std::memcpy(m_Symbols[m_nSymbolCount], name, len);
+		}
+		return m_nSymbolCount++;
 	}
 
 	virtual const char* GetStringForSymbol(HKeySymbol symbol)
 	{
-		auto it = m_SymbolToString.find(symbol);
-		if (it != m_SymbolToString.end())
-			return it->second.c_str();
+		if (symbol >= 0 && symbol < m_nSymbolCount && m_Symbols[symbol])
+			return m_Symbols[symbol];
 		return "";
 	}
 
@@ -246,18 +254,13 @@ public:
 
 	virtual void SetKeyValuesExpressionSymbol(const char* name, bool bValue)
 	{
-		if (name && *name)
-			m_ExpressionSymbols[std::string(name)] = bValue;
+		(void)name; (void)bValue; // Simplified stub
 	}
 
 	virtual bool GetKeyValuesExpressionSymbol(const char* name)
 	{
-		if (!name || !*name)
-			return false;
-		auto it = m_ExpressionSymbols.find(std::string(name));
-		if (it != m_ExpressionSymbols.end())
-			return it->second;
-		return false;
+		(void)name;
+		return false; // Simplified stub
 	}
 
 	virtual HKeySymbol GetSymbolForStringCaseSensitive(HKeySymbol& hCaseInsensitiveSymbol, const char* name, bool bCreate = true)
@@ -267,9 +270,8 @@ public:
 	}
 
 private:
-	std::map<std::string, HKeySymbol> m_StringToSymbol;
-	std::map<HKeySymbol, std::string> m_SymbolToString;
-	std::map<std::string, bool> m_ExpressionSymbols;
+	char* m_Symbols[MAX_KEY_SYMBOLS];
+	int m_nSymbolCount;
 };
 
 static CKeyValuesSystemStub g_KeyValuesSystemStub;
