@@ -70,10 +70,31 @@ void CHLDMBot :: setup ()
 	CBot::setup();
 }
 
-// the bot doesn't need to do anything to start a game in HL2DM
+// HL2DM bots need to join a team to spawn
 bool CHLDMBot :: startGame ()
 {
-	return true;
+	const int team = m_pPlayerInfo->GetTeamIndex();
+
+	// Team 0 = Unassigned, 1 = Spectator, 2 = Rebels, 3 = Combine
+	if (team < 2)
+	{
+		// Not on a valid team yet, join one
+		// Use desired team from profile if valid, otherwise pick randomly
+		int targetTeam = m_iDesiredTeam;
+		if (targetTeam < 2 || targetTeam > 3)
+		{
+			// Pick a random team (2=Rebels or 3=Combine)
+			targetTeam = randomInt(0, 1) == 0 ? 2 : 3;
+		}
+
+		char teamcmd[32];
+		snprintf(teamcmd, sizeof(teamcmd), "jointeam %d", targetTeam);
+		helpers->ClientCommand(m_pEdict, teamcmd);
+
+		return false; // Not ready yet, wait for team assignment
+	}
+
+	return true; // Bot is on a valid team
 }
 
 // the bot killed pVictim
