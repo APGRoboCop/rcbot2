@@ -422,6 +422,19 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 	
 	helpers->ClientCommand(pEdict, command);
 	#endif
+
+	#if SOURCE_ENGINE == SE_HL2DM
+	// HL2DM bots need to join a team to spawn
+	// Team 2 = Rebels, Team 3 = Combine
+	if (m_iDesiredTeam == 2 || m_iDesiredTeam == 3) {
+		char teamcmd[32];
+		snprintf(teamcmd, sizeof(teamcmd), "jointeam %d", m_iDesiredTeam);
+		helpers->ClientCommand(pEdict, teamcmd);
+	} else {
+		// Auto-assign to a team (alternate between 2 and 3)
+		helpers->ClientCommand(pEdict, (randomInt(0, 1) == 0) ? "jointeam 2" : "jointeam 3");
+	}
+	#endif
 	/////////////////////////////
 
 	return true;
