@@ -35,6 +35,8 @@
 #include "shake.h"    //bir3yk
 #endif
 
+#include "const.h"  // For FL_FAKECLIENT
+
 // Always include ndebugoverlay.h for debug overlay support (includes null stub)
 #include "ndebugoverlay.h"
 #include "irecipientfilter.h"
@@ -413,6 +415,7 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, ServerActivate, server, this, &RCBotPluginMeta::Hook_ServerActivate, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, GameFrame, server, this, &RCBotPluginMeta::Hook_GameFrame, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameDLL, LevelShutdown, server, this, &RCBotPluginMeta::Hook_LevelShutdown, false);
+	SH_ADD_HOOK_MEMFUNC(IServerGameClients, ClientActive, gameclients, this, &RCBotPluginMeta::Hook_ClientActive_Pre, false);  // Pre-hook to fix FL_FAKECLIENT
 	SH_ADD_HOOK_MEMFUNC(IServerGameClients, ClientActive, gameclients, this, &RCBotPluginMeta::Hook_ClientActive, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameClients, ClientDisconnect, gameclients, this, &RCBotPluginMeta::Hook_ClientDisconnect, true);
 	SH_ADD_HOOK_MEMFUNC(IServerGameClients, ClientPutInServer, gameclients, this, &RCBotPluginMeta::Hook_ClientPutInServer, true);
@@ -714,6 +717,7 @@ bool RCBotPluginMeta::Unload(char *error, std::size_t maxlen)
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameDLL, ServerActivate, server, this, &RCBotPluginMeta::Hook_ServerActivate, true);
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameDLL, GameFrame, server, this, &RCBotPluginMeta::Hook_GameFrame, true);
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameDLL, LevelShutdown, server, this, &RCBotPluginMeta::Hook_LevelShutdown, false);
+	SH_REMOVE_HOOK_MEMFUNC(IServerGameClients, ClientActive, gameclients, this, &RCBotPluginMeta::Hook_ClientActive_Pre, false);
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameClients, ClientActive, gameclients, this, &RCBotPluginMeta::Hook_ClientActive, true);
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameClients, ClientDisconnect, gameclients, this, &RCBotPluginMeta::Hook_ClientDisconnect, true);
 	SH_REMOVE_HOOK_MEMFUNC(IServerGameClients, ClientPutInServer, gameclients, this, &RCBotPluginMeta::Hook_ClientPutInServer, true);
@@ -788,6 +792,50 @@ void* RCBotPluginMeta::OnMetamodQuery(const char* iface, int *ret) {
 	return nullptr;
 }
 #endif
+
+// Pre-hook for ClientActive - runs BEFORE the game processes the client
+// This is where we fix the FL_FAKECLIENT flag if it's missing
+void RCBotPluginMeta::Hook_ClientActive_Pre(edict_t *pEntity, const bool bLoadGame)
+{
+	if (!pEntity || pEntity->IsFree())
+		return;
+
+	// Check if FL_FAKECLIENT flag is missing and fix it
+	int currentFlags = CClassInterface::getFlags(pEntity);
+
+	// If this looks like it should be a bot (no FL_CLIENT set or name suggests bot)
+	// but FL_FAKECLIENT is not set, fix it
+	if (!(currentFlags & FL_FAKECLIENT))
+	{
+		IPlayerInfo *pInfo = playerinfomanager->GetPlayerInfo(pEntity);
+		if (pInfo)
+		{
+			const char* name = pInfo->GetName();
+			// Check if this appears to be a bot we're creating
+			// Bots typically have names like "RCBot" or are created without proper fake client flag
+			// We can also check if IBotController is available
+			IBotController* pController = g_pBotManager->GetBotController(pEntity);
+
+			fprintf(stderr, "[RCBOT2] Hook_ClientActive_Pre: name='%s', flags=0x%x, FL_FAKECLIENT=%s, controller=%s\n",
+				name, currentFlags,
+				(currentFlags & FL_FAKECLIENT) ? "YES" : "NO",
+				pController ? "VALID" : "NULL");
+
+			// If the controller is NULL but this seems to be a bot (check by name pattern)
+			// or if we're in the middle of creating a bot, set the flag
+			if (name && (strstr(name, "Bot") || strstr(name, "bot") || strstr(name, "RCBot")))
+			{
+				fprintf(stderr, "[RCBOT2] Hook_ClientActive_Pre: Fixing FL_FAKECLIENT flag!\n");
+				CClassInterface::addFlags(pEntity, FL_FAKECLIENT | FL_CLIENT);
+
+				// Verify the fix worked
+				int newFlags = CClassInterface::getFlags(pEntity);
+				fprintf(stderr, "[RCBOT2] Hook_ClientActive_Pre: After fix, flags=0x%x, FL_FAKECLIENT=%s\n",
+					newFlags, (newFlags & FL_FAKECLIENT) ? "YES" : "NO");
+			}
+		}
+	}
+}
 
 void RCBotPluginMeta::Hook_ClientActive(edict_t *pEntity, const bool bLoadGame)
 {

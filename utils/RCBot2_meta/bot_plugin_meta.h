@@ -84,6 +84,7 @@ public:
 	void Hook_GameFrame(bool simulating);
 	void Hook_LevelShutdown();
 	void Hook_ClientActive(edict_t *pEntity, bool bLoadGame);
+	void Hook_ClientActive_Pre(edict_t *pEntity, bool bLoadGame);
 	void Hook_ClientDisconnect(edict_t *pEntity);
 	void Hook_ClientPutInServer(edict_t *pEntity, char const *playername);
 	
