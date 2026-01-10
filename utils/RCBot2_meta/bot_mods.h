@@ -1355,7 +1355,7 @@ class CHalfLifeDeathmatchMod : public CBotMod
 public:
 	CHalfLifeDeathmatchMod()
 	{
-		setup("hl2mp", MOD_HLDM2, BOTTYPE_HL2DM, "HL2DM");
+		setup("hl2dm", MOD_HLDM2, BOTTYPE_HL2DM, "HL2DM");
 	}
 
 	void initMod () override;
