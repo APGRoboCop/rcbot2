@@ -73,7 +73,14 @@ void CHLDMBot :: setup ()
 // HL2DM bots need to join a team to spawn
 bool CHLDMBot :: startGame ()
 {
+	if (!m_pPlayerInfo)
+	{
+		logger->Log(LogLevel::ERROR, "[HL2DM] startGame: m_pPlayerInfo is NULL!");
+		return false;
+	}
+
 	const int team = m_pPlayerInfo->GetTeamIndex();
+	logger->Log(LogLevel::INFO, "[HL2DM] startGame: current team = %d", team);
 
 	// Team 0 = Unassigned, 1 = Spectator, 2 = Rebels, 3 = Combine
 	if (team < 2)
@@ -89,11 +96,13 @@ bool CHLDMBot :: startGame ()
 
 		char teamcmd[32];
 		snprintf(teamcmd, sizeof(teamcmd), "jointeam %d", targetTeam);
+		logger->Log(LogLevel::INFO, "[HL2DM] startGame: sending command '%s'", teamcmd);
 		helpers->ClientCommand(m_pEdict, teamcmd);
 
 		return false; // Not ready yet, wait for team assignment
 	}
 
+	logger->Log(LogLevel::INFO, "[HL2DM] startGame: bot on valid team %d, ready!", team);
 	return true; // Bot is on a valid team
 }
 

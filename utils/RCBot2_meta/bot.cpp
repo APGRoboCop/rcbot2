@@ -3219,6 +3219,8 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 	CBotMod *pMod = CBotGlobals::getCurrentMod(); // `*pMod` Unused? [APG]RoboCop[CL]
 	const char *szOVName = ""; // `szOVName` Unused? [APG]RoboCop[CL]
 
+	logger->Log(LogLevel::INFO, "[DIAG] createBot called");
+
 	if ( m_iMaxBots != -1 && CBotGlobals::numPlayersPlaying() >= m_iMaxBots )
 		logger->Log(LogLevel::ERROR, "Can't create bot, max_bots reached");
 
@@ -3245,12 +3247,22 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 	SET_PROFILE_DATA_INT(szTeam,m_iTeam)
 	SET_PROFILE_STRING(szName,szOVName,m_szName)
 
+	logger->Log(LogLevel::INFO, "[DIAG] Calling g_pBotManager->CreateBot('%s')", szOVName);
 	edict_t* pEdict = g_pBotManager->CreateBot(szOVName);
 
 	if ( pEdict == nullptr)
+	{
+		logger->Log(LogLevel::ERROR, "[DIAG] g_pBotManager->CreateBot returned NULL!");
 		return false;
+	}
 
-	return m_Bots[static_cast<std::size_t>(slotOfEdict(pEdict))]->createBotFromEdict(pEdict, pBotProfile);
+	int slot = slotOfEdict(pEdict);
+	logger->Log(LogLevel::INFO, "[DIAG] Bot edict created at slot %d, calling createBotFromEdict", slot);
+
+	bool result = m_Bots[static_cast<std::size_t>(slot)]->createBotFromEdict(pEdict, pBotProfile);
+	logger->Log(LogLevel::INFO, "[DIAG] createBotFromEdict returned %s", result ? "true" : "false");
+
+	return result;
 }
 
 int CBots::createDefaultBot(const char* szName) {

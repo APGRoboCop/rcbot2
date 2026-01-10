@@ -793,6 +793,19 @@ void RCBotPluginMeta::Hook_ClientActive(edict_t *pEntity, const bool bLoadGame)
 {
 	META_LOG(g_PLAPI, "Hook_ClientActive(%d, %d)", IndexOfEdict(pEntity), bLoadGame);
 
+	// Diagnostic logging
+	int slot = IndexOfEdict(pEntity);
+	IPlayerInfo *pInfo = playerinfomanager->GetPlayerInfo(pEntity);
+	if (pInfo)
+	{
+		fprintf(stderr, "[RCBOT2] Hook_ClientActive(%d): name='%s', team=%d, isFakeClient=%d\n",
+			slot, pInfo->GetName(), pInfo->GetTeamIndex(), pInfo->IsFakeClient() ? 1 : 0);
+	}
+	else
+	{
+		fprintf(stderr, "[RCBOT2] Hook_ClientActive(%d): pInfo is NULL\n", slot);
+	}
+
 	CClients::clientActive(pEntity);
 }
 
@@ -917,6 +930,22 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 
 void RCBotPluginMeta::Hook_ClientDisconnect(edict_t *pEntity)
 {
+	// Diagnostic logging for bot kick investigation
+	int slot = IndexOfEdict(pEntity);
+	CBot *pBot = CBots::getBotPointer(pEntity);
+
+	if (pBot && pBot->inUse())
+	{
+		IPlayerInfo *pInfo = playerinfomanager->GetPlayerInfo(pEntity);
+		int team = pInfo ? pInfo->GetTeamIndex() : -1;
+		fprintf(stderr, "[RCBOT2] Hook_ClientDisconnect(%d): Bot '%s' disconnecting, team=%d, inUse=true\n",
+			slot, pBot->getName(), team);
+	}
+	else
+	{
+		fprintf(stderr, "[RCBOT2] Hook_ClientDisconnect(%d): Not a bot or not in use\n", slot);
+	}
+
 	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
 
 #ifdef OVERRIDE_RUNCMD
