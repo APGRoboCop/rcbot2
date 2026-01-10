@@ -249,8 +249,8 @@ build_sdk "hl2dm" "${HL2DM_SDK}" "rcbot-2-hl2dm.so" "7" || true
 
 echo ""
 
-# Build for TF2 (SDK engine code 12)
-build_sdk "tf2" "${TF2_SDK}" "rcbot-2-tf2.so" "12" || true
+# Build for TF2 (SDK engine code 12) - disabled, only building HL2DM
+# build_sdk "tf2" "${TF2_SDK}" "rcbot-2-tf2.so" "12" || true
 
 echo ""
 echo "=== Build Complete ==="

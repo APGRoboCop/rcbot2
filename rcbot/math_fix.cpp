@@ -276,8 +276,8 @@ private:
 
 static CKeyValuesSystemStub g_KeyValuesSystemStub;
 
-// KeyValuesSystem must return valid object
-void* KeyValuesSystem()
+// KeyValuesSystem must return valid object - needs C linkage for dynamic linking
+extern "C" void* KeyValuesSystem()
 {
 	return &g_KeyValuesSystemStub;
 }
