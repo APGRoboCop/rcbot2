@@ -38,13 +38,8 @@
 CBotCommandInline ShowUsersCommand("show", CMD_ACCESS_USERS | CMD_ACCESS_DEDICATED, [](const CClient* pClient,
 	const BotCommandArgs& args)
 	{
-		if (!pClient)
-		{
-			logger->Log(LogLevel::ERROR, "Error: pClient is null");
-			return COMMAND_ERROR;
-		}
-
-		edict_t* pEntity = pClient->getPlayer();
+		// pClient is null when run from server console - that's fine
+		edict_t* pEntity = pClient ? pClient->getPlayer() : nullptr;
 		CAccessClients::showUsers(pEntity);
 
 		return COMMAND_ACCESSED;

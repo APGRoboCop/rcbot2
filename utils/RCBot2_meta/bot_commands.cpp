@@ -54,6 +54,10 @@
 
 #include "bot_tf2_points.h"
 
+// SourceMod admin integration
+#include "smsdk_config.h"
+#include "rcbot/logging.h"
+
 extern IVDebugOverlay* debugoverlay;
 
 // include our subcommands
@@ -157,9 +161,48 @@ CBotCommandInline KickBotCommand("kickbot", CMD_ACCESS_BOT | CMD_ACCESS_DEDICATE
 	return COMMAND_ACCESSED;
 }, R"(usage "kickbot" or "kickbot <team>" : kicks random bot or bot on team: <team>)");
 
+// Check if player has SourceMod admin access ('m' or 'z' flags)
+static bool hasSourceModAdminAccess(edict_t* pEdict)
+{
+#ifdef SMEXT_ENABLE_ADMINSYS
+	// Check if SourceMod systems are available
+	if (!sm_players || !sm_adminsys)
+		return false;
+
+	// Get the game player from edict
+	SourceMod::IGamePlayer* pPlayer = sm_players->GetGamePlayer(pEdict);
+	if (!pPlayer || !pPlayer->IsInGame())
+		return false;
+
+	// Get their admin ID
+	SourceMod::AdminId adminId = pPlayer->GetAdminId();
+	if (adminId == INVALID_ADMIN_ID)
+		return false;
+
+	// Check for 'z' (Root) or 'm' (Custom5) flags
+	// 'z' = Admin_Root, 'm' = Admin_Custom5
+	if (sm_adminsys->GetAdminFlag(adminId, SourceMod::Admin_Root, SourceMod::Access_Effective))
+	{
+		return true;
+	}
+	if (sm_adminsys->GetAdminFlag(adminId, SourceMod::Admin_Custom5, SourceMod::Access_Effective))
+	{
+		return true;
+	}
+#endif
+	return false;
+}
+
 bool CBotCommand::hasAccess(const CClient* pClient) const
 {
-	// check access level excluding dedicated server flag
+	// First check SourceMod admin flags ('m' or 'z' = full access)
+	if (pClient && pClient->getPlayer())
+	{
+		if (hasSourceModAdminAccess(pClient->getPlayer()))
+			return true;
+	}
+
+	// Fall back to legacy access level check
 	const int iClientAccessLevel = this->m_iAccessLevel & ~CMD_ACCESS_DEDICATED;
 	return (iClientAccessLevel & pClient->accessLevel()) == iClientAccessLevel;
 }
