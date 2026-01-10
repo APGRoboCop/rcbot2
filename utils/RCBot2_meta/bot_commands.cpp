@@ -209,7 +209,11 @@ bool CBotCommand::hasAccess(const CClient* pClient) const
 
 bool CBotCommand::isCommand(const char* szCommand) const
 {
-	return FStrEq(szCommand, m_szCommand);
+	if (FStrEq(szCommand, m_szCommand))
+		return true;
+	if (m_szAlias && FStrEq(szCommand, m_szAlias))
+		return true;
+	return false;
 }
 
 eBotCommandResult CBotCommand::execute(CClient* pClient, const BotCommandArgs& args) {

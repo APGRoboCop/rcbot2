@@ -83,20 +83,23 @@ using BotCommandCallback = std::function<eBotCommandResult(CClient*, BotCommandA
 class CBotCommand
 {
 protected:
-	CBotCommand () : m_iAccessLevel{0}, m_szCommand{nullptr}, m_szHelp{nullptr} { }
-	
+	CBotCommand () : m_iAccessLevel{0}, m_szCommand{nullptr}, m_szAlias{nullptr}, m_szHelp{nullptr} { }
+
 public:
 	virtual ~CBotCommand() = default;
-	
+
 	// initialise
 	//CBotCommand(const char *command, int iAccessLevel = 0) :
 	//		m_iAccessLevel{iAccessLevel}, m_szCommand{command} {};
 
 	CBotCommand(const char* command, const int iAccessLevel = 0, const char* help = nullptr) :
-			m_iAccessLevel{iAccessLevel}, m_szCommand{command}, m_szHelp{help} {}
+			m_iAccessLevel{iAccessLevel}, m_szCommand{command}, m_szAlias{nullptr}, m_szHelp{help} {}
 
-	// check command name
-	bool isCommand ( const char *szCommand ) const;	
+	CBotCommand(const char* command, const char* alias, const int iAccessLevel = 0, const char* help = nullptr) :
+			m_iAccessLevel{iAccessLevel}, m_szCommand{command}, m_szAlias{alias}, m_szHelp{help} {}
+
+	// check command name (or alias)
+	bool isCommand ( const char *szCommand ) const;
 
 	// execute command
 	// we pass byval / copy the argument list so they can be pushed / shifted without
@@ -116,6 +119,7 @@ protected:
 
 	int m_iAccessLevel;
 	const char *m_szCommand;
+	const char *m_szAlias;
 	const char *m_szHelp;
 };
 
@@ -135,6 +139,8 @@ class CBotSubcommands : public CBotCommand
 public:
 	CBotSubcommands(const char* cmd, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands) : CBotCommand(cmd, iAccessLevel, nullptr), m_theCommands{subcommands} {}
 	CBotSubcommands(const char* cmd, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands, const char* help) : CBotCommand(cmd, iAccessLevel, help), m_theCommands{subcommands} {}
+	CBotSubcommands(const char* cmd, const char* alias, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands) : CBotCommand(cmd, alias, iAccessLevel, nullptr), m_theCommands{subcommands} {}
+	CBotSubcommands(const char* cmd, const char* alias, const int iAccessLevel, const std::vector<CBotCommand*>& subcommands, const char* help) : CBotCommand(cmd, alias, iAccessLevel, help), m_theCommands{subcommands} {}
 	
 	eBotCommandResult execute(CClient* pClient, const BotCommandArgs& args) override;
 	

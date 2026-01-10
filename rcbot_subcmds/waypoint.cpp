@@ -680,7 +680,7 @@ CBotCommandInline WaypointAutoFix("autofix", CMD_ACCESS_WAYPOINT, [](CClient *pC
 	return COMMAND_ACCESSED;
 });
 
-CBotSubcommands WaypointSubcommands("waypoint", CMD_ACCESS_DEDICATED, {
+CBotSubcommands WaypointSubcommands("waypoint", "wpt", CMD_ACCESS_DEDICATED, {
 	&WaypointOnCommand,
 	&WaypointOffCommand,
 	&WaypointAddCommand,
