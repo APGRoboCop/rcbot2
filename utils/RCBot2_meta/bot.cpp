@@ -45,6 +45,7 @@
 #include "mathlib.h"
 #include "vector.h"
 #include "eiface.h"
+#include "const.h"
 
 #ifdef __linux__
 #include "shareddefs.h" //bir3yk
@@ -3257,7 +3258,45 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 	}
 
 	int slot = slotOfEdict(pEdict);
-	logger->Log(LogLevel::INFO, "[DIAG] Bot edict created at slot %d, calling createBotFromEdict", slot);
+	logger->Log(LogLevel::INFO, "[DIAG] Bot edict created at slot %d", slot);
+
+	// Enhanced diagnostics: Check bot status immediately after creation
+	IPlayerInfo* pInfo = playerinfomanager->GetPlayerInfo(pEdict);
+	if (pInfo) {
+		logger->Log(LogLevel::INFO, "[DIAG] Immediately after CreateBot: IsFakeClient=%d, team=%d, name='%s'",
+			pInfo->IsFakeClient() ? 1 : 0, pInfo->GetTeamIndex(), pInfo->GetName());
+	} else {
+		logger->Log(LogLevel::WARN, "[DIAG] Immediately after CreateBot: IPlayerInfo is NULL!");
+	}
+
+	IBotController* pController = g_pBotManager->GetBotController(pEdict);
+	if (pController) {
+		logger->Log(LogLevel::INFO, "[DIAG] IBotController is VALID");
+	} else {
+		logger->Log(LogLevel::ERROR, "[DIAG] IBotController is NULL - bot not recognized as fake client by engine!");
+	}
+
+	// WORKAROUND: Ensure FL_FAKECLIENT flag is set
+	// Some game servers may not properly set this flag during CreateBot
+	int currentFlags = CClassInterface::getFlags(pEdict);
+	logger->Log(LogLevel::INFO, "[DIAG] Current entity flags: 0x%x, FL_FAKECLIENT(0x%x) set: %s",
+		currentFlags, FL_FAKECLIENT, (currentFlags & FL_FAKECLIENT) ? "YES" : "NO");
+
+	if (!(currentFlags & FL_FAKECLIENT)) {
+		logger->Log(LogLevel::WARN, "[DIAG] FL_FAKECLIENT not set! Attempting to fix...");
+		CClassInterface::addFlags(pEdict, FL_FAKECLIENT | FL_CLIENT);
+		int newFlags = CClassInterface::getFlags(pEdict);
+		logger->Log(LogLevel::INFO, "[DIAG] After fix: flags=0x%x, FL_FAKECLIENT set: %s",
+			newFlags, (newFlags & FL_FAKECLIENT) ? "YES" : "NO");
+
+		// Verify with IPlayerInfo again
+		if (pInfo) {
+			logger->Log(LogLevel::INFO, "[DIAG] After fix: IsFakeClient=%d",
+				pInfo->IsFakeClient() ? 1 : 0);
+		}
+	}
+
+	logger->Log(LogLevel::INFO, "[DIAG] Calling createBotFromEdict");
 
 	bool result = m_Bots[static_cast<std::size_t>(slot)]->createBotFromEdict(pEdict, pBotProfile);
 	logger->Log(LogLevel::INFO, "[DIAG] createBotFromEdict returned %s", result ? "true" : "false");

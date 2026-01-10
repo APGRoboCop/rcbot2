@@ -383,6 +383,14 @@ public:
 	static void setupCTeamRoundTimer ( CTeamRoundTimer *pTimer );
 	static float getRageMeter ( edict_t *edict ) { return g_GetProps[GETPROP_TF2_RAGEMETER].getFloat(edict,0); }
 	static int getFlags ( edict_t *edict ) { return g_GetProps[GETPROP_ENTITY_FLAGS].getInt(edict,0); }
+	static void setFlags ( edict_t *edict, int flags ) {
+		int* pFlags = g_GetProps[GETPROP_ENTITY_FLAGS].getIntPointer(edict);
+		if (pFlags) *pFlags = flags;
+	}
+	static void addFlags ( edict_t *edict, int flags ) {
+		int* pFlags = g_GetProps[GETPROP_ENTITY_FLAGS].getIntPointer(edict);
+		if (pFlags) *pFlags |= flags;
+	}
 	static int getTeam ( edict_t *edict ) { return g_GetProps[GETPROP_TEAM].getInt(edict,0); }
 	static float getPlayerHealth ( edict_t *edict ) { return g_GetProps[GETPROP_PLAYERHEALTH].getFloatFromInt(edict,0); }
 	static int getEffects ( edict_t *edict ) { return g_GetProps[GETPROP_EFFECTS].getInt(edict,0); }
