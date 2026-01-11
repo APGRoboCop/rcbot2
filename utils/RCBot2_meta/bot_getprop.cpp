@@ -406,7 +406,7 @@ void CClassInterface:: init ()
 	//	DEFINE_GETPROP			ID						Class			Variable	Offset
 		DEFINE_GETPROP(GETPROP_TF2MINIBUILDING,"CObjectSentryGun","m_bMiniBuilding",0);
 		DEFINE_GETPROP(GETPROP_TF2SCORE,"CTFPlayerResource","m_iTotalScore",0);
-		DEFINE_GETPROP(GETPROP_ENTITY_FLAGS,"CBaseEntity","m_iEffectFlags",0);
+		DEFINE_GETPROP(GETPROP_ENTITY_FLAGS,"CBasePlayer","m_fFlags",0);
 		DEFINE_GETPROP(GETPROP_TEAM,"CBaseEntity","m_iTeamNum",0);
 		DEFINE_GETPROP(GETPROP_PLAYERHEALTH,"CBasePlayer","m_iHealth",0);
 		DEFINE_GETPROP(GETPROP_EFFECTS,"CBaseEntity","m_fEffects",0);
