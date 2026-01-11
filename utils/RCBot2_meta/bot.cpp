@@ -335,8 +335,14 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 {
 	char szModel[128];
 
+	fprintf(stderr, "[RCBOT2] createBotFromEdict: START\n");
+
 	init();
 	setEdict(pEdict);
+
+	fprintf(stderr, "[RCBOT2] createBotFromEdict: After setEdict, m_szBotName='%s', m_pPlayerInfo=%s, m_pController=%s\n",
+		m_szBotName, m_pPlayerInfo ? "VALID" : "NULL", m_pController ? "VALID" : "NULL");
+
 	setup();
 	m_fTimeCreated = engine->Time();
 
@@ -371,8 +377,12 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 		std::strcpy(m_szBotName,pProfile->m_szName);
 	}
 
+	// Skip early ChangeTeam for HL2DM - it's handled in CHLDMBot::startGame()
+	// Calling ChangeTeam here before the bot is fully connected can cause kicks
+#if SOURCE_ENGINE != SE_HL2DM
 	if ( m_pPlayerInfo && pProfile->m_iTeam != -1 )
 		m_pPlayerInfo->ChangeTeam(pProfile->m_iTeam);
+#endif
 
 	/////////////////////////////
 	// safe copy
@@ -428,6 +438,7 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 	// proper timing after the bot is fully connected
 	/////////////////////////////
 
+	fprintf(stderr, "[RCBOT2] createBotFromEdict: END, returning true\n");
 	return true;
 }
 
@@ -3300,6 +3311,19 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 
 	bool result = m_Bots[static_cast<std::size_t>(slot)]->createBotFromEdict(pEdict, pBotProfile);
 	logger->Log(LogLevel::INFO, "[DIAG] createBotFromEdict returned %s", result ? "true" : "false");
+
+	// Check if bot is still valid after creation
+	if (pEdict && !pEdict->IsFree()) {
+		IPlayerInfo* pInfoAfter = playerinfomanager->GetPlayerInfo(pEdict);
+		if (pInfoAfter) {
+			fprintf(stderr, "[RCBOT2] After createBotFromEdict: name='%s', team=%d, connected=%d\n",
+				pInfoAfter->GetName(), pInfoAfter->GetTeamIndex(), pInfoAfter->IsConnected() ? 1 : 0);
+		} else {
+			fprintf(stderr, "[RCBOT2] After createBotFromEdict: IPlayerInfo is NULL!\n");
+		}
+	} else {
+		fprintf(stderr, "[RCBOT2] After createBotFromEdict: edict is FREE/invalid!\n");
+	}
 
 	return result;
 }
