@@ -3321,6 +3321,13 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 		} else {
 			fprintf(stderr, "[RCBOT2] After createBotFromEdict: IPlayerInfo is NULL!\n");
 		}
+
+		// Try running the bot's player move immediately to keep it active
+		CBot* pBot = m_Bots[static_cast<std::size_t>(slot)];
+		if (pBot && pBot->inUse()) {
+			fprintf(stderr, "[RCBOT2] Sending immediate runPlayerMove after creation\n");
+			pBot->runPlayerMove();
+		}
 	} else {
 		fprintf(stderr, "[RCBOT2] After createBotFromEdict: edict is FREE/invalid!\n");
 	}
