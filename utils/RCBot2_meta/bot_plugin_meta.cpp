@@ -956,7 +956,12 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 	// after Steam authentication timeout (3-5 seconds)
 	if (pEntity && !pEntity->IsFree())
 	{
-		bool likelyBot = (playername && (strstr(playername, "Bot") || strstr(playername, "bot") || strstr(playername, "RCBot")));
+		// Always check and fix for any client with "Bot" in name
+		bool likelyBot = (playername && (strstr(playername, "Bot") != nullptr ||
+		                                  strstr(playername, "bot") != nullptr));
+
+		fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): pEntity valid, IsFree=%d, likelyBot=%d\n",
+			slot, pEntity->IsFree() ? 1 : 0, likelyBot ? 1 : 0);
 
 		if (likelyBot)
 		{
@@ -971,6 +976,10 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 				fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): Fixed FL_FAKECLIENT, new flags=0x%x\n", slot, newFlags);
 			}
 		}
+	}
+	else
+	{
+		fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): pEntity NULL or IsFree!\n", slot);
 	}
 
 	if ( CClient *pClient = CClients::clientConnected(pEntity) )
