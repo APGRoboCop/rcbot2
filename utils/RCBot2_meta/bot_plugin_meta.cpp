@@ -945,12 +945,33 @@ bool RCBotPluginMeta::Hook_ClientConnect(edict_t *pEntity,
 
 void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playername)
 {
-	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
+	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity);
 	constexpr bool is_Rcbot = false;
 
-	// Diagnostic logging only - matching upstream behavior
 	int slot = IndexOfEdict(pEntity);
 	fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): name='%s'\n", slot, playername ? playername : "NULL");
+
+	// Fix FL_FAKECLIENT for bots - HL2DM's CreateBot doesn't set this properly
+	// Without this fix, the engine thinks it's a real client and kicks it
+	// after Steam authentication timeout (3-5 seconds)
+	if (pEntity && !pEntity->IsFree())
+	{
+		bool likelyBot = (playername && (strstr(playername, "Bot") || strstr(playername, "bot") || strstr(playername, "RCBot")));
+
+		if (likelyBot)
+		{
+			int flags = CClassInterface::getFlags(pEntity);
+			fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): flags=0x%x, FL_FAKECLIENT=%s\n",
+				slot, flags, (flags & FL_FAKECLIENT) ? "YES" : "NO");
+
+			if (!(flags & FL_FAKECLIENT))
+			{
+				CClassInterface::addFlags(pEntity, FL_FAKECLIENT | FL_CLIENT);
+				int newFlags = CClassInterface::getFlags(pEntity);
+				fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): Fixed FL_FAKECLIENT, new flags=0x%x\n", slot, newFlags);
+			}
+		}
+	}
 
 	if ( CClient *pClient = CClients::clientConnected(pEntity) )
 	{
