@@ -848,6 +848,25 @@ void RCBotPluginMeta::Hook_ClientActive(edict_t *pEntity, const bool bLoadGame)
 	{
 		fprintf(stderr, "[RCBOT2] Hook_ClientActive(%d): name='%s', team=%d, isFakeClient=%d\n",
 			slot, pInfo->GetName(), pInfo->GetTeamIndex(), pInfo->IsFakeClient() ? 1 : 0);
+
+		// Check IBotController status after FL_FAKECLIENT fix
+		if (pInfo->IsFakeClient())
+		{
+			IBotController* pController = g_pBotManager->GetBotController(pEntity);
+			fprintf(stderr, "[RCBOT2] Hook_ClientActive(%d): IBotController=%s\n",
+				slot, pController ? "VALID" : "NULL");
+
+			// If we have a controller, try to send an immediate user command to prevent timeout
+			if (pController)
+			{
+				CBotCmd cmd;
+				cmd.Reset();
+				cmd.tick_count = gpGlobals->tickcount;
+				cmd.command_number = 1;
+				pController->RunPlayerMove(&cmd);
+				fprintf(stderr, "[RCBOT2] Hook_ClientActive(%d): Sent initial RunPlayerMove\n", slot);
+			}
+		}
 	}
 	else
 	{
@@ -938,7 +957,30 @@ bool RCBotPluginMeta::Hook_ClientConnect(edict_t *pEntity,
 									char *reject,
 									int maxrejectlen)
 {
-	META_LOG(g_PLAPI, R"(Hook_ClientConnect(%d, "%s", "%s"))", IndexOfEdict(pEntity), pszName, pszAddress);
+	int slot = IndexOfEdict(pEntity);
+	META_LOG(g_PLAPI, R"(Hook_ClientConnect(%d, "%s", "%s"))", slot, pszName, pszAddress);
+
+	// Diagnostic: Check if this appears to be a bot (empty address = local/bot)
+	bool likelyBot = (pszAddress == nullptr || pszAddress[0] == '\0' ||
+	                  (pszName && (strstr(pszName, "Bot") || strstr(pszName, "bot") || strstr(pszName, "RCBot"))));
+
+	fprintf(stderr, "[RCBOT2] Hook_ClientConnect(%d): name='%s', addr='%s', likelyBot=%s\n",
+		slot, pszName ? pszName : "NULL", pszAddress ? pszAddress : "NULL", likelyBot ? "YES" : "NO");
+
+	// Try to fix FL_FAKECLIENT as early as possible
+	if (likelyBot && pEntity && !pEntity->IsFree())
+	{
+		int flags = CClassInterface::getFlags(pEntity);
+		fprintf(stderr, "[RCBOT2] Hook_ClientConnect(%d): flags=0x%x, FL_FAKECLIENT=%s\n",
+			slot, flags, (flags & FL_FAKECLIENT) ? "YES" : "NO");
+
+		if (!(flags & FL_FAKECLIENT))
+		{
+			CClassInterface::addFlags(pEntity, FL_FAKECLIENT | FL_CLIENT);
+			int newFlags = CClassInterface::getFlags(pEntity);
+			fprintf(stderr, "[RCBOT2] Hook_ClientConnect(%d): After fix, flags=0x%x\n", slot, newFlags);
+		}
+	}
 
 	CClients::init(pEntity);
 
@@ -949,6 +991,31 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 {
 	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
 	constexpr bool is_Rcbot = false;
+
+	int slot = IndexOfEdict(pEntity);
+	fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): name='%s'\n", slot, playername ? playername : "NULL");
+
+	// Check and fix FL_FAKECLIENT
+	if (pEntity && !pEntity->IsFree())
+	{
+		int flags = CClassInterface::getFlags(pEntity);
+		bool likelyBot = (playername && (strstr(playername, "Bot") || strstr(playername, "bot") || strstr(playername, "RCBot")));
+
+		fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): flags=0x%x, FL_FAKECLIENT=%s, likelyBot=%s\n",
+			slot, flags, (flags & FL_FAKECLIENT) ? "YES" : "NO", likelyBot ? "YES" : "NO");
+
+		if (likelyBot && !(flags & FL_FAKECLIENT))
+		{
+			CClassInterface::addFlags(pEntity, FL_FAKECLIENT | FL_CLIENT);
+			int newFlags = CClassInterface::getFlags(pEntity);
+			fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): After fix, flags=0x%x\n", slot, newFlags);
+		}
+
+		// Check IBotController
+		IBotController* pController = g_pBotManager->GetBotController(pEntity);
+		fprintf(stderr, "[RCBOT2] Hook_ClientPutInServer(%d): IBotController=%s\n",
+			slot, pController ? "VALID" : "NULL");
+	}
 
 	if ( CClient *pClient = CClients::clientConnected(pEntity) )
 	{
