@@ -335,14 +335,9 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 {
 	char szModel[128];
 
-	fprintf(stderr, "[RCBOT2] createBotFromEdict: START\n");
-
+	// Simplified to match upstream
 	init();
 	setEdict(pEdict);
-
-	fprintf(stderr, "[RCBOT2] createBotFromEdict: After setEdict, m_szBotName='%s', m_pPlayerInfo=%s, m_pController=%s\n",
-		m_szBotName, m_pPlayerInfo ? "VALID" : "NULL", m_pController ? "VALID" : "NULL");
-
 	setup();
 	m_fTimeCreated = engine->Time();
 
@@ -377,12 +372,9 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 		std::strcpy(m_szBotName,pProfile->m_szName);
 	}
 
-	// Skip early ChangeTeam for HL2DM - it's handled in CHLDMBot::startGame()
-	// Calling ChangeTeam here before the bot is fully connected can cause kicks
-#if SOURCE_ENGINE != SE_HL2DM
+	// Restore upstream behavior - ChangeTeam for all games
 	if ( m_pPlayerInfo && pProfile->m_iTeam != -1 )
 		m_pPlayerInfo->ChangeTeam(pProfile->m_iTeam);
-#endif
 
 	/////////////////////////////
 	// safe copy
@@ -438,7 +430,6 @@ bool CBot :: createBotFromEdict(edict_t *pEdict, CBotProfile *pProfile)
 	// proper timing after the bot is fully connected
 	/////////////////////////////
 
-	fprintf(stderr, "[RCBOT2] createBotFromEdict: END, returning true\n");
 	return true;
 }
 
@@ -3228,10 +3219,9 @@ bool CBots::controlBot(const char* szOldName, const char* szName, const char* sz
 
 bool CBots :: createBot (const char *szClass, const char *szTeam, const char *szName)
 {
-	CBotMod *pMod = CBotGlobals::getCurrentMod(); // `*pMod` Unused? [APG]RoboCop[CL]
-	const char *szOVName = ""; // `szOVName` Unused? [APG]RoboCop[CL]
-
-	logger->Log(LogLevel::INFO, "[DIAG] createBot called");
+	// Simplified to match upstream behavior
+	CBotMod *pMod = CBotGlobals::getCurrentMod();
+	const char *szOVName = "";
 
 	if ( m_iMaxBots != -1 && CBotGlobals::numPlayersPlaying() >= m_iMaxBots )
 		logger->Log(LogLevel::ERROR, "Can't create bot, max_bots reached");
@@ -3259,80 +3249,17 @@ bool CBots :: createBot (const char *szClass, const char *szTeam, const char *sz
 	SET_PROFILE_DATA_INT(szTeam,m_iTeam)
 	SET_PROFILE_STRING(szName,szOVName,m_szName)
 
-	logger->Log(LogLevel::INFO, "[DIAG] Calling g_pBotManager->CreateBot('%s')", szOVName);
+	// Create the bot via engine - matching upstream
 	edict_t* pEdict = g_pBotManager->CreateBot(szOVName);
 
 	if ( pEdict == nullptr)
-	{
-		logger->Log(LogLevel::ERROR, "[DIAG] g_pBotManager->CreateBot returned NULL!");
 		return false;
-	}
 
+	// Diagnostic only - no FL_FAKECLIENT workarounds
 	int slot = slotOfEdict(pEdict);
-	logger->Log(LogLevel::INFO, "[DIAG] Bot edict created at slot %d", slot);
+	fprintf(stderr, "[RCBOT2] createBot: Created bot at slot %d\n", slot);
 
-	// Enhanced diagnostics: Check bot status immediately after creation
-	IPlayerInfo* pInfo = playerinfomanager->GetPlayerInfo(pEdict);
-	if (pInfo) {
-		logger->Log(LogLevel::INFO, "[DIAG] Immediately after CreateBot: IsFakeClient=%d, team=%d, name='%s'",
-			pInfo->IsFakeClient() ? 1 : 0, pInfo->GetTeamIndex(), pInfo->GetName());
-	} else {
-		logger->Log(LogLevel::WARN, "[DIAG] Immediately after CreateBot: IPlayerInfo is NULL!");
-	}
-
-	IBotController* pController = g_pBotManager->GetBotController(pEdict);
-	if (pController) {
-		logger->Log(LogLevel::INFO, "[DIAG] IBotController is VALID");
-	} else {
-		logger->Log(LogLevel::ERROR, "[DIAG] IBotController is NULL - bot not recognized as fake client by engine!");
-	}
-
-	// WORKAROUND: Ensure FL_FAKECLIENT flag is set
-	// Some game servers may not properly set this flag during CreateBot
-	int currentFlags = CClassInterface::getFlags(pEdict);
-	logger->Log(LogLevel::INFO, "[DIAG] Current entity flags: 0x%x, FL_FAKECLIENT(0x%x) set: %s",
-		currentFlags, FL_FAKECLIENT, (currentFlags & FL_FAKECLIENT) ? "YES" : "NO");
-
-	if (!(currentFlags & FL_FAKECLIENT)) {
-		logger->Log(LogLevel::WARN, "[DIAG] FL_FAKECLIENT not set! Attempting to fix...");
-		CClassInterface::addFlags(pEdict, FL_FAKECLIENT | FL_CLIENT);
-		int newFlags = CClassInterface::getFlags(pEdict);
-		logger->Log(LogLevel::INFO, "[DIAG] After fix: flags=0x%x, FL_FAKECLIENT set: %s",
-			newFlags, (newFlags & FL_FAKECLIENT) ? "YES" : "NO");
-
-		// Verify with IPlayerInfo again
-		if (pInfo) {
-			logger->Log(LogLevel::INFO, "[DIAG] After fix: IsFakeClient=%d",
-				pInfo->IsFakeClient() ? 1 : 0);
-		}
-	}
-
-	logger->Log(LogLevel::INFO, "[DIAG] Calling createBotFromEdict");
-
-	bool result = m_Bots[static_cast<std::size_t>(slot)]->createBotFromEdict(pEdict, pBotProfile);
-	logger->Log(LogLevel::INFO, "[DIAG] createBotFromEdict returned %s", result ? "true" : "false");
-
-	// Check if bot is still valid after creation
-	if (pEdict && !pEdict->IsFree()) {
-		IPlayerInfo* pInfoAfter = playerinfomanager->GetPlayerInfo(pEdict);
-		if (pInfoAfter) {
-			fprintf(stderr, "[RCBOT2] After createBotFromEdict: name='%s', team=%d, connected=%d\n",
-				pInfoAfter->GetName(), pInfoAfter->GetTeamIndex(), pInfoAfter->IsConnected() ? 1 : 0);
-		} else {
-			fprintf(stderr, "[RCBOT2] After createBotFromEdict: IPlayerInfo is NULL!\n");
-		}
-
-		// Try running the bot's player move immediately to keep it active
-		CBot* pBot = m_Bots[static_cast<std::size_t>(slot)];
-		if (pBot && pBot->inUse()) {
-			fprintf(stderr, "[RCBOT2] Sending immediate runPlayerMove after creation\n");
-			pBot->runPlayerMove();
-		}
-	} else {
-		fprintf(stderr, "[RCBOT2] After createBotFromEdict: edict is FREE/invalid!\n");
-	}
-
-	return result;
+	return m_Bots[static_cast<std::size_t>(slot)]->createBotFromEdict(pEdict, pBotProfile);
 }
 
 int CBots::createDefaultBot(const char* szName) {
