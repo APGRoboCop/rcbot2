@@ -1053,10 +1053,8 @@ bool CBotGlobals :: isBreakableOpen ( edict_t *pBreakable )
 
 Vector CBotGlobals:: getVelocity (const edict_t *pPlayer)
 {
-	if ( CClient *pClient = CClients::get(pPlayer) )
-		return pClient->getVelocity();
-
-	return {0,0,0};
+	CClient *pClient = CClients::get(pPlayer);
+	return pClient->getVelocity();
 }
 
 /**

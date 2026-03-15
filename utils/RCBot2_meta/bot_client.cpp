@@ -196,9 +196,11 @@ void CClient :: teleportTo (const Vector& vOrigin)
 	m_fTeleportTime = engine->Time()+0.1f;
 
 	Vector *v_origin = CClassInterface::getOrigin(m_pPlayer);
-
 	byte *pMoveType = CClassInterface::getMoveTypePointer(m_pPlayer);
 	int *pPlayerFlags = CClassInterface::getPlayerFlagsPointer(m_pPlayer);
+
+	if ( !v_origin || !pMoveType || !pPlayerFlags )
+		return;
 
 	*pMoveType &= ~15;
 	*pMoveType |= MOVETYPE_FLYGRAVITY;
@@ -456,13 +458,12 @@ void CClient :: think ()
 			int i;
 			int start = 0;
 
-			if ( !m_pPlayerInfo->IsDead() )
+			if ( m_pPlayerInfo && !m_pPlayerInfo->IsDead() )
 				start = 1; // grab one location
-
 
 			m_fLastAutoWaypointCheckTime = engine->Time() + 0.5f;
 
-			if ( !m_pPlayerInfo->IsDead() )
+			if ( m_pPlayerInfo && !m_pPlayerInfo->IsDead() )
 				m_vLastAutoWaypointCheckPos[0].SetVector(getOrigin());
 
 			for ( i = start; i < MAX_STORED_AUTOWAYPOINT; i++ )
@@ -578,34 +579,37 @@ void CClient :: think ()
 								CWaypoint *pWpt = CWaypoints::getWaypoint(iNewWpt);
 								CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex);
 
-								pJumpWpt->addPathTo(iNewWpt);
-				
-								pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);
-								
-								trace_t *tr;
-								
-								Vector v_src = pWpt->getOrigin();
-
-								CBotGlobals::quickTraceline(m_pPlayer,v_src,v_src-Vector(0,0,144));
-								
-								tr = CBotGlobals::getTraceResult();
-
-								v_floor = tr->endpos;
-								float len = v_src.z-tr->endpos.z;
-								
-								CBotGlobals::quickTraceline(m_pPlayer,v_src,v_src+Vector(0,0,144));
-								
-								len += tr->endpos.z-v_src.z;
-								
-								if ( len > 72 )
+								if ( pWpt && pJumpWpt )
 								{
-									pWpt->removeFlag(CWaypointTypes::W_FL_CROUCH);
-									pWpt->move(v_floor+Vector(0,0,36));
-								}
-								else if ( len > 32 )
-								{
-									pWpt->addFlag(CWaypointTypes::W_FL_CROUCH);
-									pWpt->move(v_floor+Vector(0,0,12));
+									pJumpWpt->addPathTo(iNewWpt);
+
+									pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);
+
+									trace_t *tr;
+
+									Vector v_src = pWpt->getOrigin();
+
+									CBotGlobals::quickTraceline(m_pPlayer,v_src,v_src-Vector(0,0,144));
+
+									tr = CBotGlobals::getTraceResult();
+
+									v_floor = tr->endpos;
+									float len = v_src.z-tr->endpos.z;
+
+									CBotGlobals::quickTraceline(m_pPlayer,v_src,v_src+Vector(0,0,144));
+
+									len += tr->endpos.z-v_src.z;
+
+									if ( len > 72 )
+									{
+										pWpt->removeFlag(CWaypointTypes::W_FL_CROUCH);
+										pWpt->move(v_floor+Vector(0,0,36));
+									}
+									else if ( len > 32 )
+									{
+										pWpt->addFlag(CWaypointTypes::W_FL_CROUCH);
+										pWpt->move(v_floor+Vector(0,0,12));
+									}
 								}
 							}
 						}
@@ -613,8 +617,11 @@ void CClient :: think ()
 						{
 							CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex);
 
-							pJumpWpt->addPathTo(iNearestWpt);
-							pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);
+							if ( pJumpWpt )
+							{
+								pJumpWpt->addPathTo(iNearestWpt);
+								pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);
+							}
 						}
 					}
 
@@ -948,19 +955,15 @@ void CClients::giveMessage(const char* msg, const float fTime, const edict_t* pP
 {
 	if (pPlayer != nullptr)
 	{
-		if (CClient* pClient = get(pPlayer))
-		{
-			pClient->giveMessage(msg, fTime);
-		}
+		CClient* pClient = get(pPlayer);
+		pClient->giveMessage(msg, fTime);
 	}
 	else
 	{
 		for (int i = 0; i < 32; i++)
 		{
-			if (CClient* pClient = get(i))
-			{
-				pClient->giveMessage(msg, fTime);
-			}
+			CClient* pClient = get(i);
+			pClient->giveMessage(msg, fTime);
 		}
 	}
 }

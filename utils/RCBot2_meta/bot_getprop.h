@@ -552,9 +552,8 @@ public:
 
 	static void setOrigin ( edict_t *pPlayer, const Vector& vOrigin )
 	{
-		Vector *vEntOrigin = g_GetProps[GETPROP_ORIGIN].getVectorPointer(pPlayer);
-
-		*vEntOrigin = vOrigin;
+		if ( Vector *vEntOrigin = g_GetProps[GETPROP_ORIGIN].getVectorPointer(pPlayer) )
+			*vEntOrigin = vOrigin;
 	}
 
 	static Vector *getDODCP_Positions ( edict_t *pResource )

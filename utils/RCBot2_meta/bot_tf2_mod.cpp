@@ -1664,7 +1664,7 @@ bool CTeamFortress2Mod::isCapping ( edict_t *pPlayer )//, int iCapIndex = -1 )
 	{
 		const int iTeam = CClassInterface::getTeam(pPlayer);
 
-		for ( int i = 0; i < MAX_CAP_POINTS; i ++ )
+		for ( int i = 0; i < MAX_CONTROL_POINTS; i ++ )
 		{				
 			if ( m_ObjectiveResource.isCPValid(i,iTeam,TF2_POINT_ATTACK) )
 			{

@@ -565,9 +565,9 @@ public:
 
 	static float getMapStartTime ();
 
-	static bool isBombMap () { return (m_iMapType & DOD_MAPTYPE_BOMB) == DOD_MAPTYPE_BOMB; } //TODO: both `maphasBombs` and `isBombMap` do the same thing but conflict? [APG]RoboCop[CL]
+	static bool isBombMap () { return (m_iMapType & DOD_MAPTYPE_BOMB) == DOD_MAPTYPE_BOMB; }
 	static bool isFlagMap () { return (m_iMapType & DOD_MAPTYPE_FLAG) == DOD_MAPTYPE_FLAG; }
-	static bool mapHasBombs () { return (m_iMapType & DOD_MAPTYPE_BOMB) == DOD_MAPTYPE_BOMB; }
+	static bool mapHasBombs () { return isBombMap(); }
 
 	static bool isCommunalBombPoint () { return m_bCommunalBombPoint; }
 	static int getBombPointArea (const int iTeam) { if ( iTeam == TEAM_ALLIES ) return m_iBombAreaAllies; return m_iBombAreaAxis; } 
@@ -1228,9 +1228,9 @@ public:
 	
 	static void addCapper(const int cp, const int capper)
 	{
-		assert(cp >= 0 && cp < MAX_CAP_POINTS); // Debug assertion [APG]RoboCop[CL]
+		assert(cp >= 0 && cp < MAX_CONTROL_POINTS); // Debug assertion [APG]RoboCop[CL]
 
-		if (capper > 0 && cp >= 0 && cp < MAX_CAP_POINTS)
+		if (capper > 0 && cp >= 0 && cp < MAX_CONTROL_POINTS)
 		{
 			m_Cappers[cp] |= 1 << (capper - 1);
 		}
@@ -1238,7 +1238,8 @@ public:
 
 	static void removeCappers (const int cp)
 	{
-		m_Cappers[cp] = 0;
+		if (cp >= 0 && cp < MAX_CONTROL_POINTS)
+			m_Cappers[cp] = 0;
 	}
 
 	static void resetCappers ()

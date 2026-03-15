@@ -1845,11 +1845,10 @@ char *CBotEntProp::GetEntPropString(const int entity, const PropType proptype, c
 
 		td = dinfo.prop;
 
-		if ((td->fieldType != FIELD_CHARACTER
+		if (td->fieldType != FIELD_CHARACTER
 			&& td->fieldType != FIELD_STRING
 			&& td->fieldType != FIELD_MODELNAME 
 			&& td->fieldType != FIELD_SOUNDNAME)
-			|| (td->fieldType == FIELD_CUSTOM && (td->flags & FTYPEDESC_OUTPUT) != FTYPEDESC_OUTPUT))
 		{
 			logger->Log(LogLevel::ERROR, "Data field %s is not a string (%d != %d)", prop, td->fieldType, FIELD_CHARACTER);
 			return nullptr;

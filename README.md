@@ -91,6 +91,7 @@ Additionally, `rcbot/logging.{h,cpp}` is released separately under the
 
 ### To-do:-
 
+- To figure out why HL2DM flying props pass through bots
 - To allow bots to menuselect to buy upgrades for MVM
 - To improve game detection for non-listed Source gamemods
 - To add proper support for the new Zombie Infection TF2 maps since Scream Fortress XV update

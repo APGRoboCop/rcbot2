@@ -1245,10 +1245,8 @@ void CBot :: updateConditions ()
 				else
 					removeCondition(CONDITION_SEE_SQUAD_LEADER);
 
-				float fSpeed = 0.0f;
-
-				if ( const CClient *pClient = CClients::get(pLeader) )
-					fSpeed = pClient->getSpeed();
+				const CClient *pClient = CClients::get(pLeader);
+				const float fSpeed = pClient->getSpeed();
 
 				// update squad idle condition. If squad is idle, bot can move around a small radius 
 				// around the leader and do what they want, e.g. defend or snipe
@@ -1779,7 +1777,8 @@ bool CBot :: isFacing (const Vector& vOrigin) const
 
 void CBot ::debugBot(char *msg)
 {
-	const bool hastask = m_pSchedules->getCurrentTask()!= nullptr;
+	CBotTask *pCurrentTask = m_pSchedules ? m_pSchedules->getCurrentTask() : nullptr;
+	const bool hastask = pCurrentTask != nullptr;
 
 	char szConditions[512];
 	//int iBit = 0;
@@ -1807,10 +1806,9 @@ void CBot ::debugBot(char *msg)
 
 	if ( iEnemyID > 0 && iEnemyID <= gpGlobals->maxClients )
 		p = playerinfomanager->GetPlayerInfo(pEnemy);
-	
 
 	if ( hastask )
-		m_pSchedules->getCurrentTask()->debugString(task_string, {});
+		pCurrentTask->debugString(task_string, {});
 
 	const bool hasNextPoint = m_pNavigator->hasNextPoint();
 	const int currentWaypointID = hasNextPoint ? m_pNavigator->getCurrentWaypointID() : -1;
@@ -1828,7 +1826,7 @@ void CBot ::debugBot(char *msg)
 		---CONDITIONS---\n%s",
 		m_szBotName,
 		m_CurrentUtil < BOT_UTIL_MAX + 1 ? g_szUtils[m_CurrentUtil] : "none",
-		m_pSchedules->isEmpty() ? "none" : m_pSchedules->getCurrentSchedule()->getIDString(),
+		!m_pSchedules || m_pSchedules->isEmpty() ? "none" : m_pSchedules->getCurrentSchedule()->getIDString(),
 		hastask ? task_string : "none",
 		g_szLookTaskToString[m_iLookTask],
 		currentWaypointID,
@@ -3048,14 +3046,12 @@ void CBot :: getTasks (unsigned iIgnore)
 	{
 		if ( wantToFollowEnemy() )
 		{
-			Vector vVelocity = Vector(0,0,0);
 			CClient *pClient = CClients::get(m_pLastEnemy);
-			CBotSchedule *pSchedule = new CBotSchedule();
-			
-			CFindPathTask *pFindPath = new CFindPathTask(m_vLastSeeEnemy);	
-			
-			if ( pClient )
-				vVelocity = pClient->getVelocity();
+				CBotSchedule *pSchedule = new CBotSchedule();
+
+				CFindPathTask *pFindPath = new CFindPathTask(m_vLastSeeEnemy);
+
+				const Vector vVelocity = pClient->getVelocity();
 
 			pSchedule->addTask(pFindPath);
 			pSchedule->addTask(new CFindLastEnemy(m_vLastSeeEnemy,vVelocity));
@@ -3713,11 +3709,8 @@ void CBots::kickRandomBotOnTeam(const int team)
 	}
 
 	const std::size_t botListSize = botList.size(); // Use std::size_t for size
-
-	if (botListSize > 0) {
-		const int index = randomInt(0, static_cast<int>(botListSize) - 1);
-		snprintf(szCommand, sizeof(szCommand), "kickid %d\n", botList[static_cast<std::size_t>(index)]);
-	}
+	const int index = randomInt(0, static_cast<int>(botListSize) - 1);
+	snprintf(szCommand, sizeof(szCommand), "kickid %d\n", botList[static_cast<std::size_t>(index)]);
 
 	m_flAddKickBotTime = engine->Time() + 2.0f;
 

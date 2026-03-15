@@ -699,13 +699,12 @@ CBotFollowLastEnemy::CBotFollowLastEnemy(CBot* pBot, edict_t* pEnemy, const Vect
 
 	if (CClassInterface::getVelocity(pEnemy, &vVelocity))
 	{
-		if (pClient && vVelocity == Vector(0, 0, 0))
+		if (vVelocity == Vector(0, 0, 0))
 			vVelocity = pClient->getVelocity();
 	}
 	else
 	{
-		if (pClient)
-			vVelocity = pClient->getVelocity();
+		vVelocity = pClient->getVelocity();
 	}
 	pFindPath->setCompleteInterrupt(CONDITION_SEE_CUR_ENEMY);
 

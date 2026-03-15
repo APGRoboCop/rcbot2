@@ -1522,7 +1522,7 @@ void CDODBot::hearVoiceCommand(edict_t* pPlayer, byte voiceCmd)
 						Vector vGoal = pWaypointAtFlag->getOrigin();
 
 						snipetask = new CBotDODSnipe(pWeapon, pWaypoint->getOrigin(), pWaypoint->getAimYaw(),
-													 iFlagID != -1, vGoal.z + 48, pWaypoint->getFlags());
+													 true, vGoal.z + 48, pWaypoint->getFlags());
 
 						removeCondition(CONDITION_PUSH);
 						findpath->setCompleteInterrupt(CONDITION_PUSH);
@@ -2547,9 +2547,6 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 			attack->addTask(new CBotDODBomb(iBombType,id,pBombTarget,vGoal,-1));
 			// add defend task
 			m_pSchedules->add(attack);
-
-			if ( iBombType == DOD_BOMB_DEFUSE ) 
-				updateCondition(CONDITION_RUN);
 
 			removeCondition(CONDITION_PUSH);
 			

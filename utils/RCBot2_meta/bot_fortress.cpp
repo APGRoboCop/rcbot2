@@ -934,6 +934,8 @@ void CBotTF2 :: buildingDestroyed ( int iType, edict_t *pAttacker, edict_t *pEdi
 			m_bTeleportExitVectorValid = false;
 			m_iTeleExitArea = 0;
 			break;
+		default:
+			break;
 	}
 
 	m_pSchedules->freeMemory();
@@ -1991,9 +1993,8 @@ void CBotTF2 :: engineerBuild (const eEngiBuild iBuilding, const eEngiCmd iEngiC
 			//m_pTeleExit = NULL;
 			helpers->ClientCommand(m_pEdict,"build 1 1");
 			break;
-		//default:
-			//return;
-			//break;
+		default:
+			break;
 		}
 	}
 	else
@@ -2026,9 +2027,8 @@ void CBotTF2 :: engineerBuild (const eEngiBuild iBuilding, const eEngiCmd iEngiC
 			m_iTeleExitArea = 0;
 			helpers->ClientCommand(m_pEdict,"destroy 1 1");
 			break;
-		//default:
-			//return;
-			//break;
+		default:
+			break;
 		}
 	}
 
@@ -2496,20 +2496,16 @@ bool CBotTF2 :: hasEngineerBuilt (const eEngiBuild iBuilding)
 	switch ( iBuilding )
 	{
 	case ENGI_SENTRY:
-		return m_pSentryGun!= nullptr; // TODO
-		//break;
+		return m_pSentryGun!= nullptr;
 	case ENGI_DISP:
-		return m_pDispenser!= nullptr; // TODO
-		//break;
+		return m_pDispenser!= nullptr;
 	case ENGI_ENTRANCE:
-		return m_pTeleEntrance!= nullptr; // TODO
-		//break;
+		return m_pTeleEntrance!= nullptr;
 	case ENGI_EXIT:
-		return m_pTeleExit!= nullptr; // TODO
-		//break;
-	}	
-
-	return false;
+		return m_pTeleExit!= nullptr;
+	default:
+		return false;
+	}
 }
 
 // ENEMY Flag dropped
@@ -5021,7 +5017,7 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 
 	if ( m_iClass==TF_CLASS_SPY )
 	{
-		ADD_UTILITY(BOT_UTIL_BACKSTAB,!hasFlag() && (!m_pNearestEnemySentry || (CTeamFortress2Mod::isSentrySapped(m_pNearestEnemySentry))) && (m_fBackstabTime<engine->Time()) && (m_iClass==TF_CLASS_SPY) && 
+		ADD_UTILITY(BOT_UTIL_BACKSTAB,!hasFlag() && (!m_pNearestEnemySentry || (CTeamFortress2Mod::isSentrySapped(m_pNearestEnemySentry))) && (m_fBackstabTime<engine->Time()) && 
 		((m_pEnemy&& CBotGlobals::isAlivePlayer(m_pEnemy))|| 
 		(m_pLastEnemy&& CBotGlobals::isAlivePlayer(m_pLastEnemy))),
 		fGetFlagUtility+(getHealthPercent()/10))
@@ -5180,8 +5176,7 @@ void CBotTF2 :: getTasks ( unsigned iIgnore )
 	
 	if ((m_iClass == TF_CLASS_DEMOMAN) && (m_iTrapType == TF_TRAP_TYPE_NONE) && canDeployStickies())
 	{
-		ADD_UTILITY(BOT_UTIL_DEMO_STICKYTRAP_LASTENEMY, m_pLastEnemy &&
-			(m_iTrapType == TF_TRAP_TYPE_NONE),
+		ADD_UTILITY(BOT_UTIL_DEMO_STICKYTRAP_LASTENEMY, m_pLastEnemy != nullptr,
 			randomFloat(std::min(fDefendFlagUtility, fGetFlagUtility), std::max(fDefendFlagUtility, fGetFlagUtility)))
 
 		ADD_UTILITY(BOT_UTIL_DEMO_STICKYTRAP_FLAG,
@@ -8012,12 +8007,9 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 	else if ((CTeamFortress2Mod::isMapType(TF_MAP_PIPEBALL)) && !std::strcmp(pEdict->GetClassName(), "func_physbox") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
 		bValid = true;
-		if (bValid)
-		{
-			m_pSchedules->freeMemory();
-			setMoveTo(CBotGlobals::entityOrigin(pEdict));
-			setLookAtTask(LOOK_EDICT);
-		}
+		m_pSchedules->freeMemory();
+		setMoveTo(CBotGlobals::entityOrigin(pEdict));
+		setLookAtTask(LOOK_EDICT);
 	}
 	else if ((std::strncmp(szmapname, "ctf_pressure", 12) == 0) && !std::strcmp(pEdict->GetClassName(), "generic_actor") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
@@ -8026,30 +8018,21 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 	else if ((CTeamFortress2Mod::isMapType(TF_MAP_CTF) || CTeamFortress2Mod::isMapType(TF_MAP_RD)) && !std::strcmp(pEdict->GetClassName(), "item_bonuspack") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
 		bValid = false;
-		if (!bValid)
-		{
-			m_pSchedules->freeMemory();
-			setMoveTo(CBotGlobals::entityOrigin(pEdict));
-			setLookAtTask(LOOK_EDICT);
-		}
+		m_pSchedules->freeMemory();
+		setMoveTo(CBotGlobals::entityOrigin(pEdict));
+		setLookAtTask(LOOK_EDICT);
 	}
 	else if ((std::strncmp(szmapname, "slendytubbies", 13) == 0) && !std::strcmp(pEdict->GetClassName(), "tf_bonus_duck_pickup") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
 		bValid = true;
-		if (bValid)
-		{
-			m_pSchedules->freeMemory();
-			setMoveTo(CBotGlobals::entityOrigin(pEdict));
-			setLookAtTask(LOOK_EDICT);
-		}
+		m_pSchedules->freeMemory();
+		setMoveTo(CBotGlobals::entityOrigin(pEdict));
+		setLookAtTask(LOOK_EDICT);
 	}
 	else if ((std::strncmp(szmapname, "slendytubbies", 13) == 0) && !std::strcmp(pEdict->GetClassName(), "base_boss") && (CClassInterface::getTeam(pEdict) != m_iTeam))
 	{
 		bValid = true;
-		if (bValid)
-		{
-			m_fAvoidTime = engine->Time() + 9999.0f;
-		}
+		m_fAvoidTime = engine->Time() + 9999.0f;
 	}
 	else if (CTeamFortress2Mod::isBoss(pEdict))
 	{
