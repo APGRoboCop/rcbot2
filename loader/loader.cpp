@@ -91,8 +91,33 @@ constexpr int METAMOD_API_MAJOR = 2;
 
 HINSTANCE g_hCore = nullptr;
 bool load_attempted = false;
+char g_szLogPath[512] = {0};
 
 std::size_t UTIL_Format(char *buffer, std::size_t maxlength, const char *fmt, ...);
+
+static void LogToFile(const char* fmt, ...)
+{
+	FILE* fp = nullptr;
+	if (g_szLogPath[0])
+		fp = std::fopen(g_szLogPath, "a");
+	if (!fp)
+		fp = stderr;
+
+	// Buffer for formatted output
+	constexpr size_t BUFFER_SIZE = 1024;
+	char buffer[BUFFER_SIZE];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buffer, BUFFER_SIZE, fmt, ap);
+	va_end(ap);
+
+	// Write the formatted string to the file
+	std::fputs(buffer, fp);
+
+	if (fp != stderr)
+		std::fclose(fp);
+}
 
 class FailPlugin : public SourceMM::ISmmFailPlugin
 {
@@ -135,8 +160,10 @@ std::size_t UTIL_Format(char *buffer, const std::size_t maxlength, const char *f
 METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 {
 	METAMOD_FN_ORIG_LOAD fn;
-	METAMOD_PLUGIN* pl = nullptr; // Declare and initialize `pl` at the top [APG]RoboCop[CL]
+	METAMOD_PLUGIN* pl; // Declare and initialize `pl` at the top [APG]RoboCop[CL]
 	int ret;
+
+	LogToFile( "[RCBot2] Loader: opening library: %s\n", path);
 
 	if (!((g_hCore = openlib(path))))
 	{
@@ -154,6 +181,7 @@ METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 		}
 #endif
 
+		LogToFile( "[RCBot2] Loader: FAILED to open: %s\n", s_FailPlugin.error_buffer);
 		s_FailPlugin.fail_version = fail_api;
 
 		return reinterpret_cast<METAMOD_PLUGIN*>(&s_FailPlugin);
@@ -163,6 +191,7 @@ METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 	{
 		UTIL_Format(s_FailPlugin.error_buffer, sizeof(s_FailPlugin.error_buffer),
 			"Could not find CreateInterface in: %s", path);
+		LogToFile( "[RCBot2] Loader: %s\n", s_FailPlugin.error_buffer);
 		closelib(g_hCore);
 		g_hCore = nullptr;
 		s_FailPlugin.fail_version = fail_api;
@@ -175,6 +204,7 @@ METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 	{
 		UTIL_Format(s_FailPlugin.error_buffer, sizeof(s_FailPlugin.error_buffer),
 			"CreateInterface returned null for %s in: %s", METAMOD_PLAPI_NAME, path);
+		LogToFile( "[RCBot2] Loader: %s\n", s_FailPlugin.error_buffer);
 		closelib(g_hCore);
 		g_hCore = nullptr;
 		s_FailPlugin.fail_version = fail_api;
@@ -187,9 +217,30 @@ METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 
 DLL_EXPORT METAMOD_PLUGIN* CreateInterface_MMS(const MetamodVersionInfo* mvi, const MetamodLoaderInfo* mli)
 {
-	const char* filename = nullptr;
+	const char* filename;
 
 	load_attempted = true;
+
+	// Set up file-based log path in the rcbot2/ folder (parent of bin/) - [APG]RoboCop[CL]
+	if (mli->pl_path && mli->pl_path[0])
+	{
+		char parentPath[512];
+		UTIL_Format(parentPath, sizeof(parentPath), "%s", mli->pl_path);
+		char* pLastSep = nullptr;
+		for (char* p = parentPath; *p; p++)
+		{
+			if (*p == '/' || *p == '\\')
+				pLastSep = p;
+		}
+		if (pLastSep)
+			*(pLastSep + 1) = '\0';
+		else
+			UTIL_Format(parentPath, sizeof(parentPath), "%s" PATH_SEP_CHAR, mli->pl_path);
+		UTIL_Format(g_szLogPath, sizeof(g_szLogPath), "%srcbot2_loader.log", parentPath);
+	}
+
+	LogToFile( "[RCBot2] Loader: source_engine=%d, api_major=%d, pl_path=%s\n",
+		mvi->source_engine, mvi->api_major, mli->pl_path ? mli->pl_path : "(null)");
 
 	if (mvi->api_major > METAMOD_API_MAJOR)
 	{
@@ -288,6 +339,7 @@ DLL_EXPORT METAMOD_PLUGIN* CreateInterface_MMS(const MetamodVersionInfo* mvi, co
 		case SOURCE_ENGINE_SDK2013:
 		{
 			const char* gamedir = mvi->GetGameDir();
+			LogToFile( "[RCBot2] Loader: SDK2013 gamedir=%s\n", gamedir ? gamedir : "(null)");
 			if (gamedir == nullptr)
 			{
 				UTIL_Format(s_FailPlugin.error_buffer, sizeof(s_FailPlugin.error_buffer),
@@ -373,6 +425,7 @@ DLL_EXPORT METAMOD_PLUGIN* CreateInterface_MMS(const MetamodVersionInfo* mvi, co
 		{
 			UTIL_Format(s_FailPlugin.error_buffer, sizeof(s_FailPlugin.error_buffer),
 			"Unknown source engine id: %d", mvi->source_engine);
+			LogToFile( "[RCBot2] Loader: %s\n", s_FailPlugin.error_buffer);
 			s_FailPlugin.fail_version = METAMOD_FAIL_API_V2;
 			return reinterpret_cast<METAMOD_PLUGIN*>(&s_FailPlugin);
 		}
@@ -380,6 +433,8 @@ DLL_EXPORT METAMOD_PLUGIN* CreateInterface_MMS(const MetamodVersionInfo* mvi, co
 
 	char abspath[256];
 	UTIL_Format(abspath, sizeof(abspath), "%s" PATH_SEP_CHAR "%s", mli->pl_path, filename);
+
+	LogToFile( "[RCBot2] Loader: resolved filename=%s, full path=%s\n", filename, abspath);
 
 	return _GetPluginPtr(abspath, METAMOD_FAIL_API_V2);
 }

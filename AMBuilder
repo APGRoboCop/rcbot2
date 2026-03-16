@@ -64,6 +64,7 @@ sourceFiles = [
 ]
 
 include_paths = [
+  os.path.join(builder.currentSourcePath, 'compat'), # Compatibility Wrapper added for debug builds - [APG]RoboCop[CL]
   os.path.join(builder.currentSourcePath, 'utils', 'RCBot2_meta'),
 ]
 

@@ -484,6 +484,8 @@
     <ClCompile Include="bot_plugin_meta.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\compat\cbase.h" />
+    <ClInclude Include="..\..\compat\typeinfo.h" />
     <ClInclude Include="..\..\rcbot\entprops.h" />
     <ClInclude Include="..\..\rcbot\helper.h" />
     <ClInclude Include="..\..\rcbot\logging.h" />

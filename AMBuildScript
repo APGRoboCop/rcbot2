@@ -1,9 +1,11 @@
 import os, sys
 
 # Force GCC on Linux for legacy support - [APG]RoboCop[CL]
-#if sys.platform.startswith('linux'):
-#    os.environ['CC'] = 'gcc'
-#    os.environ['CXX'] = 'g++'
+# Clang is stricter than GCC about non-const reference to bit-fields
+# (e.g. hl2sdk-dods/public/tier1/utlblockmemory.h V_swap calls).
+if sys.platform.startswith('linux'):
+    os.environ['CC'] = 'gcc'
+    os.environ['CXX'] = 'g++'
 
 def ResolveEnvPath(env, folder):
   if env in os.environ:
@@ -119,6 +121,9 @@ class MMSConfig(object):
       if cxx.family == 'gcc':
         cxx.cflags += ['-mfpmath=sse']
         cxx.cxxflags += ['-Wno-class-memaccess']
+        cxx.cxxflags += ['-Wno-template-id-cdtor']
+        cxx.cxxflags += ['-Wno-nonnull-compare']
+        cxx.cxxflags += ['-Wno-ignored-attributes']
       if cxx.family == 'clang':
         cxx.cxxflags += ['-Wno-implicit-exception-spec-mismatch']
         if cxx.version >= 'clang-3.9' or cxx.version >= 'apple-clang-10.0':
@@ -142,11 +147,11 @@ class MMSConfig(object):
         ]
 
     elif cxx.like('msvc'):
-      if builder.options.debug == '1':
-        cxx.cflags += ['/MTd']
-        cxx.linkflags += ['/NODEFAULTLIB:libcmt']
-      else:
-        cxx.cflags += ['/MT']
+      # Always use /MT (release CRT) even in debug builds, because the
+      # prebuilt HL2SDK tier1/mathlib libraries are compiled with /MT.
+      # Using /MTd causes LNK2038 RuntimeLibrary and _ITERATOR_DEBUG_LEVEL
+      # mismatches at link time. [APG]RoboCop[CL]
+      cxx.cflags += ['/MT']
       cxx.defines += [
         '_CRT_SECURE_NO_DEPRECATE',
         '_CRT_SECURE_NO_WARNINGS',
@@ -185,11 +190,15 @@ class MMSConfig(object):
 
     # Debugging
     if builder.options.debug:
-      cxx.defines += ['DEBUG', '_DEBUG']
+      cxx.defines += ['DEBUG']
       if cxx.behavior == 'gcc':
+        cxx.defines += ['_DEBUG']
         cxx.cflags += ['-g3']
       elif cxx.behavior == 'msvc':
-        cxx.cflags += ['/Od', '/RTC1']
+        # Use /Od (no optimization) + /RTC1 (runtime checks) + /Z7 (debug info)
+        # but do NOT define _DEBUG on MSVC, as it triggers _ITERATOR_DEBUG_LEVEL=2
+        # which is incompatible with the prebuilt HL2SDK release libraries. [APG]RoboCop[CL]
+        cxx.cflags += ['/Od', '/RTC1', '/Z7']
 
     # Don't omit the frame pointer.
     # This needs to be after our optimization flags which could otherwise disable it.
