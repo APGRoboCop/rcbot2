@@ -1784,6 +1784,7 @@ void CBot::debugBot(char* msg, const std::size_t msgSize)
 	//int iBit = 0;
 
 	szConditions[0] = 0; // initialize string
+
 	for (std::size_t iCond = 0; iCond < NUM_CONDITIONS; iCond++)
 	{
 		if (m_iConditions[iCond])
@@ -1805,23 +1806,25 @@ void CBot::debugBot(char* msg, const std::size_t msgSize)
 
 	if (iEnemyID > 0 && iEnemyID <= gpGlobals->maxClients)
 		p = playerinfomanager->GetPlayerInfo(pEnemy);
+	
 	if (hastask)
 		pCurrentTask->debugString(task_string, {});
 
 	const bool hasNextPoint = m_pNavigator->hasNextPoint();
 	const int currentWaypointID = hasNextPoint ? m_pNavigator->getCurrentWaypointID() : -1;
 	const int currentGoalID = hasNextPoint ? m_pNavigator->getCurrentGoalID() : -1;
+
 	snprintf(msg, msgSize,
 		"Debugging bot: %s\n \
-             Current Util: %s \n \
-             Current Schedule: %s\n \
-             Current Task: {%s}\n \
-             Look Task:%s\n \
-             Current Waypoint:%d\n \
-             Current Goal: %d\n \
-             Danger: %0.2f pc\n \
-             Enemy: %s (name = '%s')\n \
-             ---CONDITIONS---\n%s",
+		Current Util: %s \n \
+		Current Schedule: %s\n \
+		Current Task: {%s}\n \
+		Look Task:%s\n \
+		Current Waypoint:%d\n \
+		Current Goal: %d\n \
+		Danger: %0.2f pc\n \
+		Enemy: %s (name = '%s')\n \
+		---CONDITIONS---\n%s",
 		m_szBotName,
 		m_CurrentUtil < BOT_UTIL_MAX + 1 ? g_szUtils[m_CurrentUtil] : "none",
 		!m_pSchedules || m_pSchedules->isEmpty() ? "none" : m_pSchedules->getCurrentSchedule()->getIDString(),

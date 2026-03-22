@@ -400,7 +400,7 @@ void CClient :: think ()
 				vDisplay = vDisplay - vLeft*300.0f;
 
 				// get debug message
-				pBot->debugBot(msg);
+				pBot->debugBot(msg, sizeof(msg));
 
 #ifndef __linux__
 				int i = 0; 
