@@ -1775,19 +1775,18 @@ bool CBot :: isFacing (const Vector& vOrigin) const
 	return DotProductFromOrigin(vOrigin) > 0.97f;
 }
 
-void CBot ::debugBot(char *msg)
+void CBot::debugBot(char* msg, const std::size_t msgSize)
 {
-	CBotTask *pCurrentTask = m_pSchedules ? m_pSchedules->getCurrentTask() : nullptr;
+	CBotTask* pCurrentTask = m_pSchedules ? m_pSchedules->getCurrentTask() : nullptr;
 	const bool hastask = pCurrentTask != nullptr;
 
 	char szConditions[512];
 	//int iBit = 0;
 
-	szConditions[0] = 0; // initialise string
-
+	szConditions[0] = 0; // initialize string
 	for (std::size_t iCond = 0; iCond < NUM_CONDITIONS; iCond++)
 	{
-		if ( m_iConditions[iCond] )
+		if (m_iConditions[iCond])
 		{
 			std::strcat(szConditions, pszConditionsDebugStrings[iCond]);
 			std::strcat(szConditions, "\n");
@@ -1796,35 +1795,33 @@ void CBot ::debugBot(char *msg)
 
 	char task_string[256];
 
-	extern const char *g_szUtils[BOT_UTIL_MAX+1]; //Redundant? [APG]RoboCopCL]
+	extern const char* g_szUtils[BOT_UTIL_MAX + 1]; // Redundant? [APG]RoboCopCL]
 
-	edict_t *pEnemy = m_pEnemy.get();
+	edict_t* pEnemy = m_pEnemy.get();
 
-	IPlayerInfo *p = nullptr;
+	IPlayerInfo* p = nullptr;
 
 	const int iEnemyID = ENTINDEX(pEnemy);
 
-	if ( iEnemyID > 0 && iEnemyID <= gpGlobals->maxClients )
+	if (iEnemyID > 0 && iEnemyID <= gpGlobals->maxClients)
 		p = playerinfomanager->GetPlayerInfo(pEnemy);
-
-	if ( hastask )
+	if (hastask)
 		pCurrentTask->debugString(task_string, {});
 
 	const bool hasNextPoint = m_pNavigator->hasNextPoint();
 	const int currentWaypointID = hasNextPoint ? m_pNavigator->getCurrentWaypointID() : -1;
 	const int currentGoalID = hasNextPoint ? m_pNavigator->getCurrentGoalID() : -1;
-
-	snprintf(msg, sizeof(msg),
+	snprintf(msg, msgSize,
 		"Debugging bot: %s\n \
-		Current Util: %s \n \
-		Current Schedule: %s\n \
-		Current Task: {%s}\n \
-		Look Task:%s\n \
-		Current Waypoint:%d\n \
-		Current Goal: %d\n \
-		Danger: %0.2f pc\n \
-		Enemy: %s (name = '%s')\n \
-		---CONDITIONS---\n%s",
+             Current Util: %s \n \
+             Current Schedule: %s\n \
+             Current Task: {%s}\n \
+             Look Task:%s\n \
+             Current Waypoint:%d\n \
+             Current Goal: %d\n \
+             Danger: %0.2f pc\n \
+             Enemy: %s (name = '%s')\n \
+             ---CONDITIONS---\n%s",
 		m_szBotName,
 		m_CurrentUtil < BOT_UTIL_MAX + 1 ? g_szUtils[m_CurrentUtil] : "none",
 		!m_pSchedules || m_pSchedules->isEmpty() ? "none" : m_pSchedules->getCurrentSchedule()->getIDString(),
@@ -1835,8 +1832,7 @@ void CBot ::debugBot(char *msg)
 		m_fCurrentDanger / MAX_BELIEF * 100,
 		pEnemy != nullptr ? pEnemy->GetClassName() : "none",
 		p != nullptr ? p->GetName() : "none",
-		szConditions
-	);
+		szConditions);
 }
 
 int CBot :: nearbyFriendlies (const float fDistance)

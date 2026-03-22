@@ -770,7 +770,7 @@ public:
 
 	virtual bool overrideAmmoTypes () { return true; }
 
-	virtual void debugBot ( char *msg );
+	virtual void debugBot ( char *msg, std::size_t msgSize );
 
 	virtual bool walkingTowardsWaypoint ( CWaypoint *pWaypoint, bool *bOffsetApplied, Vector &vOffset );
 
