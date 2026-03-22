@@ -197,7 +197,7 @@ CBotProfile* CBotProfiles::getRandomFreeProfile()
 // return first unused bot, concidering teams if they're unequal
 CBotProfile* CBotProfiles::getChosenFreeProfile()
 {
-	int team = 0;
+	int team;
 	const int teamA = CBotGlobals::numPlayersOnTeam(2,false);
 	const int teamB = CBotGlobals::numPlayersOnTeam(3,false);
 

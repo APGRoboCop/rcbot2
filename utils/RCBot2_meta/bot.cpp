@@ -1814,7 +1814,8 @@ void CBot ::debugBot(char *msg)
 	const int currentWaypointID = hasNextPoint ? m_pNavigator->getCurrentWaypointID() : -1;
 	const int currentGoalID = hasNextPoint ? m_pNavigator->getCurrentGoalID() : -1;
 
-	std::sprintf(msg, "Debugging bot: %s\n \
+	snprintf(msg, sizeof(msg),
+		"Debugging bot: %s\n \
 		Current Util: %s \n \
 		Current Schedule: %s\n \
 		Current Task: {%s}\n \
@@ -3557,19 +3558,19 @@ bool CBots :: needToKickBot ()
 
 void CBots :: kickChosenBot (const unsigned count)
 {
-        std::vector<CBot*> botList;
-        //gather list of bots
-        for ( unsigned i = 0; i < RCBOT_MAXPLAYERS; i ++ )
-        {
+		std::vector<CBot*> botList;
+		//gather list of bots
+		for ( unsigned i = 0; i < RCBOT_MAXPLAYERS; i ++ )
+		{
 		if ( m_Bots[i]->inUse() )
 			botList.emplace_back(m_Bots[i]);
-        }
+		}
 
-        if ( botList.empty() )
-        {
-                logger->Log(LogLevel::DEBUG, "kickChosenBot() : No bots to kick");
-                return;
-        }
+		if ( botList.empty() )
+		{
+				logger->Log(LogLevel::DEBUG, "kickChosenBot() : No bots to kick");
+				return;
+		}
 
 	int team;
 	int teamA = CBotGlobals::numPlayersOnTeam(2,false);
