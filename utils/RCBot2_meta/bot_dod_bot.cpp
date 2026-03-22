@@ -495,7 +495,7 @@ void CDODBot :: seeFriendlyDie ( edict_t *pDied, edict_t *pKiller, CWeapon *pWea
 
 				if ((iCurrentWaypoint != -1) && (iEnemyWaypoint != -1) && !pTable->GetVisibilityFromTo(iCurrentWaypoint, iEnemyWaypoint))
 				{
-					int killerID = ENTINDEX(pKiller); // Convert edict_t* to an integer ID [APG]RoboCop[CL]
+					const int killerID = ENTINDEX(pKiller); // Convert edict_t* to an integer ID [APG]RoboCop[CL]
 
 					ADD_UTILITY_DATA_VECTOR(BOT_UTIL_COVER_POINT, m_pCurrentWeapon != nullptr, 0.8f, killerID, vecEnemy)
 				}

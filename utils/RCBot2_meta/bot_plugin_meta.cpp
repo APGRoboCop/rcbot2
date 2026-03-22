@@ -178,7 +178,7 @@ public:
 		std::fill(std::begin(m_iPlayerSlot), std::end(m_iPlayerSlot), -1);
 
 		for (int i = 0; i < RCBOT_MAXPLAYERS; ++i) {
-			CClient* client = CClients::get(i);
+			const CClient* client = CClients::get(i);
 
 			if (client->isUsed()) {
 				IPlayerInfo* p = playerinfomanager->GetPlayerInfo(client->getPlayer());

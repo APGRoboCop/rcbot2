@@ -292,7 +292,7 @@ public:
 
 		if ( m_data )
 		{
-			float* x = static_cast<float*>(m_data);
+			const float* x = static_cast<float*>(m_data);
 			*v = Vector(*x, *(x + 1), *(x + 2));
 
 			return true;

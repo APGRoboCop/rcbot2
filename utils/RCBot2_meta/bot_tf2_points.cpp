@@ -790,7 +790,7 @@ bool CTFObjectiveResource :: updateAttackPoints (const int team)
 	std::memset(arr,0,sizeof(TF2PointProb_t)*MAX_CONTROL_POINTS);
 	std::memset(arr->iPrev,0xFF,sizeof(int)*MAX_PREVIOUS_POINTS);
 
-	if ( team == TF2_TEAM_RED && (CTeamFortress2Mod::isAttackDefendMap() && !(std::strncmp(szmapname, "cp_graygravel_b2", 16) == 0)))
+	if ( team == TF2_TEAM_RED && (CTeamFortress2Mod::isAttackDefendMap() && std::strncmp(szmapname, "cp_graygravel_b2", 16) != 0))
 	{
 		if (team == TF2_TEAM_RED && std::strncmp(szmapname, "cp_graygravel_b2", 16) == 0)
 		{

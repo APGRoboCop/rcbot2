@@ -2739,7 +2739,7 @@ CWaypoint* CWaypoints::randomWaypointGoalNearestArea(const int iFlags, const int
 		else
 		{
 			// Ensure the index is of type std::size_t
-			std::size_t randomIndex = static_cast<std::size_t>(randomInt(0, static_cast<int>(goals.size()) - 1));
+			const std::size_t randomIndex = static_cast<std::size_t>(randomInt(0, static_cast<int>(goals.size()) - 1));
 			pWpt = CWaypoints::getWaypoint(goals[randomIndex]->getWaypoint());
 		}
 		//pWpt = goals.Random();

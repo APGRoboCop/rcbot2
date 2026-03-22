@@ -2118,7 +2118,7 @@ void CBotTF2::MvM_Update()
 				// at this point we know the player is a human and is on RED team
 				num_players++; // increase player count
 
-				char ready[] = "m_bPlayerReady";
+				constexpr char ready[] = "m_bPlayerReady";
 				if (entprops->GameRules_GetProp(ready, 4, i) != 0)
 					num_ready++;
 			}
@@ -2138,7 +2138,7 @@ bool CBotTF2::MvM_IsReady() const
 {
 	if (CTeamFortress2Mod::isMapType(TF_MAP_MVM))
 	{
-		char ready[] = "m_bPlayerReady";
+		constexpr char ready[] = "m_bPlayerReady";
 		return entprops->GameRules_GetProp(ready, 4, engine->IndexOfEdict(getEdict())) == 1;
 	}
 	return false;
@@ -4398,7 +4398,7 @@ float CBotTF2 :: getEnemyFactor ( edict_t *pEnemy )
 
 		if ( CTeamFortress2Mod::isSentry(pEnemy,CTeamFortress2Mod::getEnemyTeam(getTeam())) )
 		{
-			edict_t *pOwner = CTeamFortress2Mod::getBuildingOwner(ENGI_SENTRY,ENTINDEX(pEnemy));
+			const edict_t *pOwner = CTeamFortress2Mod::getBuildingOwner(ENGI_SENTRY,ENTINDEX(pEnemy));
 
 			if ( pOwner && isVisible(pOwner) )
 			{
@@ -6987,7 +6987,7 @@ void CBotTF2::modAim(edict_t* pEntity, Vector& v_origin, Vector* v_desired_offse
 			// time = distance/speed
 
 			const bool bIsGrenade = pWepInfo->isGrenade();
-			float fProjectileSpeed = pWepInfo->getProjectileSpeed();
+			const float fProjectileSpeed = pWepInfo->getProjectileSpeed();
 
 			if (fProjectileSpeed > 0.0f)
 			{

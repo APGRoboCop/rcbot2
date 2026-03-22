@@ -115,8 +115,8 @@ bool CSignatureFunction::getLibraryInfo(const void *libPtr, DynLibInfo &lib)
 
 	// All this is for our insane sanity checks :o 
 	const IMAGE_DOS_HEADER* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(baseAddr);
-	IMAGE_NT_HEADERS* pe = reinterpret_cast<IMAGE_NT_HEADERS*>(baseAddr + static_cast<std::uintptr_t>(dos->e_lfanew));
-	IMAGE_FILE_HEADER* file = &pe->FileHeader;
+	const IMAGE_NT_HEADERS* pe = reinterpret_cast<IMAGE_NT_HEADERS*>(baseAddr + static_cast<std::uintptr_t>(dos->e_lfanew));
+	const IMAGE_FILE_HEADER* file = &pe->FileHeader;
 	const IMAGE_OPTIONAL_HEADER* opt = &pe->OptionalHeader;
 
 	// Check PE magic and signature 

@@ -3217,7 +3217,7 @@ int CBots::createDefaultBot(const char* szName) {
 	CBotProfile* pBotProfile = new CBotProfile(*CBotProfiles::getDefaultProfile());
 	pBotProfile->m_szName = CStrings::getString(szName);
 
-	int slotInt = slotOfEdict(pEdict); // Get the slot as an int
+	const int slotInt = slotOfEdict(pEdict); // Get the slot as an int
 
 	if (slotInt < 0) {
 		// Handle invalid slot case
@@ -3674,8 +3674,8 @@ void CBots::kickChosenBotOnTeam(const int team)
 		return;
 	}
 
-	CBot* pBot = nullptr;
-	for (CBot* tBot : botList) {
+	const CBot* pBot = nullptr;
+	for (const CBot* tBot : botList) {
 		if ((pBot == nullptr) || ( pBot->getCreateTime() < tBot->getCreateTime() ))
 			pBot = tBot;
 	}

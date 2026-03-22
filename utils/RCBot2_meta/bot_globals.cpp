@@ -257,7 +257,7 @@ bool CBotGlobals::dirExists(const char *path)
 
 void CBotGlobals::readRCBotFolder()
 {
-	std::unique_ptr<KeyValues, void(*)(KeyValues*)> mainkv(new KeyValues("Metamod Plugin"), [](KeyValues* kv) { kv->deleteThis(); });
+	const std::unique_ptr<KeyValues, void(*)(KeyValues*)> mainkv(new KeyValues("Metamod Plugin"), [](KeyValues* kv) { kv->deleteThis(); });
 
 	if (mainkv->LoadFromFile(filesystem, "addons/metamod/rcbot2.vdf", "MOD")) {
 		char folder[256] = "\0";
@@ -856,7 +856,7 @@ bool CBotGlobals :: walkableFromTo (edict_t *pPlayer, const Vector& v_src, const
 					v_norm = v_norm/std::sqrt(v_norm.LengthSqr());
 
 					for (int iDistCheck = 0; static_cast<float>(iDistCheck) * 45 < fDistance; ++iDistCheck) {
-						float fDistCheck = static_cast<float>(iDistCheck) * 45.0f;
+						const float fDistCheck = static_cast<float>(iDistCheck) * 45.0f;
 					
 						Vector v_checkpoint = v_src + v_norm * fDistCheck;
 

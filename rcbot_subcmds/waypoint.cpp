@@ -254,7 +254,7 @@ CBotCommandInline WaypointDrawTypeCommand("drawtype", CMD_ACCESS_WAYPOINT, [](CC
 	{
 		if (args[0] && *args[0])
 		{
-			int drawType = std::atoi(args[0]);
+			const int drawType = std::atoi(args[0]);
 			if (drawType >= 0 && drawType <= std::numeric_limits<unsigned short>::max())
 			{
 				pClient->setDrawType(static_cast<unsigned short>(drawType));

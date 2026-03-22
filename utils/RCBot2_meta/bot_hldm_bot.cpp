@@ -146,7 +146,7 @@ void CHLDMBot :: spawnInit ()
 	m_fUseButtonTime = 0.0f;
 	m_fUseCrateTime = 0.0f;
 
-	ConVarRef hl2_normspeed("hl2_normspeed");
+	const ConVarRef hl2_normspeed("hl2_normspeed");
 
 	if (!hl2_normspeed.IsValid())
 	{

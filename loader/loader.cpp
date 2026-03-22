@@ -91,7 +91,7 @@ constexpr int METAMOD_API_MAJOR = 2;
 
 HINSTANCE g_hCore = nullptr;
 bool load_attempted = false;
-char g_szLogPath[512] = {0};
+char g_szLogPath[512] = {};
 
 std::size_t UTIL_Format(char *buffer, std::size_t maxlength, const char *fmt, ...);
 
@@ -160,7 +160,7 @@ std::size_t UTIL_Format(char *buffer, const std::size_t maxlength, const char *f
 METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 {
 	METAMOD_FN_ORIG_LOAD fn;
-	METAMOD_PLUGIN* pl; // Declare and initialize `pl` at the top [APG]RoboCop[CL]
+	METAMOD_PLUGIN* pl; // Declare `pl` at the top [APG]RoboCop[CL]
 	int ret;
 
 	LogToFile( "[RCBot2] Loader: opening library: %s\n", path);
@@ -170,7 +170,7 @@ METAMOD_PLUGIN* _GetPluginPtr(const char* path, const int fail_api)
 #if defined __linux__ || defined __APPLE__
 		UTIL_Format(s_FailPlugin.error_buffer, sizeof(s_FailPlugin.error_buffer), "%s", dlerror());
 #else
-		DWORD err = GetLastError();
+		const DWORD err = GetLastError();
 
 		if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, err,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), s_FailPlugin.error_buffer,
@@ -347,7 +347,17 @@ DLL_EXPORT METAMOD_PLUGIN* CreateInterface_MMS(const MetamodVersionInfo* mvi, co
 				s_FailPlugin.fail_version = METAMOD_FAIL_API_V2;
 				return reinterpret_cast<METAMOD_PLUGIN*>(&s_FailPlugin);
 			}
-			if (std::strcmp(gamedir, "FortressForever") == 0 || std::strcmp(gamedir, "tf2classified") == 0
+			if (std::strcmp(gamedir, "tf2classified") == 0)
+			{
+				// TF2 Classified uses SDK2013 engine with TF2 gameplay. [APG]RoboCop[CL]
+				// On x86_64 there is no SDK2013 binary...yet, use the TF2 binary instead.
+#if defined(_WIN64) || defined(__x86_64__) || defined(__amd64__)
+				filename = FILENAME_1_6_TF2;
+#else
+				filename = FILENAME_1_6_SDK2013;
+#endif
+			}
+			else if (std::strcmp(gamedir, "FortressForever") == 0
 				 || std::strcmp(gamedir, "synergy") == 0)
 			{
 				filename = FILENAME_1_6_SDK2013;

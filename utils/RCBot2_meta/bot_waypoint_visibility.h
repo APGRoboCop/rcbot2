@@ -135,10 +135,10 @@ public:
 
 	void SetVisibilityFromTo(const int iFrom, const int iTo, const bool bVisible) const
 	{
-		int iPosition = (iFrom * CWaypoints::MAX_WAYPOINTS) + iTo;
+		const int iPosition = (iFrom * CWaypoints::MAX_WAYPOINTS) + iTo;
 
-		int iByte = iPosition / 8;
-		int iBit = iPosition % 8;
+		const int iByte = iPosition / 8;
+		const int iBit = iPosition % 8;
 
 		if (iByte < g_iMaxVisibilityByte)
 		{

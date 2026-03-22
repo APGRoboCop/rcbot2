@@ -198,8 +198,8 @@ CBotProfile* CBotProfiles::getRandomFreeProfile()
 CBotProfile* CBotProfiles::getChosenFreeProfile()
 {
 	int team = 0;
-	int teamA = CBotGlobals::numPlayersOnTeam(2,false);
-	int teamB = CBotGlobals::numPlayersOnTeam(3,false);
+	const int teamA = CBotGlobals::numPlayersOnTeam(2,false);
+	const int teamB = CBotGlobals::numPlayersOnTeam(3,false);
 
 	if (teamA < teamB) {
 		team = 2;

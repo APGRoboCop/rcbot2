@@ -565,6 +565,7 @@ int *CBotEntProp::GetEntPropPointer(const int entity, const PropType proptype, c
 		if (td->fieldType == FIELD_CUSTOM && (td->flags & FTYPEDESC_OUTPUT) == FTYPEDESC_OUTPUT)
 		{
 			const variant_t* pVariant = reinterpret_cast<variant_t*>(reinterpret_cast<std::intptr_t>(pEntity) + static_cast<std::size_t>(offset));
+			
 			if ((bit_count = MatchTypeDescAsInteger(pVariant->fieldType, 0)) == 0)
 			{
 				logger->Log(LogLevel::ERROR, "Variant value for %s is not an integer (%d)", prop, pVariant->fieldType);
@@ -2647,6 +2648,6 @@ char *CBotEntProp::GameRules_GetPropString(const char *prop, std::size_t *len, c
 
 RoundState CBotEntProp::GameRules_GetRoundState() const
 {
-	char roundState[] = "m_iRoundState";
+	constexpr char roundState[] = "m_iRoundState";
 	return static_cast<RoundState>(GameRules_GetProp(roundState));
 }

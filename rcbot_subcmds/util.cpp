@@ -43,7 +43,7 @@ CBotCommandInline SearchCommand("search", CMD_ACCESS_UTIL, [](const CClient* pCl
 
 			if (pEdict && !pEdict->IsFree() && pEdict->m_pNetworkable && pEdict->GetIServerEntity())
 			{
-				float fDistance = (CBotGlobals::entityOrigin(pEdict) - CBotGlobals::entityOrigin(pPlayer)).Length();
+				const float fDistance = (CBotGlobals::entityOrigin(pEdict) - CBotGlobals::entityOrigin(pPlayer)).Length();
 				if (fDistance < 128)
 				{
 					float fVelocity;

@@ -133,7 +133,7 @@ edict_t* rcbot2utils::GetHandleEdict(const CBaseHandle& handle)
 		return nullptr;
 	}
 
-	int index = handle.GetEntryIndex();
+	const int index = handle.GetEntryIndex();
 	edict_t* pEdict = EdictOfIndex(index);
 
 	if (!IsValidEdict(pEdict))
@@ -141,7 +141,7 @@ edict_t* rcbot2utils::GetHandleEdict(const CBaseHandle& handle)
 		return nullptr;
 	}
 
-	IServerEntity* pServerEntity = pEdict->GetIServerEntity();
+	const IServerEntity* pServerEntity = pEdict->GetIServerEntity();
 
 	if (pServerEntity->GetRefEHandle() != handle)
 	{
@@ -179,7 +179,7 @@ const QAngle& rcbot2utils::GetEntityAngles(CBaseEntity* entity)
 
 Vector rcbot2utils::GetWorldSpaceCenter(edict_t* entity)
 {
-	ICollideable* collider = entity->GetCollideable();
+	const ICollideable* collider = entity->GetCollideable();
 	Vector result = private_utils::GetOBBCenter(collider);
 	result = private_utils::collisionToWorldSpace(result, collider);
 	return result;
@@ -187,7 +187,7 @@ Vector rcbot2utils::GetWorldSpaceCenter(edict_t* entity)
 
 Vector rcbot2utils::GetWorldSpaceCenter(CBaseEntity* entity)
 {
-	ICollideable* collider = reinterpret_cast<IServerEntity*>(entity)->GetCollideable();
+	const ICollideable* collider = reinterpret_cast<IServerEntity*>(entity)->GetCollideable();
 	Vector result = private_utils::GetOBBCenter(collider);
 	result = private_utils::collisionToWorldSpace(result, collider);
 	return result;
