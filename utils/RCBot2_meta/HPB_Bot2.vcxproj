@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -141,7 +141,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN32;_DEBUG;_WINDOWS;HOMEFOLDER;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -189,7 +189,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN64;_DEBUG;_WINDOWS;HOMEFOLDER;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -236,7 +236,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN32;NDEBUG;_WINDOWS;HOMEFOLDER;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -283,7 +283,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN64;NDEBUG;_WINDOWS;HOMEFOLDER;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -327,7 +327,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN32;NDEBUG;_WINDOWS;NOMINMAX;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -378,7 +378,7 @@
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\alliedmodders\hl2sdk-tf2\public\mathlib;..\..\alliedmodders\hl2sdk-tf2\public;..\..\alliedmodders\hl2sdk-tf2\public\engine;..\..\alliedmodders\hl2sdk-tf2\public\tier0;..\..\alliedmodders\hl2sdk-tf2\public\tier1;..\..\alliedmodders\hl2sdk-tf2\game\shared;..\..\alliedmodders\hl2sdk-tf2\game\server;..\..\alliedmodders\hl2sdk-tf2\public\game\server;..\..\alliedmodders\metamod-source\core\;..\..\alliedmodders\metamod-source\core\sourcehook\;..\..\alliedmodders\metamod-source\public\;..\..\alliedmodders\sourcemod\sourcepawn\include;..\..\alliedmodders\sourcemod\public\amtl;..\..\alliedmodders\sourcemod\public\amtl\amtl;..\..\alliedmodders\sourcemod\public\extensions;..\..\alliedmodders\sourcemod\public;..\..\sm_ext\;..\..\rcbot\;..\..\rcbot\tf2;..\..\rcbot_subcmds;..\..\utils\RCBot2_meta;..\..\versioning;..\..\miniz;..\..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SOURCE_ENGINE=11;SE_TF2=11;WIN64;NDEBUG;_WINDOWS;NOMINMAX;_CRT_SECURE_NO_WARNINGS;RCBOT_MAXPLAYERS=101;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -440,6 +440,7 @@
     <ClCompile Include="bot_buttons.cpp" />
     <ClCompile Include="bot_client.cpp" />
     <ClCompile Include="bot_commands.cpp" />
+    <ClCompile Include="bot_compress.cpp" />
     <ClCompile Include="bot_configfile.cpp" />
     <ClCompile Include="bot_coop.cpp" />
     <ClCompile Include="bot_css_bot.cpp" />
@@ -482,6 +483,10 @@
     <ClCompile Include="bot_sigscan.cpp" />
     <ClCompile Include="bot_cvars.cpp" />
     <ClCompile Include="bot_plugin_meta.cpp" />
+    <ClCompile Include="..\..\miniz\miniz.c" />
+    <ClCompile Include="..\..\miniz\miniz_tdef.c" />
+    <ClCompile Include="..\..\miniz\miniz_tinfl.c" />
+    <ClCompile Include="..\..\miniz\miniz_zip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\compat\cbase.h" />
@@ -503,6 +508,7 @@
     <ClInclude Include="bot_buttons.h" />
     <ClInclude Include="bot_client.h" />
     <ClInclude Include="bot_commands.h" />
+    <ClInclude Include="bot_compress.h" />
     <ClInclude Include="bot_configfile.h" />
     <ClInclude Include="bot_const.h" />
     <ClInclude Include="bot_coop.h" />
@@ -551,6 +557,12 @@
     <ClInclude Include="bot_zombie.h" />
     <ClInclude Include="engine_wrappers.h" />
     <ClInclude Include="logging.h" />
+    <ClInclude Include="..\..\miniz\miniz.h" />
+    <ClInclude Include="..\..\miniz\miniz_export.h" />
+    <ClInclude Include="..\..\miniz\miniz_common.h" />
+    <ClInclude Include="..\..\miniz\miniz_tdef.h" />
+    <ClInclude Include="..\..\miniz\miniz_tinfl.h" />
+    <ClInclude Include="..\..\miniz\miniz_zip.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\alliedmodders\hl2sdk-tf2\lib\public\mathlib.lib" />
@@ -558,6 +570,10 @@
     <Library Include="..\..\alliedmodders\hl2sdk-tf2\lib\public\tier1.lib" />
     <Library Include="..\..\alliedmodders\hl2sdk-tf2\lib\public\tier2.lib" />
     <Library Include="..\..\alliedmodders\hl2sdk-tf2\lib\public\vstdlib.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\AMBuilder" />
+    <None Include="..\..\AMBuildScript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

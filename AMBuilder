@@ -10,6 +10,7 @@ sourceFiles = [
   "utils/RCBot2_meta/bot_buttons.cpp",
   "utils/RCBot2_meta/bot_client.cpp",
   "utils/RCBot2_meta/bot_commands.cpp",
+  "utils/RCBot2_meta/bot_compress.cpp",
   "utils/RCBot2_meta/bot_configfile.cpp",
   "utils/RCBot2_meta/bot_coop.cpp",
   "utils/RCBot2_meta/bot_css_bot.cpp",
@@ -61,11 +62,17 @@ sourceFiles = [
   "rcbot/math_fix.cpp",
   "rcbot/utils.cpp",
   "rcbot/tf2/conditions.cpp",
+
+  "miniz/miniz.c",
+  "miniz/miniz_tdef.c",
+  "miniz/miniz_tinfl.c",
+  "miniz/miniz_zip.c",
 ]
 
 include_paths = [
   os.path.join(builder.currentSourcePath, 'compat'), # Compatibility Wrapper added for debug builds - [APG]RoboCop[CL]
   os.path.join(builder.currentSourcePath, 'utils', 'RCBot2_meta'),
+  os.path.join(builder.currentSourcePath, 'miniz'), # For compressing auxillery data (.rcv, rcd, rcb)
 ]
 
 compiler_defines = []

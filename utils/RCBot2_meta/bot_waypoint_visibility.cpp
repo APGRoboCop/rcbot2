@@ -36,6 +36,7 @@
 #include "bot_waypoint.h"
 #include "bot_waypoint_visibility.h"
 #include "bot_globals.h"
+#include "bot_compress.h"
 
 #include <cstdio>
 #include <cstring>
@@ -161,22 +162,32 @@ bool CWaypointVisibilityTable::SaveToFile() const
 
 	CBotGlobals::buildFileName(filename, CBotGlobals::getMapName(), BOT_AUXILERY_FOLDER, BOT_VISIBILITY_EXTENSION, true);
 
-	std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::out | std::fstream::binary);
-
-	if (!bfp)
-	{
-		logger->Log(LogLevel::ERROR, "Can't open Waypoint Visibility table for writing!");
-		return false;
-	}
-
 	header.numwaypoints = CWaypoints::numWaypoints();
 	std::strncpy(header.szMapName, CBotGlobals::getMapName(), 63);
 	header.waypoint_version = CWaypoints::WAYPOINT_VERSION;
 
-	bfp.write(reinterpret_cast<char*>(&header), sizeof(wpt_vis_header_t));
-	bfp.write(reinterpret_cast<char*>(m_VisTable), sizeof(byte) * g_iMaxVisibilityByte);
+	// Build a combined buffer: header + vis table data
+	const std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
+	unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
-	return true;
+	if (!pBuf)
+	{
+		logger->Log(LogLevel::ERROR, "Can't allocate buffer for Waypoint Visibility save!");
+		return false;
+	}
+
+	std::memcpy(pBuf, &header, sizeof(wpt_vis_header_t));
+	std::memcpy(pBuf + sizeof(wpt_vis_header_t), m_VisTable, sizeof(byte) * g_iMaxVisibilityByte);
+
+	CBotGlobals::makeFolders(filename);
+	const bool bResult = RCBot_CompressedSave(filename, pBuf, totalSize);
+
+	std::free(pBuf);
+
+	if (!bResult)
+		logger->Log(LogLevel::ERROR, "Can't save Waypoint Visibility table!");
+
+	return bResult;
 }
 
 bool CWaypointVisibilityTable::ReadFromFile(const int numwaypoints) const
@@ -187,24 +198,33 @@ bool CWaypointVisibilityTable::ReadFromFile(const int numwaypoints) const
 
 	CBotGlobals::buildFileName(filename, CBotGlobals::getMapName(), BOT_AUXILERY_FOLDER, BOT_VISIBILITY_EXTENSION, true);
 
-	std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::in | std::fstream::binary);
+	const std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
+	unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
-	if (!bfp)
+	if (!pBuf)
 	{
-		logger->Log(LogLevel::ERROR, "Can't open Waypoint Visibility table for reading!");
+		logger->Log(LogLevel::ERROR, "Can't allocate buffer for Waypoint Visibility load!");
 		return false;
 	}
 
-	bfp.read(reinterpret_cast<char*>(&header), sizeof(wpt_vis_header_t));
-
-	if (header.numwaypoints != numwaypoints)
+	if (!RCBot_CompressedLoad(filename, pBuf, totalSize))
+	{
+		std::free(pBuf);
 		return false;
-	if (header.waypoint_version != CWaypoints::WAYPOINT_VERSION)
-		return false;
-	if (std::strncmp(header.szMapName, CBotGlobals::getMapName(), 63) != 0)
-		return false;
+	}
 
-	bfp.read(reinterpret_cast<char*>(m_VisTable), sizeof(byte) * g_iMaxVisibilityByte);
+	std::memcpy(&header, pBuf, sizeof(wpt_vis_header_t));
 
+	if (header.numwaypoints != numwaypoints ||
+		header.waypoint_version != CWaypoints::WAYPOINT_VERSION ||
+		std::strncmp(header.szMapName, CBotGlobals::getMapName(), 63) != 0)
+	{
+		std::free(pBuf);
+		return false;
+	}
+
+	std::memcpy(m_VisTable, pBuf + sizeof(wpt_vis_header_t), sizeof(byte) * g_iMaxVisibilityByte);
+
+	std::free(pBuf);
 	return true;
 }

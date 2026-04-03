@@ -5,6 +5,10 @@
 #include "bot_wpt_dist.h"
 #include "bot_globals.h"
 #include "bot_waypoint.h"
+#include "bot_compress.h"
+
+#include <cstdlib>
+#include <cstring>
 
 typedef struct
 {
@@ -26,20 +30,26 @@ void CWaypointDistances::load()
 		char filename[1024];
 		CBotGlobals::buildFileName(filename, szMapName, BOT_AUXILERY_FOLDER, BOT_WAYPOINT_DST_EXTENSION, true);
 
-		std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::in | std::fstream::binary);
+		const std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
+		unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
-		if (!bfp)
+		if (!pBuf)
+			return;
+
+		if (!RCBot_CompressedLoad(filename, pBuf, totalSize))
 		{
-			return; // give up
+			std::free(pBuf);
+			return;
 		}
 
-		bfp.read(reinterpret_cast<char*>(&hdr), sizeof(wpt_dist_hdr_t));
+		std::memcpy(&hdr, pBuf, sizeof(wpt_dist_hdr_t));
 
 		if ((hdr.maxwaypoints == CWaypoints::MAX_WAYPOINTS) && (hdr.numwaypoints == CWaypoints::numWaypoints()) && (hdr.version == WPT_DIST_VER))
 		{
-			bfp.read(reinterpret_cast<char*>(m_Distances), sizeof(m_Distances));
+			std::memcpy(m_Distances, pBuf + sizeof(wpt_dist_hdr_t), sizeof(m_Distances));
 		}
 
+		std::free(pBuf);
 		m_fSaveTime = engine->Time() + 100.0f;
 	}
 }
@@ -55,22 +65,26 @@ void CWaypointDistances::save()
 
 		CBotGlobals::buildFileName(filename, szMapName, BOT_AUXILERY_FOLDER, BOT_WAYPOINT_DST_EXTENSION, true);
 
-		std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::out | std::fstream::binary);
-
-		if (!bfp)
-		{
-			m_fSaveTime = engine->Time() + 100.0f;
-			return; // give up
-		}
-
 		hdr.maxwaypoints = CWaypoints::MAX_WAYPOINTS;
 		hdr.numwaypoints = CWaypoints::numWaypoints();
 		hdr.version = WPT_DIST_VER;
 
-		bfp.write(reinterpret_cast<char*>(&hdr), sizeof(wpt_dist_hdr_t));
+		const std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
+		unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
-		bfp.write(reinterpret_cast<char*>(m_Distances), sizeof(m_Distances));
+		if (!pBuf)
+		{
+			m_fSaveTime = engine->Time() + 100.0f;
+			return;
+		}
 
+		std::memcpy(pBuf, &hdr, sizeof(wpt_dist_hdr_t));
+		std::memcpy(pBuf + sizeof(wpt_dist_hdr_t), m_Distances, sizeof(m_Distances));
+
+		CBotGlobals::makeFolders(filename);
+		RCBot_CompressedSave(filename, pBuf, totalSize);
+
+		std::free(pBuf);
 		m_fSaveTime = engine->Time() + 100.0f;
 	}
 	//}

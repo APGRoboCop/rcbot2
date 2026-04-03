@@ -56,6 +56,7 @@
 #include "bot_waypoint_visibility.h"
 #include "bot_wpt_color.h"
 #include "bot_wpt_dist.h"
+#include "bot_compress.h"
 
 #include "rcbot/logging.h"
 #include "rcbot/utils.h"
@@ -123,30 +124,15 @@ bool CWaypointNavigator::beliefLoad()
 
 	CBotGlobals::buildFileName(filename, mapname, BOT_AUXILERY_FOLDER, "rcb", true);
 
-	std::fstream bfp(filename, std::ios::in | std::ios::binary);
+	const std::size_t iDesiredSize = static_cast<std::size_t>(CWaypoints::numWaypoints()) * sizeof(unsigned short int);
 
-	if (!bfp)
+	std::memset(filebelief, 0, sizeof(unsigned short int) * CWaypoints::MAX_WAYPOINTS);
+
+	if (!RCBot_CompressedLoad(filename, filebelief, iDesiredSize))
 	{
 		logger->Log(LogLevel::ERROR, "Can't open Waypoint belief array for reading!");
 		return false;
 	}
-
-	bfp.seekg(0, std::ios::end); // seek at end
-
-	const std::size_t iSize = bfp.tellg(); // get file size
-	const std::size_t iDesiredSize = static_cast<std::size_t>(CWaypoints::numWaypoints()) * sizeof(unsigned short int);
-
-	// size not right, return false to re workout table
-	if (iSize != iDesiredSize)
-	{
-		return false;
-	}
-
-	bfp.seekg(0, std::ios::beg); // seek at start
-
-	std::memset(filebelief, 0, sizeof(unsigned short int) * CWaypoints::MAX_WAYPOINTS);
-
-	bfp.read(reinterpret_cast<char*>(filebelief), static_cast<std::streamsize>(sizeof(unsigned short)) * CWaypoints::numWaypoints());
 
 	// convert from short int to float
 
@@ -179,35 +165,10 @@ bool CWaypointNavigator::beliefSave(const bool bOverride)
 	snprintf(mapname, sizeof(mapname), "%s%d", CBotGlobals::getMapName(), m_iBeliefTeam);
 	CBotGlobals::buildFileName(filename, mapname, BOT_AUXILERY_FOLDER, "rcb", true);
 
-	{
-		std::fstream bfp(filename, std::ios::in | std::ios::binary);
+	const std::size_t iDesiredSize = static_cast<std::size_t>(CWaypoints::numWaypoints()) * sizeof(unsigned short int);
 
-		if (bfp)
-		{
-			bfp.seekg(0, std::ios::end); // seek at end
-
-			const std::size_t iSize = bfp.tellg(); // get file size
-			const std::size_t iDesiredSize = static_cast<std::size_t>(CWaypoints::numWaypoints()) * sizeof(unsigned short int);
-
-			// size not right, return false to re workout table
-			if (iSize == iDesiredSize)
-			{
-				bfp.seekg(0, std::ios::beg); // seek at start
-
-				bfp.read(reinterpret_cast<char*>(filebelief), static_cast<std::streamsize>(sizeof(unsigned short)) * CWaypoints::numWaypoints());
-			}
-		}
-	}
-
-	std::fstream bfp(filename, std::ios::out | std::ios::binary);
-
-	if (!bfp)
-	{
-		m_bLoadBelief = true;
-		m_iBeliefTeam = m_pBot->getTeam();
-		logger->Log(LogLevel::ERROR, "Can't open Waypoint Belief array for writing!");
-		return false;
-	}
+	// Try to load existing belief data to average with
+	RCBot_CompressedLoad(filename, filebelief, iDesiredSize);
 
 	// convert from short int to float
 
@@ -219,9 +180,15 @@ bool CWaypointNavigator::beliefSave(const bool bOverride)
 	   filebelief[i] = filebelief[i]/2 + static_cast<unsigned short>(m_fBelief[i] / MAX_BELIEF * 16383); 
    }
 
-	bfp.seekg(0, std::ios::beg); // seek at start
+	CBotGlobals::makeFolders(filename);
 
-	bfp.write(reinterpret_cast<char*>(filebelief), static_cast<std::streamsize>(sizeof(unsigned short)) * num);
+	if (!RCBot_CompressedSave(filename, filebelief, iDesiredSize))
+	{
+		m_bLoadBelief = true;
+		m_iBeliefTeam = m_pBot->getTeam();
+		logger->Log(LogLevel::ERROR, "Can't save Waypoint Belief array!");
+		return false;
+	}
 
 	// new team -- load belief 
 	m_iBeliefTeam = m_pBot->getTeam();
