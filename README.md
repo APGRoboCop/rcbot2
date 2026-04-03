@@ -117,6 +117,7 @@ Additionally, `rcbot/logging.{h,cpp}` is released separately under the
 - Dystopia support - Soft As Hell
 - Major waypointer for TF2 - LK777, RussiaTails, Witch, Francis, RevilleAJ, Waffle033
 - Major waypointer for DoDS - INsane, Gamelarg05, genmac
+- Miniz compression - Rich Geldreich and Tenacious Software LLC
 
 ## Waypointers:-
 
