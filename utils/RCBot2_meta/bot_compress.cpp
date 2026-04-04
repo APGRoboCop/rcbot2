@@ -112,7 +112,11 @@ bool RCBot_CompressedLoad(const char* filename, void* pOutData, const std::size_
 
 	if (static_cast<std::size_t>(fileSize) >= sizeof(rcbot_compress_header_t))
 	{
-		std::fread(&magic, sizeof(magic), 1, fp);
+		if (std::fread(&magic, sizeof(magic), 1, fp) != 1)
+		{
+			std::fclose(fp);
+			return false;
+		}
 		std::fseek(fp, 0, SEEK_SET);
 	}
 
@@ -120,7 +124,11 @@ bool RCBot_CompressedLoad(const char* filename, void* pOutData, const std::size_
 	{
 		// Compressed file
 		rcbot_compress_header_t hdr;
-		std::fread(&hdr, sizeof(hdr), 1, fp);
+		if (std::fread(&hdr, sizeof(hdr), 1, fp) != 1)
+		{
+			std::fclose(fp);
+			return false;
+		}
 
 		if (hdr.uncompressed_size != static_cast<uint32_t>(expectedSize))
 		{
@@ -139,7 +147,12 @@ bool RCBot_CompressedLoad(const char* filename, void* pOutData, const std::size_
 			return false;
 		}
 
-		std::fread(pCompressed, 1, compressedSize, fp);
+		if (std::fread(pCompressed, 1, compressedSize, fp) != compressedSize)
+		{
+			std::free(pCompressed);
+			std::fclose(fp);
+			return false;
+		}
 		std::fclose(fp);
 
 		mz_ulong destLen = static_cast<mz_ulong>(expectedSize);
@@ -170,7 +183,11 @@ bool RCBot_CompressedLoad(const char* filename, void* pOutData, const std::size_
 		return false;
 	}
 
-	std::fread(pOutData, 1, expectedSize, fp);
+	if (std::fread(pOutData, 1, expectedSize, fp) != expectedSize)
+	{
+		std::fclose(fp);
+		return false;
+	}
 	std::fclose(fp);
 
 	logger->Log(LogLevel::INFO, "RCBot_CompressedLoad: loaded uncompressed '%s' (%u bytes)",
