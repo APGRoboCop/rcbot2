@@ -483,10 +483,7 @@
     <ClCompile Include="bot_sigscan.cpp" />
     <ClCompile Include="bot_cvars.cpp" />
     <ClCompile Include="bot_plugin_meta.cpp" />
-    <ClCompile Include="..\..\miniz\miniz.c" />
-    <ClCompile Include="..\..\miniz\miniz_tdef.c" />
-    <ClCompile Include="..\..\miniz\miniz_tinfl.c" />
-    <ClCompile Include="..\..\miniz\miniz_zip.c" />
+    <ClCompile Include="..\..\miniz\miniz_all.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\compat\cbase.h" />
@@ -574,6 +571,7 @@
   <ItemGroup>
     <None Include="..\..\AMBuilder" />
     <None Include="..\..\AMBuildScript" />
+    <None Include="AMBuilder" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

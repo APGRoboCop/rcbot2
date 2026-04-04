@@ -215,16 +215,7 @@
     <ClCompile Include="bot_compress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\miniz\miniz.c">
-      <Filter>miniz</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\miniz\miniz_tdef.c">
-      <Filter>miniz</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\miniz\miniz_tinfl.c">
-      <Filter>miniz</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\miniz\miniz_zip.c">
+    <ClCompile Include="..\..\miniz\miniz_all.cpp">
       <Filter>miniz</Filter>
     </ClCompile>
     <ClCompile Include="..\..\rcbot_subcmds\users.cpp">

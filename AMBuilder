@@ -63,10 +63,7 @@ sourceFiles = [
   "rcbot/utils.cpp",
   "rcbot/tf2/conditions.cpp",
 
-  "miniz/miniz.c",
-  "miniz/miniz_tdef.c",
-  "miniz/miniz_tinfl.c",
-  "miniz/miniz_zip.c",
+  "miniz/miniz_all.cpp",
 ]
 
 include_paths = [
