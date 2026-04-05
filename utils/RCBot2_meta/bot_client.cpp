@@ -645,18 +645,27 @@ void CClient :: think ()
 				int iNearestWpt = CWaypointLocations::NearestWaypoint(vPlayerOrigin, 80.0f, -1, true, false, false, nullptr);
 
 				m_iLastLadderWaypointIndex = -1;
-					
+
 				if ( iNearestWpt == -1 )
-					m_iLastLadderWaypointIndex = CWaypoints::addWaypoint(m_pPlayer,vPlayerOrigin,CWaypointTypes::W_FL_LADDER,true);
+				{
+					m_iLastLadderWaypointIndex = CWaypoints::addWaypoint(m_pPlayer, vPlayerOrigin, CWaypointTypes::W_FL_LADDER, true);
+				}
 				else
 				{
 					m_iLastLadderWaypointIndex = iNearestWpt; // can still update a current waypoint for land position
-
-					CWaypoint *pLadderWpt = CWaypoints::getWaypoint(m_iLastLadderWaypointIndex);
-
-					pLadderWpt->addFlag(CWaypointTypes::W_FL_LADDER); // update flags
-				}
+					CWaypoint* pLadderWpt = CWaypoints::getWaypoint(m_iLastLadderWaypointIndex);
 					
+					if (pLadderWpt != nullptr) // Check for null pointer
+					{
+						pLadderWpt->addFlag(CWaypointTypes::W_FL_LADDER); // update flags
+					}
+					else
+					{
+						// Handle the case where getWaypoint returns nullptr (optional)
+						// For example, log an error or take corrective action
+					}
+				}
+
 				m_vLastAutoWaypointPlacePos = vPlayerOrigin;
 
 				bCheckDistance = false;
@@ -666,7 +675,7 @@ void CClient :: think ()
 				// need to unset every check point when going on ladder first time
 				for (CAutoWaypointCheck& m_vLastAutoWaypointCheckP : m_vLastAutoWaypointCheckPos)
 				{
-					m_vLastAutoWaypointCheckP.UnSetPoint();					
+					m_vLastAutoWaypointCheckP.UnSetPoint();
 				}
 			}
 			else if ( iMoveType != MOVETYPE_FLY && m_iLastMoveType == MOVETYPE_FLY )
@@ -679,38 +688,42 @@ void CClient :: think ()
 			// If we have walked off a ladder for a small amount of time
 			// Make the top/bottom ladder waypoint
 			// ****************************************************
-			if ( m_fCanPlaceLadder && m_fCanPlaceLadder < engine->Time() )
+			if ( /*m_fCanPlaceLadder &&*/ m_fCanPlaceLadder < engine->Time())
 			{
-				if ( m_iLastLadderWaypointIndex != -1 )
-					// place a ladder waypoint before jumping off
+				if (m_iLastLadderWaypointIndex != -1)
 				{
+					// place a ladder waypoint before jumping off
 					int iNearestWpt = CWaypointLocations::NearestWaypoint(vPlayerOrigin, 80.0f, -1, true, false, false, nullptr);
 					
 					if ( iNearestWpt == -1 )
 					{
-						int iNewWpt = CWaypoints::addWaypoint(m_pPlayer,vPlayerOrigin,CWaypointTypes::W_FL_LADDER,true);
+						int iNewWpt = CWaypoints::addWaypoint(m_pPlayer, vPlayerOrigin, CWaypointTypes::W_FL_LADDER, true);
 						
 						if ( iNewWpt != -1 )
 						{
-							CWaypoint *pLadderWpt = CWaypoints::getWaypoint(m_iLastLadderWaypointIndex);
+							CWaypoint* pLadderWpt = CWaypoints::getWaypoint(m_iLastLadderWaypointIndex);
+							if ( pLadderWpt != nullptr ) // Null check added
+							{
+								m_iJoinLadderWaypointIndex = iNewWpt;
 
-							m_iJoinLadderWaypointIndex = iNewWpt;
-
-							pLadderWpt->addPathTo(iNewWpt);
+								pLadderWpt->addPathTo(iNewWpt);
+							}
 						}
 					}
 					else if ( iNearestWpt != m_iLastLadderWaypointIndex )
 					{
-						CWaypoint *pLadderWpt = CWaypoints::getWaypoint(m_iJoinLadderWaypointIndex);
+						CWaypoint* pLadderWpt = CWaypoints::getWaypoint(m_iJoinLadderWaypointIndex);
+						if ( pLadderWpt != nullptr ) // Null check added
+						{
+							m_iJoinLadderWaypointIndex = iNearestWpt;
 
-						m_iJoinLadderWaypointIndex = iNearestWpt;
-
-						pLadderWpt->addPathTo(iNearestWpt);
-					}				
+							pLadderWpt->addPathTo(iNearestWpt);
+						}
+					}
 				}
-				
+
 				m_iLastLadderWaypointIndex = -1;
-				
+
 				bCheckDistance = false;
 
 				m_fCanPlaceLadder = 0.0f;

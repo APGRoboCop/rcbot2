@@ -237,7 +237,7 @@ CBotCommandInline BotTaskCommand("givetask", CMD_ACCESS_DEBUG, [](CClient* pClie
 {
 #ifndef __linux__
 
-	if (pClient && pClient->getDebugBot() != nullptr)
+	if (/*pClient &&*/ pClient->getDebugBot() != nullptr)
 	{
 		const edict_t* pEdict = pClient->getDebugBot();
 		CBot* pBot = CBots::getBotPointer(pEdict);
