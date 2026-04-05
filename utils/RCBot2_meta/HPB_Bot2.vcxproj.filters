@@ -24,7 +24,7 @@
     <Filter Include="Source Files\loader">
       <UniqueIdentifier>{64422f0c-16cb-4913-acca-78f7f22042de}</UniqueIdentifier>
     </Filter>
-    <Filter Include="miniz">
+    <Filter Include="Source Files\miniz">
       <UniqueIdentifier>{a3b7c8d9-1234-5678-9abc-def012345678}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -216,7 +216,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\miniz\miniz_all.cpp">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClCompile>
     <ClCompile Include="..\..\rcbot_subcmds\users.cpp">
       <Filter>Source Files\rcbot_subcmds</Filter>
@@ -437,22 +437,22 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz_export.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz_common.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz_tdef.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz_tinfl.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
     <ClInclude Include="..\..\miniz\miniz_zip.h">
-      <Filter>miniz</Filter>
+      <Filter>Source Files\miniz</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -463,6 +463,7 @@
     <Library Include="..\..\alliedmodders\hl2sdk-tf2\lib\public\vstdlib.lib" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AMBuilder" />
+    <None Include="..\..\AMBuilder" />
+    <None Include="..\..\AMBuildScript" />
   </ItemGroup>
 </Project>

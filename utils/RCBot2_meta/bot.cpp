@@ -784,7 +784,7 @@ void CBot :: think ()
 	
 	fTime = engine->Time();
 
-//	Vector *pvVelocity;
+	//Vector *pvVelocity;
 
 	// important!!!
 	//

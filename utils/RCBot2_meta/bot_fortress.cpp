@@ -2829,7 +2829,7 @@ void CBotFortress::chooseClass()
 	}
 	else
 	{
-		std::array<float, 10> fClassFitness;
+		std::array<float, 10> fClassFitness{};
 		float fTotalFitness = 0.0f;
 
 		int iNumMedics = 0;
