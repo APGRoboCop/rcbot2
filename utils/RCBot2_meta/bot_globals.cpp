@@ -1148,9 +1148,9 @@ void CBotGlobals :: buildFileName ( char *szOutput, const char *szFile, const ch
 		szOutput[0] = 0;
 
 #if defined(HOMEFOLDER) && defined(__linux__)
-		const char *lhome = getenv ("HOME");
+		char *lhome = getenv ("HOME");
 
-		if (lhome != nullptr) 
+		if (lhome != NULL) 
 		{
 			std::strncpy(home,lhome,511);
 			home[511] = 0; 
