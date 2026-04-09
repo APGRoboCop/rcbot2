@@ -56,7 +56,7 @@
 #include "bot_waypoint_visibility.h"
 #include "bot_kv.h"
 #include "bot_sigscan.h"
-//#include "bot_mods.h"
+#include "bot_mods.h"
 
 #include "tier0/icommandline.h"
 
@@ -916,7 +916,10 @@ void RCBotPluginMeta::BotQuotaCheck() {
 		}
 
 		// Change Bot Quota
-		if (bot_count > bot_target) {
+		// In MVM mode, don't kick RCBots via quota - TF2 manages BLU team slots
+		const bool bIsMVM = CTeamFortress2Mod::isMapType(TF_MAP_MVM);
+
+		if (bot_count > bot_target && !bIsMVM) {
 			if (rcbot_nonrandom_kicking.GetBool()) {
 				CBots::kickChosenBot(static_cast<unsigned>(bot_count - bot_target));
 			} else {

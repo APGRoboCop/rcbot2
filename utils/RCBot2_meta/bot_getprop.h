@@ -170,7 +170,8 @@ typedef enum : std::int16_t
 	GETPROP_CSS_HOSTAGE_HEALTH = 152,
 	GETPROP_CSS_HOSTAGE_RESCUED = 153,
 	GETPROP_CSS_HOSTAGE_LEADER = 154,
-	GET_PROPDATA_MAX = 155
+	GETPROP_TF2_CURRENCY = 155,
+	GET_PROPDATA_MAX = 156
 } getpropdata_id;
 
 bool UTIL_FindSendPropInfo(const ServerClass *pInfo, const char *szType, unsigned *offset);
@@ -392,6 +393,8 @@ public:
 	static bool getVelocity ( edict_t *edict, Vector *v ) {return g_GetProps[GETPROP_VELOCITY].getVector(edict,v); }
 	static int getTF2Class ( edict_t *edict ) { return g_GetProps[GETPROP_TF2CLASS].getInt(edict,0); }
 	static float TF2_getEnergyDrinkMeter(edict_t * edict) { return g_GetProps[GETPROP_TF2_ENERGYDRINKMETER].getFloat(edict, 0); }
+	static int getTF2Currency(edict_t *edict) { return g_GetProps[GETPROP_TF2_CURRENCY].getInt(edict, 0); }
+	static bool isInUpgradeZone(edict_t *edict) { return g_GetProps[GETPROP_TF2_INUPGRADEZONE].getBool(edict, false); }
 	static edict_t *TF2_getActiveWeapon(edict_t *edict) { return g_GetProps[GETPROP_TF2_ACTIVEWEAPON].getEntity(edict); }
 	// set weapon
 	static void TF2_setActiveWeapon(edict_t* edict, edict_t* pWeapon) //-caxanga334

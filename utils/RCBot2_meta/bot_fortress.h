@@ -975,7 +975,7 @@ public:
 
 	bool MvM_IsReady() const;
 
-	void MvM_Upgrade (); // TODO: To allow bots to menuselect in order to buy upgrades? [APG]RoboCop[CL]
+	void MvM_Upgrade (); // Buy MVM upgrades when in upgrade zone between rounds
 
 private:
 	// time for next jump
@@ -1045,6 +1045,8 @@ private:
 	int m_iDesiredResistType;
 
 	int m_iMvMUpdateTime; // Tick based update time
+	bool m_bMvMUpgradesDone; // Whether upgrades have been purchased this wave
+	float m_fMvMNextUpgradeTime; // Delay before attempting to buy upgrades
 };
 
 // Fortress Forever team indices

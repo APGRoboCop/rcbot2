@@ -83,6 +83,7 @@
 
 #include "bot_getprop.h"
 #include "bot_profiling.h"
+#include "bot_mods.h"
 
 #include "rcbot/logging.h"
 
@@ -3523,8 +3524,25 @@ bool CBots :: needToAddBot ()
 		return false;
 	}
 
-	const int iClients = CBotGlobals::numPlayersPlaying();
 	const int iBots = CBots::numBots();
+
+	// In MVM mode, only count RED team human players for slot management.
+	// BLU team slots are reserved for wave robots and should not prevent
+	// RCBots from being re-added between waves.
+	if (CBotGlobals::isMod(MOD_TF2) && CTeamFortress2Mod::isMapType(TF_MAP_MVM))
+	{
+		if (m_iMinBots != -1 && iBots < m_iMinBots)
+			return true;
+
+		// Count only RED team players (team 2) for slot checks
+		const int iRedPlayers = CBotGlobals::numPlayersOnTeam(2, false);
+		if (m_iMaxBots != -1 && iRedPlayers < m_iMaxBots)
+			return true;
+
+		return false;
+	}
+
+	const int iClients = CBotGlobals::numPlayersPlaying();
 
 	if ((m_iMinBots!=-1 && iBots < m_iMinBots) || (iClients < m_iMaxBots && m_iMaxBots != -1)) {
 		return true;
@@ -3538,6 +3556,11 @@ bool CBots :: needToKickBot ()
 	if (rcbot_bot_quota_interval.GetFloat() > 0.0f) {
 		return false;
 	}
+
+	// In MVM mode, never self-kick RCBots. They are allies on RED team
+	// and TF2's population manager handles BLU team slot management.
+	if (CBotGlobals::isMod(MOD_TF2) && CTeamFortress2Mod::isMapType(TF_MAP_MVM))
+		return false;
 
 	const int iClients = CBotGlobals::numPlayersPlaying();
 	const int iBots = CBots::numBots();

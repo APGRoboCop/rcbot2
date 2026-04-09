@@ -1869,6 +1869,8 @@ void CBotTF2 :: spawnInit()
 	m_fCheckNextCarrying = 0.0f;
 
 	m_iMvMUpdateTime = TIME_TO_TICKS(10.0f); // Wait about 10 seconds after spawning
+	m_bMvMUpgradesDone = false;
+	m_fMvMNextUpgradeTime = 0.0f;
 }
 
 // return true if we don't want to hang around on the point
@@ -2144,9 +2146,140 @@ bool CBotTF2::MvM_IsReady() const
 	return false;
 }
 
-// TODO: To allow bots to menuselect in order to buy upgrades? [APG]RoboCop[CL]
+/// @brief Buy MVM upgrades via ClientCommandKeyValues when in upgrade zone between rounds.
+/// Uses the TF2 server's MVM_Upgrade KeyValues command to purchase upgrades
+/// based on class-specific priorities. The bot must be standing in a
+/// func_upgradestation trigger (m_bInUpgradeZone == true) for the server to
+/// accept the purchase.
 void CBotTF2::MvM_Upgrade()
 {
+	if (!CTeamFortress2Mod::isMapType(TF_MAP_MVM))
+		return;
+
+	// Only buy during BetweenRounds
+	if (entprops->GameRules_GetRoundState() != RoundState_BetweenRounds)
+		return;
+
+	// Already upgraded this wave
+	if (m_bMvMUpgradesDone)
+		return;
+
+	// Delay upgrade attempts to look more natural
+	if (m_fMvMNextUpgradeTime > engine->Time())
+		return;
+
+	// Must be in an upgrade zone for the server to accept the command
+	if (!CClassInterface::isInUpgradeZone(m_pEdict))
+	{
+		// Not in upgrade zone yet; try to navigate to a resupply waypoint
+		// (upgrade stations are typically near spawn/resupply areas in MVM maps)
+		if (!m_pSchedules->hasSchedule(SCHED_GOTO_ORIGIN))
+		{
+			const Vector vOrigin = getOrigin();
+			const int iWpt = CWaypointLocations::NearestWaypoint(vOrigin, 4096.0f, -1, false, false, true, nullptr, false, getTeam(), true, false, Vector(0, 0, 0), CWaypointTypes::W_FL_RESUPPLY);
+
+			if (iWpt != -1)
+			{
+				CWaypoint *pWpt = CWaypoints::getWaypoint(iWpt);
+				if (pWpt && pWpt->distanceFrom(vOrigin) > 128.0f)
+				{
+					m_pSchedules->freeMemory();
+					CBotSchedule *pSched = new CBotSchedule();
+					pSched->addTask(new CFindPathTask(iWpt));
+					m_pSchedules->add(pSched);
+				}
+			}
+		}
+
+		// Retry after a short delay
+		m_fMvMNextUpgradeTime = engine->Time() + randomFloat(1.0f, 3.0f);
+		return;
+	}
+
+	// Check currency
+	const int currency = CClassInterface::getTF2Currency(m_pEdict);
+	if (currency < 100) // minimum practical upgrade cost
+	{
+		m_bMvMUpgradesDone = true;
+		logger->Log(LogLevel::DEBUG, "%3.2f - %s MvM Upgrade: insufficient currency (%d)", gpGlobals->curtime, m_szBotName, currency);
+		return;
+	}
+
+	// Upgrade priority tables per class
+	// Each entry: { upgrade_index, weapon_slot }
+	// These indices reference the standard mvm_upgrades.txt upgrade list.
+	// Weapon slots: 0=primary, 1=secondary, 2=melee
+	// Common standard upgrade indices:
+	//   0 = damage bonus, 1 = fire rate bonus, 2 = clip size bonus
+	//   3 = max primary ammo, 4 = max secondary ammo
+	//  25 = health regen, 22 = move speed bonus
+	//  37 = crit resistance, 38 = blast resistance, 39 = fire resistance
+	struct MvMUpgradeEntry
+	{
+		int nUpgradeIndex;
+		int nItemSlot;
+	};
+
+	static const MvMUpgradeEntry s_ScoutUpgrades[]   = { {0,0}, {1,0}, {22,0}, {25,0}, {2,0}, {0,1}, {37,0} };
+	static const MvMUpgradeEntry s_SoldierUpgrades[]  = { {0,0}, {1,0}, {2,0}, {25,0}, {38,0}, {3,0}, {37,0} };
+	static const MvMUpgradeEntry s_PyroUpgrades[]     = { {0,0}, {1,0}, {25,0}, {22,0}, {39,0}, {37,0}, {38,0} };
+	static const MvMUpgradeEntry s_DemoUpgrades[]     = { {0,0}, {1,0}, {2,0}, {25,0}, {3,0}, {38,0}, {37,0} };
+	static const MvMUpgradeEntry s_HeavyUpgrades[]    = { {0,0}, {1,0}, {25,0}, {37,0}, {38,0}, {39,0}, {3,0} };
+	static const MvMUpgradeEntry s_EngiUpgrades[]     = { {25,0}, {37,0}, {38,0}, {0,0}, {39,0}, {22,0}, {1,0} };
+	static const MvMUpgradeEntry s_MedicUpgrades[]    = { {25,0}, {22,0}, {37,0}, {38,0}, {39,0}, {0,1}, {1,1} };
+	static const MvMUpgradeEntry s_SniperUpgrades[]   = { {0,0}, {1,0}, {2,0}, {25,0}, {37,0}, {3,0}, {22,0} };
+	static const MvMUpgradeEntry s_SpyUpgrades[]      = { {25,0}, {22,0}, {37,0}, {38,0}, {0,1}, {39,0}, {1,1} };
+
+	const MvMUpgradeEntry *pUpgradeList = nullptr;
+	int nUpgradeCount = 0;
+
+	switch (m_iClass)
+	{
+	case TF_CLASS_SCOUT:    pUpgradeList = s_ScoutUpgrades;   nUpgradeCount = 7; break;
+	case TF_CLASS_SOLDIER:  pUpgradeList = s_SoldierUpgrades; nUpgradeCount = 7; break;
+	case TF_CLASS_PYRO:     pUpgradeList = s_PyroUpgrades;    nUpgradeCount = 7; break;
+	case TF_CLASS_DEMOMAN:  pUpgradeList = s_DemoUpgrades;    nUpgradeCount = 7; break;
+	case TF_CLASS_HWGUY:    pUpgradeList = s_HeavyUpgrades;   nUpgradeCount = 7; break;
+	case TF_CLASS_ENGINEER: pUpgradeList = s_EngiUpgrades;    nUpgradeCount = 7; break;
+	case TF_CLASS_MEDIC:    pUpgradeList = s_MedicUpgrades;   nUpgradeCount = 7; break;
+	case TF_CLASS_SNIPER:   pUpgradeList = s_SniperUpgrades;  nUpgradeCount = 7; break;
+	case TF_CLASS_SPY:      pUpgradeList = s_SpyUpgrades;     nUpgradeCount = 7; break;
+	default:
+		m_bMvMUpgradesDone = true;
+		return;
+	}
+
+	// Signal the server we're starting to browse upgrades
+	KeyValues *kvBegin = new KeyValues("MvM_UpgradesBegin");
+	engine->ClientCommandKeyValues(m_pEdict, kvBegin); // engine takes ownership
+
+	int nTotalBought = 0;
+	int nRemainingCurrency = currency;
+
+	// Try to buy upgrades in priority order, spending available currency
+	for (int i = 0; i < nUpgradeCount && nRemainingCurrency >= 100; i++)
+	{
+		KeyValues *kv = new KeyValues("MVM_Upgrade");
+		KeyValues *kvSub = new KeyValues("upgrade");
+		kvSub->SetInt("itemslot", pUpgradeList[i].nItemSlot);
+		kvSub->SetInt("upgrade", pUpgradeList[i].nUpgradeIndex);
+		kvSub->SetInt("count", 1);
+		kv->AddSubKey(kvSub);
+		engine->ClientCommandKeyValues(m_pEdict, kv); // engine takes ownership
+
+		nTotalBought++;
+		nRemainingCurrency -= 100; // estimate; server may charge more or less
+	}
+
+	// Signal the server we're done browsing upgrades
+	KeyValues *kvDone = new KeyValues("MvM_UpgradesDone");
+	kvDone->SetInt("num_upgrades", nTotalBought);
+	engine->ClientCommandKeyValues(m_pEdict, kvDone); // engine takes ownership
+
+	m_bMvMUpgradesDone = true;
+
+	logger->Log(LogLevel::INFO, "%3.2f - %s purchased %d MvM upgrade(s) with %d currency.",
+		gpGlobals->curtime, m_szBotName, nTotalBought, currency);
 }
 
 void CBotTF2 :: checkBuildingsValid (bool bForce) // force check carrying
@@ -3049,6 +3182,8 @@ void CBotTF2::modThink()
 			if (entprops->GameRules_GetRoundState() == RoundState_BetweenRounds) // MvM: Waiting for all players to be ready
 			{
 				m_iMvMUpdateTime = TIME_TO_TICKS(randomFloat(3.0f, 12.0f)); // Slower updates while the wave isn't running, makes the bot more 'human' when readying up
+
+				MvM_Upgrade(); // Try to buy upgrades between rounds
 			}
 			else
 			{
@@ -8212,6 +8347,10 @@ void CBotTF2::MannVsMachineWaveComplete()
 	setLastEnemy(nullptr);
 
 	reload();
+
+	// Reset upgrade state so bot will buy upgrades next wave
+	m_bMvMUpgradesDone = false;
+	m_fMvMNextUpgradeTime = engine->Time() + randomFloat(3.0f, 6.0f);
 
 	if (m_pSentryGun.get() != nullptr)
 	{

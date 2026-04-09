@@ -1141,16 +1141,16 @@ void CBotGlobals :: buildFileName ( char *szOutput, const char *szFile, const ch
 {
 	if (m_szRCBotFolder == nullptr)
 	{
-#ifdef HOMEFOLDER
+/*#ifdef HOMEFOLDER
 		char home[512];
 		home[0] = 0;
-#endif
+#endif*/
 		szOutput[0] = 0;
 
-#if defined(HOMEFOLDER) && defined(__linux__)
-		char *lhome = getenv ("HOME");
+#ifdef /*(HOMEFOLDER) &&*/ (__linux__)
+		const char *lhome = getenv ("HOME");
 
-		if (lhome != NULL) 
+		if (lhome != nullptr) 
 		{
 			std::strncpy(home,lhome,511);
 			home[511] = 0; 
@@ -1159,14 +1159,14 @@ void CBotGlobals :: buildFileName ( char *szOutput, const char *szFile, const ch
 			std::strcpy(home,".");
 #endif
 
-#if defined(HOMEFOLDER) && defined(_WIN64) 
-		ExpandEnvironmentStringsA("%userprofile%", home, 511);
-#endif
+//#if defined(HOMEFOLDER) && defined(_WIN64) 
+//		ExpandEnvironmentStringsA("%userprofile%", home, 511);
+//#endif
 
-#ifdef HOMEFOLDER
+/*#ifdef HOMEFOLDER
 		std::strcat(szOutput, home);
 		addDirectoryDelimiter(szOutput);
-#endif
+#endif*/
 
 		/*#ifndef HOMEFOLDER
 			std::strcat(szOutput,"..");

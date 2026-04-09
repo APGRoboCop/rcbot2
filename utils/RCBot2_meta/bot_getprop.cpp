@@ -572,6 +572,7 @@ void CClassInterface:: init ()
 		DEFINE_GETPROP(GETPROP_TF2_CHARGE_RESIST_TYPE, "CWeaponMedigun", "m_nChargeResistType", 0);
 		DEFINE_GETPROP(GETPROP_TF2_ROUNDSTATE, "CTFGameRulesProxy", "m_iRoundState", 0);
 		DEFINE_GETPROP(GETPROP_TF2DESIREDCLASS, "CTFPlayer", "m_iDesiredPlayerClass", 0);
+		DEFINE_GETPROP(GETPROP_TF2_CURRENCY, "CTFPlayer", "m_nCurrency", 0);
 
 		// Synergy
 		DEFINE_GETPROP(GETPROP_SYN_PLAYER_VEHICLE, "CSynergyPlayer", "m_hVehicle", 0);
