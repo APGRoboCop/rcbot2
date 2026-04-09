@@ -4445,6 +4445,7 @@ CBotTF2DemomanPipeJump::CBotTF2DemomanPipeJump (CBot *pBot, const Vector& vWaypo
 	m_vStart = vWaypointGround - Vector(0,0,48.0f);
 	m_pPipeBomb = nullptr;
 	m_fTime = 0.0f;
+	m_fJumpTime = 0.0f;
 	m_iState = 0;
 	m_pWeapon = pWeapon;
 	m_bFired = false;
@@ -4498,7 +4499,7 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			else if ( m_bFired && m_iStartingAmmo > m_pWeapon->getClip1(pBot) )
 			{
 				// find pipe bomb
-				edict_t* pipe = CClassInterface::FindEntityByClassnameNearest(pBot->getOrigin(), "tf_projectile_pipe_remote", 150.0f, nullptr);
+				edict_t* pipe = CClassInterface::FindEntityByClassnameNearest(pBot->getOrigin(), "tf_projectile_pipe_remote", 300.0f, nullptr);
 
 				if (rcbot2utils::IsValidEdict(pipe))
 				{
@@ -4513,19 +4514,16 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			else
 			{
 				pBot->setLookVector(m_vStart);
-				pBot->setLookAtTask(LOOK_VECTOR);
+					pBot->setLookAtTask(LOOK_VECTOR);
 
-				if ( pBot->distanceFrom(m_vStart) < 150 )
-				{
-					if ( pBot->DotProductFromOrigin(m_vStart) > 0.99f )
+					if ( pBot->distanceFrom(m_vStart) < 150 )
 					{
-						if ( randomInt(0,1) )
+						if ( pBot->DotProductFromOrigin(m_vStart) > 0.96f )
 						{
 							pBot->primaryAttack();
 							m_bFired = true;
 						}
 					}
-				}
 				else
 				{
 					pBot->setMoveTo(m_vStart);
@@ -4591,12 +4589,27 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 		break;
 	case 3:
 		pBot->jump();
+		m_fJumpTime = engine->Time();
 		m_iState++;
 		break;
 	case 4:
 		{
+			// Wait a short moment after jumping to gain height before detonating
+			const float fTimeSinceJump = engine->Time() - m_fJumpTime;
+
+			if (fTimeSinceJump < 0.08f)
+				break; // too early, let the jump build velocity
+
+			if (fTimeSinceJump > 1.0f)
+			{
+				// timeout — detonate anyway and finish
+				static_cast<CBotTF2*>(pBot)->detonateStickies(true);
+				complete();
+				break;
+			}
+
 			Vector vel;
-		
+
 			if ( CClassInterface::getVelocity(pBot->getEdict(),&vel) )
 			{
 				if ( vel.z > 10 )

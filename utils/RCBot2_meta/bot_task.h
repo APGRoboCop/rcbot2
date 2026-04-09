@@ -323,6 +323,7 @@ private:
 	MyEHandle m_pPipeBomb;
 	bool m_bFired;
 	float m_fTime;
+	float m_fJumpTime;
 	//int m_iState;
 	int m_iStartingAmmo;
 	CBotWeapon* m_pWeapon;
