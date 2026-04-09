@@ -14,20 +14,20 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
+          #- ubuntu-22.04 # appears to no longer work - especially forcing using GCC instead of Clang
           - ubuntu-latest
           - windows-x32
           - windows-x64
         include:
-          - os: ubuntu-22.04
-            os_short: linux-legacy
-            os_version: ubuntu-22.04
-            package_ext: tar.gz
-            dbg_ext: dbg
-            cc: gcc
-            cxx: g++
-            vs_arch: unused
-            am_arch: x86,x86_64
+          #- os: ubuntu-22.04
+          #  os_short: linux-legacy
+          #  os_version: ubuntu-22.04
+          #  package_ext: tar.gz
+          #  dbg_ext: dbg
+          #  cc: gcc
+          #  cxx: g++
+          #  vs_arch: unused
+          #  am_arch: x86,x86_64
             
           - os: ubuntu-latest
             os_short: linux-latest
@@ -90,7 +90,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ matrix.os == 'ubuntu-22.04' && '3.11' || '3.12' }}
+        python-version: ${{ matrix.os == 'ubuntu-latest' && '3.12' }}
 
     - name: Setup ambuild
       run: |

@@ -163,6 +163,13 @@ for sdk_target in MMS.sdk_targets:
     # suppress macro redefinition of 'offsetof'
     cxx.cflags += [ '/wd4005' ]
 
+  # Clang: compat must be searched BEFORE the SDK's public/ directory so that
+  # compat/tier1/utlblockmemory.h shadows the SDK header and can apply the
+  # bit-field V_swap fix via #include_next.  For other compilers the duplicate
+  # entry (compat is also in include_paths) is harmless. [APG]RoboCop[CL]
+  if cxx.family == 'clang':
+    cxx.cxxincludes.insert(0, os.path.join(builder.currentSourcePath, 'compat'))
+
   cxx.cxxincludes += include_paths
   cxx.defines += compiler_defines
 

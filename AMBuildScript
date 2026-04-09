@@ -1,11 +1,8 @@
 import os, sys
 
-# Force GCC on Linux for legacy support - [APG]RoboCop[CL]
-# Clang is stricter than GCC about non-const reference to bit-fields
-# (e.g. hl2sdk-dods/public/tier1/utlblockmemory.h V_swap calls).
-if sys.platform.startswith('linux'):
-    os.environ['CC'] = 'gcc'
-    os.environ['CXX'] = 'g++'
+# NOTE: The Clang bit-field V_swap issue in utlblockmemory.h is now handled
+# by compat/tier1/utlblockmemory.h (see AMBuilder). Forcing GCC is no longer
+# needed and caused undefined-symbol errors (e.g. KeyValuesSystem). [APG]RoboCop[CL]
 
 def ResolveEnvPath(env, folder):
   if env in os.environ:

@@ -416,6 +416,7 @@
     <ClInclude Include="bot_wpt_color.h" />
     <ClInclude Include="bot_wpt_dist.h" />
     <ClInclude Include="bot_zombie.h" />
+    <ClInclude Include="compat\tier1\utlblockmemory.h" />
     <ClInclude Include="engine_wrappers.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="..\..\miniz\miniz.h" />
