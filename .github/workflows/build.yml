@@ -71,7 +71,7 @@ jobs:
 
     - name: Add msbuild to PATH (Windows)
       if: runner.os == 'Windows'
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v3
 
     - name: Install (Windows)
       if: runner.os == 'Windows'
@@ -90,7 +90,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ matrix.os == 'ubuntu-latest' && '3.12' }}
+        python-version: '3.12'
 
     - name: Setup ambuild
       run: |

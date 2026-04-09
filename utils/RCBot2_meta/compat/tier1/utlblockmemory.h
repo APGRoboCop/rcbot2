@@ -9,7 +9,7 @@
 // bit-field-safe. After the real header is processed, restore V_swap so the
 // rest of the codebase uses the original template. [APG]RoboCop[CL]
 
-#if defined(__clang__)
+#ifdef __clang__
 
 // 1. Pull in mathlib.h so the V_swap template definition is parsed and its
 //    include guard (MATH_LIB_H) is set.  When the real utlblockmemory.h later
