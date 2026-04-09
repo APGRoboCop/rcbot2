@@ -2146,14 +2146,10 @@ bool CBotTF2::MvM_IsReady() const
 	return false;
 }
 
-/// @brief Buy MVM upgrades via ClientCommandKeyValues when in upgrade zone between rounds.
-/// Uses the TF2 server's MVM_Upgrade KeyValues command to purchase upgrades
-/// based on class-specific priorities. The bot must be standing in a
-/// func_upgradestation trigger (m_bInUpgradeZone == true) for the server to
-/// accept the purchase.
+// TODO: To allow bots to menuselect in order to buy upgrades? [APG]RoboCop[CL]
 void CBotTF2::MvM_Upgrade()
 {
-	if (!CTeamFortress2Mod::isMapType(TF_MAP_MVM))
+	/*if (!CTeamFortress2Mod::isMapType(TF_MAP_MVM))
 		return;
 
 	// Only buy during BetweenRounds
@@ -2279,7 +2275,7 @@ void CBotTF2::MvM_Upgrade()
 	m_bMvMUpgradesDone = true;
 
 	logger->Log(LogLevel::INFO, "%3.2f - %s purchased %d MvM upgrade(s) with %d currency.",
-		gpGlobals->curtime, m_szBotName, nTotalBought, currency);
+		gpGlobals->curtime, m_szBotName, nTotalBought, currency);*/
 }
 
 void CBotTF2 :: checkBuildingsValid (bool bForce) // force check carrying
