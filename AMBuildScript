@@ -78,7 +78,8 @@ class MMSConfig(object):
 
       self.configure_cxx(cxx)
     
-  if cxx.behavior == 'gcc':
+  def configure_cxx(self, cxx):
+    if cxx.behavior == 'gcc':
       cxx.defines += [
         'HAVE_STDINT_H',
         'GNUC',
