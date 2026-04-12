@@ -158,7 +158,7 @@ class MMSConfig(object):
         '_CRT_NONSTDC_NO_DEPRECATE',
       ]
 	  
-      cxx.cflags += ['/W3', '/EHsc', '/std:c17' ]
+      cxx.cflags += ['/W3', '/EHsc']
       cxx.cxxflags += ['/TP', '/std:c++17']
       
       cxx.linkflags += [
@@ -219,12 +219,12 @@ class MMSConfig(object):
 
       if cxx.version >= 'apple-clang-10.0':
         cxx.cflags += ['-mmacosx-version-min=10.9', '-stdlib=libc++']
-        cxx.linkflags += ['-mmacosx-version-min=10.9',]
+        cxx.linkflags += ['-mmacosx-version-min=10.9']
       else:
         cxx.cflags += ['-mmacosx-version-min=10.5']
-        cxx.linkflags += ['-mmacosx-version-min=10.5',]
+        cxx.linkflags += ['-mmacosx-version-min=10.5']
 
-      cxx.linkflags += ['-stdlib=libc++', '-lc++',]
+      cxx.linkflags += ['-stdlib=libc++', '-lc++']
       cxx.cxxflags += ['-stdlib=libc++']
 	  
     elif cxx.target.platform == 'windows':
