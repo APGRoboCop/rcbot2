@@ -1078,12 +1078,17 @@ bool CClient :: isUsed () const
 
 Vector CClient :: getOrigin () const
 {
+	// FF uses GetAbsOrigin() directly (feet position) for accurate waypoint
+	// placement. Other mods keep the +32 offset for backward compatibility
+	// with existing waypoints that were all placed with the offset. [APG]RoboCop[CL]
+	const Vector vOffset = CBotGlobals::isMod(MOD_FF) ? Vector(0,0,0) : Vector(0,0,32);
+
 	if ( IPlayerInfo *playerinfo = playerinfomanager->GetPlayerInfo( m_pPlayer ) )
 	{
-		return  playerinfo->GetAbsOrigin() + Vector(0,0,32);
+		return  playerinfo->GetAbsOrigin() + vOffset;
 	}
 
-	return CBotGlobals::entityOrigin(m_pPlayer) + Vector(0,0,32);//m_pPlayer->GetCollideable()->GetCollisionOrigin();
+	return CBotGlobals::entityOrigin(m_pPlayer) + vOffset;
 }
 
 void CClients :: clientActive (const edict_t *pPlayer)

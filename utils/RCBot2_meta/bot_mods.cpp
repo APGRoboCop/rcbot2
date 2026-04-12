@@ -238,10 +238,9 @@ void CBotMods::parseFile()
 
 void CBotMods::readMods()
 {
-	// TODO improve game detection
-	// caxanga334: Better game detection required if we want to support multiple mods on the same engine (IE: SDK 2013)
 #if SOURCE_ENGINE == SE_TF2
 	m_Mods.emplace_back(new CTeamFortress2Mod());
+	m_Mods.emplace_back(new CTF2ClassifiedMod());
 #elif SOURCE_ENGINE == SE_DODS
 	m_Mods.emplace_back(new CDODMod());
 #elif SOURCE_ENGINE == SE_CSS

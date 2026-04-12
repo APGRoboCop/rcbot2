@@ -8,6 +8,6 @@ const char* build_info::authors = "Cheeseh, RoboCop, nosoop, pongo1231, caxanga3
 const char* build_info::url = "http://rcbot.bots-united.com/";
 
 const char* build_info::long_version = "APGRoboCop/rcbot2@" GIT_COMMIT_HASH;
-const char* build_info::short_version = "2.0-alpha8 " RCBOT_ARCH_TAG " (apg)-" GIT_COMMIT_SHORT_HASH;
+const char* build_info::short_version = "2.0-alpha9 " RCBOT_ARCH_TAG " (apg)-" GIT_COMMIT_SHORT_HASH;
 
 const char* build_info::date = __DATE__;

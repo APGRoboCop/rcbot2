@@ -711,6 +711,13 @@ void CTF2ChangeClass :: execute ( IBotEventInterface *pEvent )
 
 	if ( pBot && pBot->isTF() )
 	{
+		// FF's player_changeclass event uses "newclass" not "class".
+		// Reading "class" returns 0 (TF_CLASS_UNDEFINED), which resets
+		// m_iClass and causes selectClass() to fire every frame.
+		// CBotFF::selectClass() already sets m_iClass correctly, so
+		// skip this event for FF bots entirely.
+		if (!pBot->isTF2())
+			return;
 
 		int _class = pEvent->getInt("class");
 

@@ -8244,8 +8244,83 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 /////////////////////////////////////////////////////////////////////////
 // FORTRESS FOREVER
 
+void CBotFF::died(edict_t *pKiller, const char *pszWeapon)
+{
+	// Call base CBot::died() but skip CBotFortress::died() which has
+	// TF2-specific spy detection and may hold buttons after death.
+	CBot::died(pKiller, pszWeapon);
+
+	droppedFlag();
+
+	// Force release ALL buttons immediately.
+	// FF's PlayerDeathThink requires all buttons released during LIFE_DEAD
+	// before transitioning to LIFE_RESPAWNABLE. Any held buttons from
+	// combat (attack, jump, duck, etc.) would block this transition.
+	m_pButtons->letGoAllButtons(true);
+	m_pButtons->letGo(IN_ATTACK);
+	m_pButtons->letGo(IN_ATTACK2);
+	m_pButtons->letGo(IN_JUMP);
+	m_pButtons->letGo(IN_DUCK);
+	m_pButtons->letGo(IN_RELOAD);
+	m_pButtons->letGo(IN_USE);
+	m_pButtons->letGo(IN_FORWARD);
+	m_pButtons->letGo(IN_SPEED);
+	m_pButtons->letGo(IN_ALT1);
+	m_pButtons->letGo(IN_RUN);
+
+	m_bCheckClass = true;
+
+	// Allow a release period before trying to press buttons to respawn.
+	// This gives LIFE_DEAD -> LIFE_RESPAWNABLE time to happen.
+	m_fSpawnRetryTime = engine->Time() + 0.5f;
+}
+
+void CBotFF::currentlyDead()
+{
+	// Keep updating spawn time (equivalent to CBot::currentlyDead)
+	m_fSpawnTime = engine->Time();
+	m_fUpdateClass = engine->Time() + 0.1f;
+
+	// FF's PlayerDeathThink has two phases:
+	// 1. LIFE_DEAD: waits for ALL buttons released (m_nButtons == 0)
+	// 2. LIFE_RESPAWNABLE: waits for ANY button press to trigger respawn
+	//
+	// We cycle between releasing all buttons (Phase 1) and pressing
+	// attack (Phase 2) until the bot successfully respawns.
+
+	// Phase 1: Force all buttons released to let LIFE_DEAD -> LIFE_RESPAWNABLE.
+	if (m_fSpawnRetryTime > engine->Time())
+	{
+		m_pButtons->letGoAllButtons(true);
+		return;
+	}
+
+	// Phase 2: Press a button to trigger actual respawn from LIFE_RESPAWNABLE.
+	m_pButtons->letGoAllButtons(false);
+	m_pButtons->tap(IN_ATTACK);
+
+	// Schedule next release/press cycle (in case respawn delay hasn't elapsed yet).
+	m_fSpawnRetryTime = engine->Time() + 0.3f;
+}
+
+void CBotFF::spawnInit()
+{
+	CBotFortress::spawnInit();
+
+	// Don't set m_bHasEverSpawned here - spawnInit() is called from
+	// setEdict() during bot creation before the bot has actually spawned.
+	// m_bHasEverSpawned is set in modThink() when the bot is confirmed alive.
+	m_fSpawnRetryTime = 0.0f;
+	m_iSpawnRetries = 0;
+}
+
 void CBotFF::modThink()
 {
+	// modThink only runs when the bot is alive, so this is a safe
+	// place to confirm the bot has successfully spawned at least once.
+	if (!m_bHasEverSpawned)
+		m_bHasEverSpawned = true;
+
 	m_iTeam = getTeam();
 
 	if (needHealth())
@@ -8326,9 +8401,202 @@ void CBotFF::selectClass()
 		cmd = "class engineer";
 
 	if (cmd != nullptr)
+	{
+		// Only use helpers->ClientCommand - the logs confirm FF processes it
+		// (player_changeclass events fire). Using engine->ClientCommand too
+		// causes double class commands that may interfere with FF's spawn logic.
 		helpers->ClientCommand(m_pEdict, cmd);
+	}
 
+	m_fClassCommandTime = engine->Time();
 	m_fChangeClassTime = engine->Time() + randomFloat(bot_min_cc_time.GetFloat(), bot_max_cc_time.GetFloat());
+
+	logger->Log(LogLevel::INFO, "CBotFF::selectClass - %s sent '%s' (class %d, desired %d)", m_szBotName, cmd ? cmd : "null", static_cast<int>(_class), m_iDesiredClass);
+}
+
+bool CBotFF::startGame()
+{
+	// Set fake client cvars that FF server queries from userinfo.
+	// Without these, the server logs "GetUserSetting: cvar '...' unknown."
+	// and may fail to process the bot correctly. - [APG]RoboCop[CL]
+	if (!m_bSetClassAutoKill)
+	{
+		engine->SetFakeClientConVarValue(m_pEdict, "cl_classautokill", "1");
+		engine->SetFakeClientConVarValue(m_pEdict, "cl_classic_viewmodels", "0");
+		engine->SetFakeClientConVarValue(m_pEdict, "cl_hand_viewmodel_mode", "0");
+		engine->SetFakeClientConVarValue(m_pEdict, "hap_HasDevice", "0");
+		m_bSetClassAutoKill = true;
+	}
+
+	const int team = m_pPlayerInfo->GetTeamIndex();
+
+	// Not on a playing team yet - join one
+	if (team != FF_TEAM_BLUE && team != FF_TEAM_RED &&
+		team != FF_TEAM_YELLOW && team != FF_TEAM_GREEN)
+	{
+		// Only send team command if cooldown expired (avoid spamming)
+		if (m_fSpawnRetryTime < engine->Time())
+		{
+			logger->Log(LogLevel::DEBUG, "CBotFF::startGame - %s joining team (current: %d)", m_szBotName, team);
+			selectTeam();
+			m_fSpawnRetryTime = engine->Time() + 1.0f;
+		}
+		return false;
+	}
+
+	// Haven't picked a class yet
+	if (m_iDesiredClass == -1)
+	{
+		chooseClass();
+		return false;
+	}
+
+	// Need to send class command for the first time
+	if (m_iClass == TF_CLASS_MAX || m_iClass == TF_CLASS_UNDEFINED)
+	{
+		logger->Log(LogLevel::DEBUG, "CBotFF::startGame - %s selecting class %d (team: %d)", m_szBotName, m_iDesiredClass, team);
+		selectClass();
+		m_fSpawnRetryTime = engine->Time() + 3.0f;
+		return false;
+	}
+
+	// If we've spawned before, let the main think loop handle respawning
+	if (m_bHasEverSpawned)
+		return true;
+
+	// First spawn: keep waiting here until bot is actually alive.
+	// This gives the server time to process team/class commands.
+	if (m_pPlayerInfo->IsDead() || m_pPlayerInfo->IsObserver())
+	{
+		// If we've been waiting a long time, re-send the class command.
+		// Don't reset m_iClass (which would re-randomize via selectClass).
+		// Just directly re-send the same class command once more.
+		if (m_fClassCommandTime > 0.0f && (engine->Time() - m_fClassCommandTime) > 10.0f)
+		{
+			m_iSpawnRetries++;
+
+			if (m_iSpawnRetries <= 3)
+			{
+				logger->Log(LogLevel::WARN, "CBotFF::startGame - %s still not spawned after 10s, retry %d/3",
+					m_szBotName, m_iSpawnRetries);
+
+				// Re-send class command directly (same class, no re-randomization)
+				selectClass();
+				m_fSpawnRetryTime = engine->Time() + 3.0f;
+			}
+			else
+			{
+				// After 3 retries (~30s), stop retrying to avoid class spam.
+				// Just let the button press cycle keep trying.
+				logger->Log(LogLevel::WARN, "CBotFF::startGame - %s giving up class retries, waiting for spawn", m_szBotName);
+				m_fClassCommandTime = 0.0f; // stop the timer check
+			}
+			return false;
+		}
+
+		// FF's PlayerDeathThink has two phases:
+		// 1. LIFE_DEAD: waits for ALL buttons released (m_nButtons == 0)
+		// 2. LIFE_RESPAWNABLE: waits for ANY button press to trigger respawn
+		if (m_fSpawnRetryTime > engine->Time())
+		{
+			// Release phase: all buttons off for LIFE_DEAD -> LIFE_RESPAWNABLE
+			m_pButtons->letGoAllButtons(true);
+		}
+		else
+		{
+			// Press phase: tap attack to trigger respawn from LIFE_RESPAWNABLE
+			m_pButtons->letGoAllButtons(false);
+			m_pButtons->tap(IN_ATTACK);
+			m_fSpawnRetryTime = engine->Time() + 0.5f;
+		}
+		return false;
+	}
+
+	// Bot is neither dead nor observer - should be alive.
+	logger->Log(LogLevel::INFO, "CBotFF::startGame - %s appears alive (team: %d, class: %d)", m_szBotName, team, static_cast<int>(m_iClass));
+	return true;
+}
+
+void CBotFF::selectTeam()
+{
+	// Use console command for team selection. ChangeTeam() API bypasses FF's
+	// team join logic (CFFPlayer::HandleTeamChange) and can leave the bot in
+	// a state where the server never triggers ForceRespawn().
+	const int iBlue = CBotGlobals::numPlayersOnTeam(FF_TEAM_BLUE, false);
+	const int iRed = CBotGlobals::numPlayersOnTeam(FF_TEAM_RED, false);
+
+	if (iBlue <= iRed)
+		helpers->ClientCommand(m_pEdict, "team blue");
+	else
+		helpers->ClientCommand(m_pEdict, "team red");
+}
+
+void CBotFF::getTasks(const unsigned iIgnore)
+{
+	// Follow last enemy if we saw one and are brave enough
+	if (!m_bLookedForEnemyLast && m_pLastEnemy && CBotGlobals::entityIsAlive(m_pLastEnemy))
+	{
+		if (wantToFollowEnemy())
+		{
+			CClient *pClient = CClients::get(m_pLastEnemy);
+			CBotSchedule *pSchedule = new CBotSchedule();
+			CFindPathTask *pFindPath = new CFindPathTask(m_vLastSeeEnemy);
+
+			const Vector vVelocity = pClient->getVelocity();
+
+			pSchedule->addTask(pFindPath);
+			pSchedule->addTask(new CFindLastEnemy(m_vLastSeeEnemy, vVelocity));
+
+			pFindPath->setNoInterruptions();
+
+			m_pSchedules->add(pSchedule);
+
+			m_bLookedForEnemyLast = true;
+		}
+	}
+
+	if (!m_pSchedules->isEmpty())
+		return;
+
+	// If we have the flag, try to find a capture point / flag waypoint
+	if (hasFlag())
+	{
+		CWaypoint *pWaypoint = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_FLAG, getTeam());
+
+		if (pWaypoint)
+		{
+			m_pSchedules->add(new CBotGotoOriginSched(pWaypoint->getOrigin()));
+			return;
+		}
+	}
+
+	// Look for health/ammo pickups if needed
+	if (hasSomeConditions(CONDITION_NEED_HEALTH))
+	{
+		if (m_pHealthkit.get() != nullptr)
+		{
+			m_pSchedules->add(new CBotGotoOriginSched(CBotGlobals::entityOrigin(m_pHealthkit)));
+			return;
+		}
+	}
+
+	if (hasSomeConditions(CONDITION_NEED_AMMO))
+	{
+		if (m_pAmmo.get() != nullptr)
+		{
+			m_pSchedules->add(new CBotGotoOriginSched(CBotGlobals::entityOrigin(m_pAmmo)));
+			return;
+		}
+	}
+
+	// Roam toward random objectives
+	CWaypoint *pWaypoint = CWaypoints::getWaypoint(
+		CWaypoints::randomFlaggedWaypoint(getTeam()));
+
+	if (pWaypoint)
+	{
+		m_pSchedules->add(new CBotGotoOriginSched(pWaypoint->getOrigin()));
+	}
 }
 
 void CBotTF2::MannVsMachineWaveComplete()

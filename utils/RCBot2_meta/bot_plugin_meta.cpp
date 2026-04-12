@@ -788,7 +788,10 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 	pMod->playerSpawned(pEntity);
 
 #ifdef OVERRIDE_RUNCMD
-	if ( pEnt )
+	// Don't add the PlayerRunCmd vtable hook for FF - the vtable offset is
+	// not configured and hooking at offset 0 would hook the wrong function.
+	// FF bots use m_pController->RunPlayerMove() directly instead.
+	if ( pEnt && !CBotGlobals::isMod(MOD_FF) )
 	{
 		SH_ADD_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEnt, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
 	}
@@ -800,7 +803,7 @@ void RCBotPluginMeta::Hook_ClientDisconnect(edict_t *pEntity)
 	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
 
 #ifdef OVERRIDE_RUNCMD
-	if ( pEnt )
+	if ( pEnt && !CBotGlobals::isMod(MOD_FF) )
 	{
 		SH_REMOVE_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEnt, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
 	}

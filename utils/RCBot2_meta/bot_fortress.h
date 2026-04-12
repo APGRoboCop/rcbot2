@@ -1062,10 +1062,25 @@ enum : std::uint8_t
 
 class CBotFF : public CBotFortress
 {
+	float m_fSpawnRetryTime = 0.0f;
+	// Time at which the bot should start pressing buttons to trigger respawn.
+	// Before this time, all buttons are released to allow LIFE_DEAD -> LIFE_RESPAWNABLE.
+	float m_fSpawnPressTime = 0.0f;
+	// Time when the class command was first sent (for retry logic).
+	float m_fClassCommandTime = 0.0f;
+	bool m_bHasEverSpawned = false;
+	bool m_bSetClassAutoKill = false;
+	int m_iSpawnRetries = 0;
 public:
 	CBotFF() = default;
 
 	void modThink() override;
+
+	void currentlyDead() override;
+
+	void died(edict_t *pKiller, const char *pszWeapon) override;
+
+	void spawnInit() override;
 
 	bool isEnemy(edict_t* pEdict, bool bCheckWeapons = true) override;
 
@@ -1073,9 +1088,15 @@ public:
 
 	bool isTF2() override { return false; }
 
+	bool startGame() override;
+
 	TF_Class getClass() override;
 
+	void selectTeam() override;
+
 	void selectClass() override;
+
+	void getTasks(unsigned iIgnore = 0) override;
 };
 
 #endif

@@ -112,18 +112,18 @@ jobs:
         python3 ../configure.py --sdks=present --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" --symbol-files --target ${{ matrix.am_arch }} --enable-optimize
         ambuild
 
-    - uses: benjlevesque/short-sha@v2.2
+    - uses: benjlevesque/short-sha@v3.0
       id: short-sha
 
     - name: Upload Binary
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: rcbot2-${{ matrix.os_short }}-${{ steps.short-sha.outputs.sha }}
         path: |
             rcbot2/post/package/*
 
     - name: Upload Debug Symbols
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: rcbot2-dbgsym-${{ matrix.os_short }}-${{ steps.short-sha.outputs.sha }}
         path: |
@@ -134,47 +134,47 @@ jobs:
     needs: build_main
     runs-on: ubuntu-latest
     steps:
-      - uses: benjlevesque/short-sha@v2.2
+      - uses: benjlevesque/short-sha@v3.0
         id: short-sha
       
       - name: Download Win32 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: rcbot2-win32-${{ steps.short-sha.outputs.sha }}
           path: combined/win32
       
       - name: Download Win64 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: rcbot2-win64-${{ steps.short-sha.outputs.sha }}
           path: combined/win64
       
       - name: Upload Combined Windows Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rcbot2-windows-${{ steps.short-sha.outputs.sha }}
           path: combined/
 
       - name: Download Win32 Debug Symbols
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: rcbot2-dbgsym-win32-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/win32
       
       - name: Download Win64 Debug Symbols
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: rcbot2-dbgsym-win64-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/win64
       
       - name: Upload Combined Windows Debug Symbols
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rcbot2-dbgsym-windows-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/
 
       - name: Delete Individual Windows Artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             rcbot2-win32-${{ steps.short-sha.outputs.sha }}
