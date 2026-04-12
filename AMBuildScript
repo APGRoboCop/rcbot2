@@ -78,8 +78,7 @@ class MMSConfig(object):
 
       self.configure_cxx(cxx)
     
-  def configure_cxx(self, cxx):
-    if cxx.behavior == 'gcc':
+  if cxx.behavior == 'gcc':
       cxx.defines += [
         'HAVE_STDINT_H',
         'GNUC',
@@ -99,13 +98,15 @@ class MMSConfig(object):
         '-msse',
         '-msse2',
         '-fPIC',
-        '-std=c++17',
+        '-std=c17',
       ]
 
       if (cxx.version >= 'gcc-4.0') or cxx.family == 'clang':
         cxx.cflags += ['-fvisibility=hidden']
         cxx.cxxflags += ['-fvisibility-inlines-hidden']
+        
       cxx.cxxflags += [
+        '-std=c++17',
         '-fexceptions',
         '-fno-rtti',
         '-fno-threadsafe-statics',
@@ -113,6 +114,7 @@ class MMSConfig(object):
         '-Wno-overloaded-virtual',
         '-Wno-register',
       ]
+	  
       if (cxx.version >= 'gcc-4.7' or cxx.family == 'clang'):
         cxx.cxxflags += ['-Wno-delete-non-virtual-dtor']
       if cxx.family == 'gcc':
