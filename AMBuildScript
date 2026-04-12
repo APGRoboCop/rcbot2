@@ -157,10 +157,8 @@ class MMSConfig(object):
         '_CRT_SECURE_NO_WARNINGS',
         '_CRT_NONSTDC_NO_DEPRECATE',
       ]
-      cxx.cflags += [
-        '/W3',
-        '/EHsc'
-      ]
+	  
+      cxx.cflags += ['/W3', '/EHsc', '/std:c17' ]
       cxx.cxxflags += ['/TP', '/std:c++17']
       
       cxx.linkflags += [
@@ -215,25 +213,20 @@ class MMSConfig(object):
       elif cxx.family == 'clang':
         cxx.linkflags += ['-lgcc_eh']
       cxx.linkflags += ['-static-libstdc++']
+	  
     elif cxx.target.platform == 'mac':
       cxx.defines += ['OSX', '_OSX', 'POSIX']
 
       if cxx.version >= 'apple-clang-10.0':
         cxx.cflags += ['-mmacosx-version-min=10.9', '-stdlib=libc++']
-        cxx.linkflags += [
-          '-mmacosx-version-min=10.9',
-        ]
+        cxx.linkflags += ['-mmacosx-version-min=10.9',]
       else:
         cxx.cflags += ['-mmacosx-version-min=10.5']
-        cxx.linkflags += [
-          '-mmacosx-version-min=10.5',
-        ]
+        cxx.linkflags += ['-mmacosx-version-min=10.5',]
 
-      cxx.linkflags += [
-        '-stdlib=libc++',
-        '-lc++',
-      ]
+      cxx.linkflags += ['-stdlib=libc++', '-lc++',]
       cxx.cxxflags += ['-stdlib=libc++']
+	  
     elif cxx.target.platform == 'windows':
       cxx.defines += ['WIN32', '_WINDOWS']
     
