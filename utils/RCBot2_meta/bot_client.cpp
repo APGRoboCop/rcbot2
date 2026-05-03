@@ -744,14 +744,16 @@ void CClient :: think ()
 					{
 						CWaypoint *pLadderWpt = CWaypoints::getWaypoint(m_iJoinLadderWaypointIndex);
 
-						pLadderWpt->addPathTo(iNewWpt);
+						if (pLadderWpt != nullptr)
+							pLadderWpt->addPathTo(iNewWpt);
 					}
 				}
 				else if ( iNearestWpt != m_iJoinLadderWaypointIndex )
 				{
 					CWaypoint *pLadderWpt = CWaypoints::getWaypoint(m_iJoinLadderWaypointIndex);
 
-					pLadderWpt->addPathTo(iNearestWpt);
+					if (pLadderWpt != nullptr)
+						pLadderWpt->addPathTo(iNearestWpt);
 				}
 
 				m_iJoinLadderWaypointIndex = -1;
@@ -926,10 +928,13 @@ void CClient :: think ()
 					
 					bCanStand = len > 72;
 
-					if ( m_iLastJumpWaypointIndex != -1 && bCanStand )
+					if (m_iLastJumpWaypointIndex != -1 && bCanStand)
 					{
-						pWpt->removeFlag(CWaypointTypes::W_FL_CROUCH);
-						//waypoints[inewwpt].origin = v_floor+Vector(0,0,36);
+						if (pWpt)
+						{
+							pWpt->removeFlag(CWaypointTypes::W_FL_CROUCH);
+							//waypoints[inewwpt].origin = v_floor+Vector(0,0,36);
+						}
 					}
 					//clear from i
 

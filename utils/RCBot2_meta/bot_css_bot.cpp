@@ -269,7 +269,19 @@ void CCSSBot::listenForPlayers()
 		
 		float fFactor = 0.0f;
 
-		const CBotCmd cmd = p->GetLastUserCommand();
+		const CBotCmd lastUserCommand = p->GetLastUserCommand(); // Renamed from `cmd` to `lastUserCommand`to avoid conflict - [APG]RoboCop[CL]
+		if (lastUserCommand.buttons & IN_ATTACK)
+		{
+			if (wantToListenToPlayerAttack(pPlayer))
+				fFactor += 1000.0f;
+		}
+		// Later in the code
+		if (fFactor > fMaxFactor)
+		{
+			fMaxFactor = fFactor;
+			pListenNearest = pPlayer;
+			bIsNearestAttacking = lastUserCommand.buttons & IN_ATTACK; // Updated variable name
+		}
 
 		if(cmd.buttons & IN_ATTACK)
 		{
