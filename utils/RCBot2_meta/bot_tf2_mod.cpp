@@ -1196,7 +1196,7 @@ bool CTeamFortress2Mod::buildingNearby(const int iTeam, const Vector& vOrigin)
 edict_t *CTeamFortress2Mod::getBuilding (const eEngiBuild object, const edict_t* pOwner)
 {
 	static int i;
-	static tf_tele_t *tele; //tele not used [APG]RoboCop[CL]
+	static tf_tele_t *tele; //`tele` not used [APG]RoboCop[CL]
 
 	//index = ENTINDEX(pOwner)-1;
 	// i is 1 to 32 ( 0 == worldspawn)

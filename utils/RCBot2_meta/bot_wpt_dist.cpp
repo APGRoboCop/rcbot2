@@ -30,7 +30,7 @@ void CWaypointDistances::load()
 		char filename[1024];
 		CBotGlobals::buildFileName(filename, szMapName, BOT_AUXILERY_FOLDER, BOT_WAYPOINT_DST_EXTENSION, true);
 
-		const std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
+		constexpr std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
 		unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
 		if (!pBuf)
@@ -69,7 +69,7 @@ void CWaypointDistances::save()
 		hdr.numwaypoints = CWaypoints::numWaypoints();
 		hdr.version = WPT_DIST_VER;
 
-		const std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
+		constexpr std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
 		unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
 		if (!pBuf)
@@ -93,7 +93,16 @@ void CWaypointDistances::save()
 float CWaypointDistances::getDistance(const int iFrom, const int iTo)
 {
 	if (m_Distances[iFrom][iTo] == -1)
-		return (CWaypoints::getWaypoint(iFrom)->getOrigin() - CWaypoints::getWaypoint(iTo)->getOrigin()).Length();
+	{
+		CWaypoint* waypointFrom = CWaypoints::getWaypoint(iFrom);
+		CWaypoint* waypointTo = CWaypoints::getWaypoint(iTo);
 
+		if (waypointFrom == nullptr || waypointTo == nullptr)
+		{
+			return -1.0f;
+		}
+
+		return (waypointFrom->getOrigin() - waypointTo->getOrigin()).Length();
+	}
 	return static_cast<float>(m_Distances[iFrom][iTo]);
 }

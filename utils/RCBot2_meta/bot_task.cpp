@@ -4597,8 +4597,8 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			// Wait a short moment after jumping to gain height before detonating
 			const float fTimeSinceJump = engine->Time() - m_fJumpTime;
 
-			if (fTimeSinceJump < 0.08f)
-				break; // too early, let the jump build velocity
+			//if (fTimeSinceJump < 0.08f)
+			//	break; // too early, let the jump build velocity
 
 			if (fTimeSinceJump > 1.0f)
 			{
@@ -5328,7 +5328,7 @@ void CBotFollowSquadLeader :: execute (CBot *pBot, CBotSchedule *pSchedule)
 ////////////////////////////////////////////////////
 
 CBotDODSnipe::CBotDODSnipe(CBotWeapon* pWeaponToUse, const Vector& vOrigin, const float fYaw, const bool bUseZ, const float z,
-						   const int iWaypointType) : m_vOrigin(vOrigin), m_vLastEnemy()
+						   const int iWaypointType) : m_vOrigin(vOrigin)
 {
 	m_fEnemyTime = 0.0f;
 	m_fTime = 0.0f;

@@ -995,7 +995,7 @@ CBotWeapon* CBotWeapons::getActiveWeapon(const char* szWeaponName, edict_t* pWea
 
 	if (szWeaponName && *szWeaponName)
 	{
-		if (const CWeapon* pWeapon = CWeapons::getWeapon(szWeaponName))
+		if (const CWeapon* pWeapon = CWeapons::getWeapon(szWeaponName)) //`pWeapon` not used? [APG]RoboCop[CL]
 		{
 			for (CBotWeapon& m_theWeapon : m_theWeapons)
 			{

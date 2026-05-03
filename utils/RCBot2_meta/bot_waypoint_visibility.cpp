@@ -167,7 +167,7 @@ bool CWaypointVisibilityTable::SaveToFile() const
 	header.waypoint_version = CWaypoints::WAYPOINT_VERSION;
 
 	// Build a combined buffer: header + vis table data
-	const std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
+	constexpr std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
 	unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
 	if (!pBuf)
@@ -198,7 +198,7 @@ bool CWaypointVisibilityTable::ReadFromFile(const int numwaypoints) const
 
 	CBotGlobals::buildFileName(filename, CBotGlobals::getMapName(), BOT_AUXILERY_FOLDER, BOT_VISIBILITY_EXTENSION, true);
 
-	const std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
+	constexpr std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
 	unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
 
 	if (!pBuf)

@@ -269,7 +269,7 @@ void CCSSBot::listenForPlayers()
 		
 		float fFactor = 0.0f;
 
-		const CBotCmd lastUserCommand = p->GetLastUserCommand(); // Renamed from `cmd` to `lastUserCommand`to avoid conflict - [APG]RoboCop[CL]
+		const CBotCmd lastUserCommand = p->GetLastUserCommand(); // Renamed from `cmd` to `lastUserCommand` to avoid conflict - [APG]RoboCop[CL]
 		if (lastUserCommand.buttons & IN_ATTACK)
 		{
 			if (wantToListenToPlayerAttack(pPlayer))
@@ -322,14 +322,14 @@ void CCSSBot::listenForPlayers()
 
 void CCSSBot::selectTeam() const
 {
-	const char* cmd = "jointeam 0";
-	helpers->ClientCommand(m_pEdict,cmd);
+	const char* teamCommand = "jointeam 0";// Renamed from `cmd` to `teamCommand` to avoid conflict - [APG]RoboCop[CL]
+	helpers->ClientCommand(m_pEdict, teamCommand);
 }
 
 void CCSSBot::selectModel() const
 {
-	const char* cmd = "joinclass 0";
-	helpers->ClientCommand(m_pEdict,cmd);
+	const char* classCommand = "joinclass 0";// Renamed from `cmd` to `classCommand` to avoid conflict - [APG]RoboCop[CL]
+	helpers->ClientCommand(m_pEdict, classCommand);
 }
 
 /**

@@ -8854,7 +8854,7 @@ void CBotTF2 :: sapperDestroyed ( edict_t *pSapper ) const
 	m_pSchedules->freeMemory();
 }
 
-CBotTF2::CBotTF2() : m_vStickyLocation(), m_nextVoicecmd()
+CBotTF2::CBotTF2() : m_nextVoicecmd()
 {
 	//CBotFortress();
 	//m_nextVoicecmd();

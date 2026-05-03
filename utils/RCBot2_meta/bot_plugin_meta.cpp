@@ -767,7 +767,7 @@ bool RCBotPluginMeta::Hook_ClientConnect(edict_t *pEntity,
 void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playername)
 {
 	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
-	constexpr bool is_Rcbot = false;
+	constexpr bool is_Rcbot = false; //`is_Rcbot` Unused? [APG]RoboCop[CL]
 
 	if ( CClient *pClient = CClients::clientConnected(pEntity) )
 	{

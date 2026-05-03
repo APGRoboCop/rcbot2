@@ -420,7 +420,7 @@ CBotCommandInline SetProp("setprop", CMD_ACCESS_DEBUG, [](const CClient* pClient
 
 			if (pNearest)
 			{
-				extern bool g_PrintProps;
+				extern bool g_PrintProps; //Unused? [APG]RoboCop[CL]
 				unsigned m_offset;
 
 				if (const ServerClass* sc = UTIL_FindServerClass(args[0]))
@@ -479,7 +479,7 @@ CBotCommandInline GetProp("getprop", CMD_ACCESS_DEBUG, [](const CClient* pClient
 
 			if (edict_t* pNearest = CClassInterface::FindEntityByNetClassNearest(pClient->getOrigin(), args[0]))
 			{
-				extern bool g_PrintProps;
+				extern bool g_PrintProps; //Unused? [APG]RoboCop[CL]
 				unsigned m_offset = 0;
 
 				if (const ServerClass* sc = UTIL_FindServerClass(args[0]))

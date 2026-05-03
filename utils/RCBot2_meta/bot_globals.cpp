@@ -354,7 +354,7 @@ edict_t *CBotGlobals :: findPlayerByTruncName ( const char *name )
 	return nullptr;
 }
 
-class CTraceFilterHitAllExceptPlayers : public CTraceFilter
+class CTraceFilterHitAllExceptPlayers : public CTraceFilter //unused class? [APG]RoboCop[CL]
 {
 public:
 	virtual ~CTraceFilterHitAllExceptPlayers() = default;
@@ -642,7 +642,7 @@ int CBotGlobals :: countTeamMatesNearOrigin (const Vector& vOrigin, const float 
 int CBotGlobals :: numClients ()
 {
 	int iCount = 0;
-	int iIndex = 0;
+	int iIndex = 0; //Unused? [APG]RoboCop[CL]
 
 	for ( int i = 1; i <= CBotGlobals::maxClients(); i ++ )
 	{

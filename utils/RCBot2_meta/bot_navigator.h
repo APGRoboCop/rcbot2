@@ -382,7 +382,6 @@ class CWaypointNavigator : public IBotNavigator
 {
 public:
 	CWaypointNavigator(CBot* pBot)
-		: curr(nullptr), succ(nullptr) // Initialize pointers to nullptr
 	{
 		CWaypointNavigator::init();
 		m_pBot = pBot;
