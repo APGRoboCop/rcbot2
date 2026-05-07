@@ -1391,6 +1391,7 @@ bool CWaypointNavigator :: routeFound ()
 // draw paths from this waypoint (if waypoint drawing is on)
 void CWaypoint::drawPaths(edict_t* pEdict, const unsigned short int iDrawType) const
 {
+	// outgoing paths (white/grey beams to waypoints we lead to)
 	for (const int iWpt : *this)
 	{
 		if (CWaypoint* pWpt = CWaypoints::getWaypoint(iWpt))
@@ -1398,34 +1399,64 @@ void CWaypoint::drawPaths(edict_t* pEdict, const unsigned short int iDrawType) c
 			drawPathBeam(pWpt, iDrawType);
 		}
 	}
+
+	// Extracted from FoXBot and adapted for RCBot2: [APG]RoboCop[CL]
+	// incoming paths (yellow beams from waypoints that lead here),
+	// drawn as "from other -> this" using the source waypoint's drawPathBeam
+	const int iNumIn = numPathsToThisWaypoint();
+	for (int i = 0; i < iNumIn; i++)
+	{
+		if (CWaypoint* pFrom = CWaypoints::getWaypoint(getPathToThisWaypoint(i)))
+		{
+			pFrom->drawPathBeam(const_cast<CWaypoint*>(this), iDrawType, true);
+		}
+	}
 }
 // draws one path beam
-void CWaypoint :: drawPathBeam (CWaypoint *to, const unsigned short int iDrawType) const
+void CWaypoint :: drawPathBeam (CWaypoint *to, const unsigned short int iDrawType, const bool bIncoming) const
 {
 	static unsigned char r,g,b;
 
-	r = g = b = 200;
-
-	if ( to->hasSomeFlags(CWaypointTypes::W_FL_UNREACHABLE) )
+	if ( bIncoming )
 	{
-		r = 255;
-		g = 100;
-		b = 100;
+		// fixed yellow tint so direction stays unambiguous regardless of flags
+		r = 200;
+		g = 200;
+		b = 0;
 	}
+	else
+	{
+		r = g = b = 200;
+
+		if ( to->hasSomeFlags(CWaypointTypes::W_FL_UNREACHABLE) )
+		{
+			r = 255;
+			g = 100;
+			b = 100;
+		}
+	}
+
+	// Extracted from FoXBot and adapted for RCBot2: [APG]RoboCop[CL]
+	// raise the outgoing white beam above the waypoint centre and keep the
+	// incoming yellow beam slightly below it, so the two read as separate
+	// horizontal lanes with clear vertical separation. Both are drawn as
+	// continuous beams from A to B; colour + height alone signal direction.
+	const Vector vFrom = bIncoming ? (m_vOrigin - Vector(0, 0, 4))     : (m_vOrigin + Vector(0, 0, 16));
+	const Vector vTo   = bIncoming ? (to->getOrigin() - Vector(0, 0, 4)) : (to->getOrigin() + Vector(0, 0, 16));
 
 	switch ( iDrawType )
 	{
 	case DRAWTYPE_EFFECTS:
-		g_pEffects->Beam( m_vOrigin, to->getOrigin(), CWaypoints::waypointTexture(), 
+		g_pEffects->Beam( vFrom, vTo, CWaypoints::waypointTexture(),
 		0, 0, 1,
-		1, PATHWAYPOINT_WIDTH, PATHWAYPOINT_WIDTH, 255, 
-		1, r, g, b, 200, 10);	
+		1, PATHWAYPOINT_WIDTH, PATHWAYPOINT_WIDTH, 255,
+		1, r, g, b, 200, 10);
 		break;
 #ifndef __linux__
 	case DRAWTYPE_DEBUGENGINE3:
 	case DRAWTYPE_DEBUGENGINE2:
 	case DRAWTYPE_DEBUGENGINE:
-		debugoverlay->AddLineOverlay (m_vOrigin, to->getOrigin(), 200,200,200, false, 1);
+		debugoverlay->AddLineOverlay (vFrom, vTo, r, g, b, false, 1);
 		break;
 #endif
 	default:

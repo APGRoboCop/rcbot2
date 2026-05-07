@@ -358,7 +358,7 @@ public:
 
 	void drawPaths(edict_t* pEdict, unsigned short int iDrawType) const;
 
-	void drawPathBeam(CWaypoint* to, unsigned short int iDrawType) const;
+	void drawPathBeam(CWaypoint* to, unsigned short int iDrawType, bool bIncoming = false) const;
 
 	void setUsed(const bool bUsed) { m_bUsed = bUsed; }
 
