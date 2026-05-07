@@ -7898,6 +7898,8 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 
 	const char* szmapname = mapname.ToCStr();
 
+	const int iEnemyTeam = CTeamFortress2Mod::getEnemyTeam(getTeam());
+
 	bool bIsPipeBomb = false, bIsRocket = false, bValid = false, bIsBoss = false,
 		bIsGrenade = false;
 
