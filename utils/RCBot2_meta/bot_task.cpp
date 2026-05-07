@@ -3834,7 +3834,7 @@ CBotInvestigateHidePoint :: CBotInvestigateHidePoint (const int iWaypointIndexTo
 	m_vMoveTo = pWaypoint->getOrigin();
 	m_fTime = 0.0f;
 	m_fInvestigateTime = 0.0f;
-	m_iState = 0;
+	m_iInvState = 0;
 
 	for ( int i = 0; i < pWaypoint->numPaths(); i ++ )
 	{
@@ -3860,12 +3860,12 @@ void CBotInvestigateHidePoint:: execute (CBot *pBot,CBotSchedule *pSchedule)
 	}
 	else if ( m_fTime < engine->Time() )
 	{
-		if ( m_iState == 2 )
+		if ( m_iInvState == 2 )
 			complete();
-		else if ( m_iState != 2 ) // go back to origin
+		else if ( m_iInvState != 2 ) // go back to origin
 		{
 			m_fTime = engine->Time() + randomFloat(1.0f,2.0f);
-			m_iState = 2;
+			m_iInvState = 2;
 		}
 	}
 
@@ -3881,14 +3881,14 @@ void CBotInvestigateHidePoint:: execute (CBot *pBot,CBotSchedule *pSchedule)
 	else
 	{
 
-		switch ( m_iState )
+		switch ( m_iInvState )
 		{
 		case 0: // goto m_vMoveTo
 			if ( pBot->distanceFrom(m_vMoveTo) > 70 )
 				pBot->setMoveTo(m_vMoveTo);
 			else
 			{
-				m_iState = 1;
+				m_iInvState = 1;
 				m_fInvestigateTime = engine->Time() + randomFloat(0.3f,1.3f);
 			}
 			pBot->setLookVector(m_vMoveTo);
@@ -3910,7 +3910,7 @@ void CBotInvestigateHidePoint:: execute (CBot *pBot,CBotSchedule *pSchedule)
 				}
 			}
 			else
-				m_iState = 2;
+				m_iInvState = 2;
 			break;
 		case 2:
 			// go back to origin
@@ -4446,7 +4446,7 @@ CBotTF2DemomanPipeJump::CBotTF2DemomanPipeJump (CBot *pBot, const Vector& vWaypo
 	m_pPipeBomb = nullptr;
 	m_fTime = 0.0f;
 	m_fJumpTime = 0.0f;
-	m_iState = 0;
+	m_iSubState = 0;
 	m_pWeapon = pWeapon;
 	m_bFired = false;
 }
@@ -4472,8 +4472,8 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 
 	edict_t* pPipeBomb = m_pPipeBomb.get();
 
-	// pipe bomb entity is set on state 0
-	if (m_iState > 0)
+	// pipe bomb entity is set on substate 0
+	if (m_iSubState > 0)
 	{
 		if (!rcbot2utils::IsValidEdict(pPipeBomb))
 		{
@@ -4482,7 +4482,7 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 		}
 	}
 
-	switch ( m_iState )
+	switch ( m_iSubState )
 	{
 	case 0:
 		if ( m_pWeapon->getClip1(pBot) == 0 )
@@ -4505,7 +4505,7 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 				{
 					// set this up incase of fail, the bot knows he has a sticky there
 					static_cast<CBotTF2*>(pBot)->setStickyTrapType(m_vStart,TF_TRAP_TYPE_ENEMY);
-					m_iState++;
+					m_iSubState++;
 					m_pPipeBomb = pipe;
 				}
 				else
@@ -4514,16 +4514,16 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			else
 			{
 				pBot->setLookVector(m_vStart);
-					pBot->setLookAtTask(LOOK_VECTOR);
+				pBot->setLookAtTask(LOOK_VECTOR);
 
-					if ( pBot->distanceFrom(m_vStart) < 150 )
+				if ( pBot->distanceFrom(m_vStart) < 150 )
+				{
+					if ( pBot->DotProductFromOrigin(m_vStart) > 0.96f )
 					{
-						if ( pBot->DotProductFromOrigin(m_vStart) > 0.96f )
-						{
-							pBot->primaryAttack();
-							m_bFired = true;
-						}
+						pBot->primaryAttack();
+						m_bFired = true;
 					}
+				}
 				else
 				{
 					pBot->setMoveTo(m_vStart);
@@ -4557,8 +4557,8 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			// run up and jump time
 
 			if ( pBot->distanceFrom(v_startrunup) < 52.0f )
-				m_iState++;
-			
+				m_iSubState++;
+
 			pBot->setMoveTo(v_startrunup);
 		}
 		break;
@@ -4581,16 +4581,16 @@ void CBotTF2DemomanPipeJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 
 			if ( pBot->distanceFrom(v_endrunup) < 48.0f )
 			{
-				m_iState++;
+				m_iSubState++;
 			}
-			
+
 			pBot->setMoveTo(v_endrunup);
 		}
 		break;
 	case 3:
 		pBot->jump();
 		m_fJumpTime = engine->Time();
-		m_iState++;
+		m_iSubState++;
 		break;
 	case 4:
 		{
@@ -4777,7 +4777,7 @@ CBotTF2DemomanPipeTrap::CBotTF2DemomanPipeTrap(const eDemoTrapType type, const V
 											   const Vector& vSpread, const bool bAutoDetonate, const int wptarea)
 												: m_vPoint(vLoc), m_vStand(vStand), m_vLocation(vLoc), m_vSpread(vSpread)
 {
-	m_iState = 0;
+	m_iDeployState = 0; // STICKY_INIT, used by deployStickies() - [APG]RoboCop[CL]
 	m_iStickies = 6;
 	m_iTrapType = type;
 	m_fTime = 0.0f;
@@ -4806,7 +4806,7 @@ void CBotTF2DemomanPipeTrap :: execute (CBot *pBot,CBotSchedule *pSchedule)
 		}
 	}
 	
-	if ( pTF2Bot->deployStickies(m_iTrapType,m_vStand,m_vLocation,m_vSpread,&m_vPoint,&m_iState,&m_iStickies,&bFail,&m_fTime,m_iWptArea) )
+	if ( pTF2Bot->deployStickies(m_iTrapType,m_vStand,m_vLocation,m_vSpread,&m_vPoint,&m_iDeployState,&m_iStickies,&bFail,&m_fTime,m_iWptArea) )
 	{
 		complete();
 

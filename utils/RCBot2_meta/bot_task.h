@@ -325,6 +325,9 @@ private:
 	float m_fTime;
 	float m_fJumpTime;
 	//int m_iState;
+	// Note: m_iState is the base CBotTask lifecycle (IDLE/RUNNING/FAIL/COMPLETE).
+	// Use m_iSubState for our 0..4 phase machine to avoid colliding with it. [APG]RoboCop[CL]
+	int m_iSubState;
 	int m_iStartingAmmo;
 	CBotWeapon* m_pWeapon;
 };
@@ -376,6 +379,11 @@ private:
 	float m_fTime;
 	eDemoTrapType m_iTrapType;
 	//int m_iState;
+	// deployStickies() oscillates this 0->1->2->1 internally. Don't reuse the
+	// base m_iState (CBotTask lifecycle) -- value 2 == STATE_FAIL would tear
+	// the schedule down whenever the bot can't fire that tick (timer not
+	// ready, aim > 20deg). [APG]RoboCop[CL]
+	int m_iDeployState;
 	int m_iStickies;
 	bool m_bAutoDetonate;
 	int m_iWptArea;
@@ -1009,6 +1017,10 @@ private:
 	float m_fInvestigateTime;
 	float m_fTime;
 	//int m_iState;
+	// 0=goto, 1=look around, 2=return to origin. Don't reuse base m_iState
+	// (CBotTask lifecycle): value 2 == STATE_FAIL would tear the schedule
+	// down before the bot can return to origin. [APG]RoboCop[CL]
+	int m_iInvState;
 };
 
 class CBotTF2PushPayloadBombTask : public CBotTask
