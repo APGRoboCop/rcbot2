@@ -832,6 +832,7 @@ typedef enum : std::uint8_t
 	TF_MAP_PASS, //TODO: add support for those gamemodes [APG]RoboCop[CL]
 	TF_MAP_CPPL, // CP+PL Hybrid maps - RussiaTails
 	TF_MAP_GG, // GunGame maps - RussiaTails
+	TF_MAP_BOSS, // Boss gamemode - RussiaTails
 	TF_MAP_MAX
 }eTFMapType;
 
