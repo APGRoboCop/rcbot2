@@ -351,6 +351,9 @@ void CTeamFortress2Mod :: mapInit ()
 	else if (std::strncmp(szmapname, "zi_", 3) == 0 ||
 			 std::strncmp(szmapname, "workshop/zi_", 12) == 0)
 		m_MapType = TF_MAP_ZI; // Zombie Infection //TODO: add support for those gamemodes [APG]RoboCop[CL]
+	else if (std::strncmp(szmapname, "workshop/boss_", 14) == 0 || std::strncmp(szmapname, "workshop/my_world_", 18) == 0 ||
+		std::strncmp(szmapname, "boss_", 5) == 0 || std::strncmp(szmapname, "my_world_", 9) == 0)
+		m_MapType = TF_MAP_BOSS; // test - RussiaTails
 	else
 		m_MapType = TF_MAP_DM; // deathmatch //TODO: to prevent bots from idling in their spawns by giving them basic tasks [APG]RoboCop[CL]
 
@@ -618,7 +621,7 @@ bool CTeamFortress2Mod::isBoss(edict_t* pEntity, float* fFactor)
 			return (std::strcmp(pEntity->GetClassName(), "merasmus") != 0);
 	}
 	else if (CTeamFortress2Mod::isMapType(TF_MAP_CARTRACE) || isMapType(TF_MAP_CART) || isMapType(TF_MAP_CTF) || isMapType(TF_MAP_KOTH) ||
-		isMapType(TF_MAP_CP) || isMapType(TF_MAP_PD) || isMapType(TF_MAP_ARENA) || isMapType(TF_MAP_SAXTON) || isMapType(TF_MAP_SD) || isMapType(TF_MAP_DM))
+		isMapType(TF_MAP_CP) || isMapType(TF_MAP_PD) || isMapType(TF_MAP_ARENA) || isMapType(TF_MAP_SAXTON) || isMapType(TF_MAP_SD) || isMapType(TF_MAP_BOSS) || isMapType(TF_MAP_DM))
 	{
 		if (m_pBoss.get() == pEntity)
 			return true;
