@@ -226,37 +226,40 @@ bool CHLDMBot :: executeAction (const eBotAction iAction)
 			models/items/ammocrate_smg1.mdl
 			*/
 
-			const char* szModel = m_pAmmoCrate.get()->GetIServerEntity()->GetModelName().ToCStr();
-			const char type = szModel[23];
+			// Ensure m_pAmmoCrate is not null before dereferencing - [APG]RoboCop[CL]
+			if (m_pAmmoCrate)
+			{
+				const char* szModel = m_pAmmoCrate.get()->GetIServerEntity()->GetModelName().ToCStr();
+				const char type = szModel[23];
 
-			if ( type == 'a' ) // ar2
-			{
-				pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_AR2));
-			}
-			else if ( type == 'g' ) // grenade
-			{
-				pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_FRAG));
-			}
-			else if ( type == 'r' ) // rocket
-			{
-				pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_RPG));
-			}
-			else if ( type == 's' ) // smg
-			{
-				pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_SMG1));
-			}
+				if (type == 'a') // ar2
+				{
+					pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_AR2));
+				}
+				else if (type == 'g') // grenade
+				{
+					pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_FRAG));
+				}
+				else if (type == 'r') // rocket
+				{
+					pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_RPG));
+				}
+				else if (type == 's') // smg
+				{
+					pWeapon = m_pWeapons->getWeapon(CWeapons::getWeapon(HL2DM_WEAPON_SMG1));
+				}
+				if (pWeapon && pWeapon->getAmmo(this) < 1)
+				{
+					CBotSchedule* pSched = new CBotSchedule();
 
-			if ( pWeapon && pWeapon->getAmmo(this) < 1 )
-			{
-				CBotSchedule *pSched = new CBotSchedule();
-				
-				pSched->addTask(new CFindPathTask(m_pAmmoCrate));
-				pSched->addTask(new CBotHL2DMUseButton(m_pAmmoCrate));
+					pSched->addTask(new CFindPathTask(m_pAmmoCrate));
+					pSched->addTask(new CBotHL2DMUseButton(m_pAmmoCrate));
 
-				m_pSchedules->add(pSched);
+					m_pSchedules->add(pSched);
 
-				m_fUtilTimes[iAction] = engine->Time() + randomFloat(5.0f,10.0f);
-				return true;
+					m_fUtilTimes[iAction] = engine->Time() + randomFloat(5.0f, 10.0f);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -518,17 +521,16 @@ void CHLDMBot :: getTasks (unsigned iIgnore)
 		}
 	}
 
-	if ( m_pNearbyWeapon.get() )
+	if (const edict_t *nearbyWeapon = m_pNearbyWeapon.get())
 	{
 		static CWeapon *pWeapon;
-		pWeapon = CWeapons::getWeapon(m_pNearbyWeapon.get()->GetClassName());
+		pWeapon = CWeapons::getWeapon(nearbyWeapon->GetClassName());
 
-		if ( pWeapon && !m_pWeapons->hasWeapon(pWeapon->getID()) )
+		if (pWeapon && !m_pWeapons->hasWeapon(pWeapon->getID()))
 		{
-			ADD_UTILITY(BOT_UTIL_PICKUP_WEAPON, true , 0.6f + pWeapon->getPreference()*0.1f)
+			ADD_UTILITY(BOT_UTIL_PICKUP_WEAPON, true, 0.6f + static_cast<float>(pWeapon->getPreference()) * 0.1f)
 		}
 	}
-
 
 	utils.execute();
 
