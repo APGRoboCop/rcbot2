@@ -2104,9 +2104,21 @@ CWaypoint *CWaypoints :: getNestWaypoint ( int iTeam, int iArea, bool bForceArea
 }
 
 void CWaypoints :: deleteWaypoint (const int iIndex)
-{	
+{
 	// mark as not used
-	m_theWaypoints[iIndex].setUsed(false);	
+	m_theWaypoints[iIndex].setUsed(false);
+	// clearPaths() only empties this waypoint's outgoing list; without
+	// notifying the destinations first, their m_PathsTo still references
+	// iIndex and the incoming-beam visualisation (and checkReachable())
+	// would see a stale entry. Notify peers, then clear.
+	{
+		CWaypoint* pWpt = &m_theWaypoints[iIndex];
+		for (const int iDest : *pWpt)
+		{
+			if (CWaypoint* pOther = getWaypoint(iDest))
+				pOther->removePathFrom(iIndex);
+		}
+	}
 	m_theWaypoints[iIndex].clearPaths();
 
 	// remove from waypoint locations
@@ -2231,7 +2243,16 @@ void CWaypoints :: deletePathsTo (const int iWpt)
 // Fixed; 23/01
 void CWaypoints :: deletePathsFrom (const int iWpt)
 {
-	m_theWaypoints[iWpt].clearPaths();
+	// notify each destination so its m_PathsTo loses the back-reference
+	// to iWpt, otherwise yellow incoming-path beams (and checkReachable())
+	// would still see iWpt as a source after clearPaths()
+	CWaypoint* pWpt = &m_theWaypoints[iWpt];
+	for (const int iDest : *pWpt)
+	{
+		if (CWaypoint* pOther = getWaypoint(iDest))
+			pOther->removePathFrom(iWpt);
+	}
+	pWpt->clearPaths();
 }
 
 int CWaypoints :: addWaypoint ( CClient *pClient, const char *type1, const char *type2, const char *type3, const char *type4, const bool bUseTemplate )
