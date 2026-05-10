@@ -8723,14 +8723,15 @@ void CBotTF2::MannVsMachineAlarmTriggered(const Vector& vLoc)
 // Go back to Cap/Flag to 
 void CBotTF2 :: enemyAtIntel ( Vector vPos, const int type, const int iArea )
 {
-	
 	const string_t mapname = gpGlobals->mapname;
 
 	const char* szmapname = mapname.ToCStr();
-	
-	if ( m_pSchedules->getCurrentSchedule() )
+
+	CBotSchedule* currentSchedule = m_pSchedules->getCurrentSchedule();
+
+	if (currentSchedule)
 	{
-		if ( m_pSchedules->getCurrentSchedule()->isID(SCHED_RETURN_TO_INTEL) )
+		if (currentSchedule->isID(SCHED_RETURN_TO_INTEL))
 		{
 			// already going back to intel
 			return;

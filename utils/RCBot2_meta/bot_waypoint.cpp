@@ -207,8 +207,12 @@ bool CWaypointNavigator::wantToSaveBelief()
 int CWaypointNavigator :: numPaths ()
 {
 	if ( m_iCurrentWaypoint != -1 )
-		return CWaypoints::getWaypoint(m_iCurrentWaypoint)->numPaths();
+	{
+		const CWaypoint* waypoint = CWaypoints::getWaypoint(m_iCurrentWaypoint);
 
+		if (waypoint != nullptr)
+			return waypoint->numPaths();
+	}
 	return 0;
 }
 
@@ -244,6 +248,10 @@ bool CWaypointNavigator :: randomDangerPath (Vector *vec)
 	for ( i = 0; i < pWpt->numPaths(); i ++ )
 	{
 		pNext = CWaypoints::getWaypoint(pWpt->getPath(i));
+
+		if (pNext == nullptr)
+			continue;
+
 		fBelief = getBelief(CWaypoints::getWaypointIndex(pNext));
 
 		if ( pNext == pOnRouteTo )
@@ -262,6 +270,10 @@ bool CWaypointNavigator :: randomDangerPath (Vector *vec)
 	for ( i = 0; i < pWpt->numPaths(); i ++ )
 	{
 		pNext = CWaypoints::getWaypoint(pWpt->getPath(i));
+
+		if (pNext == nullptr)
+			continue;
+
 		fBelief = getBelief(CWaypoints::getWaypointIndex(pNext));
 
 		if ( pNext == pOnRouteTo )
@@ -311,8 +323,12 @@ bool CWaypointNavigator::nextPointIsOnLadder()
 float CWaypointNavigator :: getNextYaw ()
 {
 	if ( m_iCurrentWaypoint != -1 )
-		return CWaypoints::getWaypoint(m_iCurrentWaypoint)->getAimYaw();
+	{
+		CWaypoint* waypoint = CWaypoints::getWaypoint(m_iCurrentWaypoint);
 
+		if (waypoint != nullptr)
+			return waypoint->getAimYaw();
+	}
 	return 0.0f;
 }
 
@@ -701,8 +717,12 @@ void CWaypointNavigator :: belief (const Vector& vOrigin, const Vector& vOther, 
 int CWaypointNavigator :: getCurrentFlags ()
 {
 	if ( m_iCurrentWaypoint != -1 )
-		return CWaypoints::getWaypoint(m_iCurrentWaypoint)->getFlags();
+	{
+		CWaypoint* waypoint = CWaypoints::getWaypoint(m_iCurrentWaypoint);
 
+		if (waypoint != nullptr)
+			return waypoint->getFlags();
+	}
 	return 0;
 }
 
@@ -1168,7 +1188,14 @@ bool CWaypointNavigator :: hasNextPoint ()
 // return the vector of the next point
 Vector CWaypointNavigator :: getNextPoint ()
 {
-	return CWaypoints::getWaypoint(m_iCurrentWaypoint)->getOrigin();
+	CWaypoint* waypoint = CWaypoints::getWaypoint(m_iCurrentWaypoint);
+	
+	if (waypoint == nullptr)
+	{
+		return Vector(); // Assuming Vector has a default constructor
+	}
+
+	return waypoint->getOrigin();
 }
 
 bool CWaypointNavigator :: getNextRoutePoint ( Vector *vPoint )
@@ -1179,9 +1206,12 @@ bool CWaypointNavigator :: getNextRoutePoint ( Vector *vPoint )
 		{
 			static CWaypoint *pW;
 			pW = CWaypoints::getWaypoint(head);
-			*vPoint = pW->getOrigin();// + pW->applyRadius();
 
-			return true;
+			if (pW != nullptr)
+			{
+				*vPoint = pW->getOrigin(); // + pW->applyRadius();
+				return true;
+			}
 		}
 	}
 
@@ -2557,6 +2587,9 @@ CWaypoint *CWaypoints::getNextCoverPoint ( CBot *pBot, CWaypoint *pCurrent, CWay
 		const int iNext = pCurrent->getPath(i);
 		CWaypoint* pNext = CWaypoints::getWaypoint(iNext);
 
+		if ( pNext == nullptr )
+			continue;
+
 		if ( pNext == pBlocking )
 			continue;
 
@@ -2937,6 +2970,9 @@ bool CWaypoint :: checkReachable ()
 		{
 			CWaypoint* pOther = CWaypoints::getWaypoint(getPathToThisWaypoint(i));
 
+			if ( pOther == nullptr )
+				continue;
+
 			if ( pOther->getFlags() == 0 )
 				break;
 
@@ -2945,7 +2981,7 @@ bool CWaypoint :: checkReachable ()
 				if ( pOther->checkGround() )
 					break;
 			}
-		
+
 			if ( getFlags() & CWaypointTypes::W_FL_OPENS_LATER )
 			{
 				if ( pOther->isPathOpened(m_vOrigin) )

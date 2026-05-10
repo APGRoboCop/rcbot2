@@ -41,6 +41,7 @@
 #include "bot_task.h"
 #include "bot_waypoint_locations.h"
 #include "bot_weapons.h"
+#include "logging.h"
 ////////////////////////////////////
 // these must match the SCHED IDs
 const char *szSchedules[SCHED_MAX+1] = 
@@ -530,6 +531,12 @@ CBotDefendSched ::CBotDefendSched (const Vector& vOrigin, const float fMaxTime)
 CBotDefendSched::CBotDefendSched (const int iWaypointID, const float fMaxTime)
 {
 	CWaypoint* pWaypoint = CWaypoints::getWaypoint(iWaypointID);
+
+	if (pWaypoint == nullptr)
+	{
+		logger->Log(LogLevel::ERROR, "Invalid waypoint ID: Unable to retrieve waypoint.");
+		return;
+	}
 
 	addTask(new CFindPathTask(iWaypointID));
 	addTask(new CBotDefendTask(pWaypoint->getOrigin(),fMaxTime,8,false,Vector(0,0,0),LOOK_SNIPE,pWaypoint->getFlags()));

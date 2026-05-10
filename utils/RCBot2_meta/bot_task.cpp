@@ -575,7 +575,7 @@ void CDODWaitForBombTask :: execute (CBot *pBot,CBotSchedule *pSchedule)
 		pBot->updateCondition(CONDITION_RUN);
 		CWaypoint* pCurrent = CWaypoints::getWaypoint(CWaypointLocations::NearestWaypoint(pBot->getOrigin(), 400.0f,
 			CWaypoints::getWaypointIndex(m_pBlocking), true, false, true));
-
+		
 		if ( pCurrent == nullptr)
 			pCurrent = m_pBlocking;
 
@@ -583,13 +583,15 @@ void CDODWaitForBombTask :: execute (CBot *pBot,CBotSchedule *pSchedule)
 		m_pRunTo = CWaypoints::getNextCoverPoint(pBot,pCurrent,m_pBlocking) ;
 	}
 
-	if ( m_pBombTarget.get() == nullptr)
+	// Store the result of m_pBombTarget.get() in a local variable
+	edict_t* pBombTarget = m_pBombTarget.get();
+
+	if (pBombTarget == nullptr)
 	{
 		complete();
 		return;
 	}
-
-	if ( m_pBombTarget.get()->GetUnknown() == nullptr)
+	if ( pBombTarget->GetUnknown() == nullptr )
 	{
 		complete();
 		return;
@@ -1656,8 +1658,15 @@ void CBotInvestigateTask :: execute (CBot *pBot,CBotSchedule *pSchedule)
 
 		if ( pWaypoint->numPaths() > 0 )
 		{
-			for ( int i = 0; i < pWaypoint->numPaths(); i ++ )
-				m_InvPoints.emplace_back(CWaypoints::getWaypoint(pWaypoint->getPath(i))->getOrigin());	
+			for (int i = 0; i < pWaypoint->numPaths(); i++)
+			{
+				CWaypoint *pPathWaypoint = CWaypoints::getWaypoint(pWaypoint->getPath(i));
+
+				if (pPathWaypoint != nullptr)
+				{
+					m_InvPoints.emplace_back(pPathWaypoint->getOrigin());
+				}
+			}
 
 			m_iCurPath = randomInt(0,pWaypoint->numPaths()-1);
 		}
@@ -2046,7 +2055,18 @@ CFindPathTask :: CFindPathTask (const int iWaypointId, const eLookTask looktask)
 	m_iInt = 0;
 	m_iWaypointId = iWaypointId;
 	m_LookTask = looktask;
-	m_vVector = CWaypoints::getWaypoint(iWaypointId)->getOrigin();
+
+	CWaypoint *waypoint = CWaypoints::getWaypoint(iWaypointId);
+
+	if (waypoint != nullptr)
+	{
+		m_vVector = waypoint->getOrigin();
+	}
+	else
+	{
+		m_vVector = {}; // Assign a default value (e.g., zero vector)
+	}
+
 	m_flags.m_data = 0;
 	m_fRange = 0.0f;
 	m_iDangerPoint = -1;
@@ -2081,7 +2101,7 @@ void CFindPathTask :: debugString (char* string, const unsigned bufferSize)
 }
 
 void CFindPathTask :: execute ( CBot *pBot, CBotSchedule *pSchedule )
-{	
+{
 	bool bFail = false;
 
 	if ( m_LookTask == LOOK_NOISE )
@@ -2097,8 +2117,16 @@ void CFindPathTask :: execute ( CBot *pBot, CBotSchedule *pSchedule )
 			return;
 		}
 
-		m_vVector = CWaypoints::getWaypoint(m_iWaypointId)->getOrigin();
+		CWaypoint* waypoint = CWaypoints::getWaypoint(m_iWaypointId);
+
+		if (waypoint == nullptr)
+		{
+			fail();
+			return;
+		}
+		m_vVector = waypoint->getOrigin();
 	}
+
 	else if ( pSchedule->hasPassVector() )
 	{
 		m_vVector = pSchedule->passedVector();
@@ -2344,12 +2372,20 @@ void CBotTF2FindPipeWaypoint :: execute (CBot *pBot,CBotSchedule *pSchedule)
 	if ( m_i == m_WaypointsI.size() )
 	{		
 		if ( m_iNearesti == -1 )
+		{
 			fail();
+		}
 		else
 		{
-			pSchedule->passInt(m_iNearestj);
-			pSchedule->passVector(CWaypoints::getWaypoint(m_iNearesti)->getOrigin());
+			CWaypoint *pNearestWaypoint = CWaypoints::getWaypoint(m_iNearesti);
 
+			if (pNearestWaypoint == nullptr)
+			{
+				fail();
+				return;
+			}
+			pSchedule->passInt(m_iNearestj);
+			pSchedule->passVector(pNearestWaypoint->getOrigin());
 			complete();
 		}
 	}
@@ -2945,13 +2981,24 @@ CBotTF2SnipeCrossBow::CBotTF2SnipeCrossBow(const Vector& vOrigin, const int iWpt
 	m_iSnipeWaypoint = iWpt;
 	m_fAimTime = 0.0f;
 	m_fTime = 0.0f;
-	const QAngle angle = QAngle(0, pWaypoint->getAimYaw(), 0);
-	AngleVectors(angle, &m_vAim);
-	
-	m_vAim = vOrigin + m_vAim * 4096;
+
+	if (pWaypoint != nullptr)
+	{
+		const QAngle angle = QAngle(0, pWaypoint->getAimYaw(), 0);
+		AngleVectors(angle, &m_vAim);
+
+		m_vAim = vOrigin + m_vAim * 4096;
+		m_iArea = pWaypoint->getArea();
+	}
+	else
+	{
+
+		m_vAim = vOrigin; // Default aim direction
+		m_iArea = 0;      // Default area
+	}
 	m_fEnemyTime = 0.0f;
 	m_vEnemy = m_vAim;
-	m_iArea = pWaypoint->getArea();
+
 }
 
 void CBotTF2SnipeCrossBow::execute(CBot *pBot, CBotSchedule *pSchedule)
@@ -3035,28 +3082,33 @@ void CBotTF2SnipeCrossBow::execute(CBot *pBot, CBotSchedule *pSchedule)
 			const CWaypoint *pWaypoint = CWaypoints::getWaypoint(m_iSnipeWaypoint);
 			const CWaypointVisibilityTable *pTable = CWaypoints::getVisiblity();
 
-			for (int i = 0; i < pWaypoint->numPaths(); i++)
+			if (pWaypoint && pTable)
 			{
-				const int iPathId = pWaypoint->getPath(i);
-
-				// isn't visible to the target
-				if (!pTable->GetVisibilityFromTo(iAimWpt, iPathId))
+				for (int i = 0; i < pWaypoint->numPaths(); i++)
 				{
-					m_iHideWaypoint = iPathId;
-					m_vHideOrigin = CWaypoints::getWaypoint(iPathId)->getOrigin();
-					break;
+					const int iPathId = pWaypoint->getPath(i);
+
+					// isn't visible to the target
+					if (!pTable->GetVisibilityFromTo(iAimWpt, iPathId))
+					{
+						CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId);
+						if (pHideWaypoint)
+						{
+							m_iHideWaypoint = iPathId;
+							m_vHideOrigin = pHideWaypoint->getOrigin();
+							break;
+						}
+					}
 				}
 			}
-
-			if (m_iHideWaypoint == -1)
+			if (m_iHideWaypoint == -1 && pWaypoint)
 			{
 				// can't find a useful hide waypoint -- choose a random one
 				m_iHideWaypoint = pWaypoint->getPath(randomInt(0, pWaypoint->numPaths()));
 
 				if (m_iHideWaypoint != -1)
 				{
-					CWaypoint *pHideWaypoint = CWaypoints::getWaypoint(m_iHideWaypoint);
-
+					CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(m_iHideWaypoint);
 					if (pHideWaypoint != nullptr)
 					{
 						m_vHideOrigin = pHideWaypoint->getOrigin();
@@ -3233,13 +3285,21 @@ CBotTF2Snipe :: CBotTF2Snipe (const Vector& vOrigin, const int iWpt) : m_vOrigin
 	m_iSnipeWaypoint = iWpt;
 	m_fAimTime = 0.0f;
 	m_fTime = 0.0f;
-	const QAngle angle = QAngle(0, pWaypoint->getAimYaw(), 0);
-	
-	AngleVectors(angle,&m_vAim);
-	m_vAim = vOrigin + m_vAim*4096;
+
+	if (pWaypoint)
+	{
+		const QAngle angle = QAngle(0, pWaypoint->getAimYaw(), 0);
+		AngleVectors(angle, &m_vAim);
+		m_vAim = vOrigin + m_vAim * 4096;
+		m_iArea = pWaypoint->getArea();
+	}
+	else
+	{
+		m_vAim = vOrigin; // Default aim direction
+		m_iArea = -1;     // Default area value
+	}
 	m_fEnemyTime = 0.0f;
 	m_vEnemy = m_vAim;
-	m_iArea = pWaypoint->getArea();
 }
 	
 void CBotTF2Snipe :: execute (CBot *pBot, CBotSchedule *pSchedule)
@@ -3326,20 +3386,26 @@ void CBotTF2Snipe :: execute (CBot *pBot, CBotSchedule *pSchedule)
 			const CWaypoint *pWaypoint = CWaypoints::getWaypoint(m_iSnipeWaypoint);
 			const CWaypointVisibilityTable *pTable = CWaypoints::getVisiblity();
 
-			for ( int i = 0; i < pWaypoint->numPaths(); i ++ )
+			if (pWaypoint && pTable)
 			{
-				const int iPathId = pWaypoint->getPath(i);
-
-				// isn't visible to the target
-				if ( !pTable->GetVisibilityFromTo(iAimWpt,iPathId) )
+				for (int i = 0; i < pWaypoint->numPaths(); i++)
 				{
-					m_iHideWaypoint = iPathId;
-					m_vHideOrigin = CWaypoints::getWaypoint(iPathId)->getOrigin();
-					break;
+					const int iPathId = pWaypoint->getPath(i);
+
+					// isn't visible to the target
+					if (!pTable->GetVisibilityFromTo(iAimWpt, iPathId))
+					{
+						CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId);
+						if (pHideWaypoint)
+						{
+							m_iHideWaypoint = iPathId;
+							m_vHideOrigin = pHideWaypoint->getOrigin();
+							break;
+						}
+					}
 				}
 			}
-
-			if (m_iHideWaypoint == -1)
+			if (m_iHideWaypoint == -1 && pWaypoint)
 			{
 				// can't find a useful hide waypoint -- choose a random one
 				const int pathid = randomInt(0, pWaypoint->numPaths());
@@ -3347,16 +3413,15 @@ void CBotTF2Snipe :: execute (CBot *pBot, CBotSchedule *pSchedule)
 
 				if (m_iHideWaypoint != -1)
 				{
-					CWaypoint *pHideWaypoint = CWaypoints::getWaypoint(m_iHideWaypoint);
-
+					CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(m_iHideWaypoint);
 					if (pHideWaypoint != nullptr)
 					{
 						m_vHideOrigin = pHideWaypoint->getOrigin();
 					}
 					else
 					{
-						//detected a PATH problem
-						//pWaypoint->removePathTo(pathid);
+						// detected a PATH problem
+						// pWaypoint->removePathTo(pathid);
 						m_iHideWaypoint = -1;
 					}
 				}
@@ -3849,22 +3914,36 @@ CBotInvestigateHidePoint :: CBotInvestigateHidePoint (const int iWaypointIndexTo
 {
 	CWaypoint *pWaypoint = CWaypoints::getWaypoint(iWaypointIndexToInvestigate);
 	CWaypoint *pOriginalWpt = CWaypoints::getWaypoint(iOriginalWaypointIndex);
-	m_vOrigin = pOriginalWpt->getOrigin();
-	m_vMoveTo = pWaypoint->getOrigin();
+
+	if (pOriginalWpt)
+		m_vOrigin = pOriginalWpt->getOrigin();
+	else
+		m_vOrigin = Vector(); // Assign a default value or handle the error
+
+	if (pWaypoint)
+		m_vMoveTo = pWaypoint->getOrigin();
+	else
+		m_vMoveTo = Vector(); // Assign a default value or handle the error
+
 	m_fTime = 0.0f;
 	m_fInvestigateTime = 0.0f;
 	m_iInvState = 0;
 
-	for ( int i = 0; i < pWaypoint->numPaths(); i ++ )
+	if (pWaypoint) // Ensure pWaypoint is not null before accessing its paths
 	{
-		CWaypoint *pWaypointOther = CWaypoints::getWaypoint(pWaypoint->getPath(i));
+		for (int i = 0; i < pWaypoint->numPaths(); i++)
+		{
+			CWaypoint* pWaypointOther = CWaypoints::getWaypoint(pWaypoint->getPath(i));
 
-		if ( pWaypointOther == pWaypoint )
-			continue;
-		if ( pWaypointOther == pOriginalWpt )
-			continue;
+			if (!pWaypointOther)
+				continue;
+			if (pWaypointOther == pWaypoint)
+				continue;
+			if (pWaypointOther == pOriginalWpt)
+				continue;
 
-		m_CheckPoints.emplace_back(pWaypointOther->getOrigin());
+			m_CheckPoints.emplace_back(pWaypointOther->getOrigin());
+		}
 	}
 
 	m_iCurrentCheckPoint = 0;
@@ -4725,11 +4804,11 @@ void CBotTF2DemomanPipeEnemy :: execute (CBot *pBot, CBotSchedule *pSchedule)
 	}
 
 
-	if ( !CBotGlobals::entityIsValid(m_pEnemy) || !CBotGlobals::entityIsAlive(m_pEnemy) || m_fTime < engine->Time() )
+	if (!m_pEnemy || !CBotGlobals::entityIsValid(m_pEnemy) || !CBotGlobals::entityIsAlive(m_pEnemy) || m_fTime < engine->Time())
 	{
 		// blow up any grens before we finish
-		//if ( m_pEnemy.get() && pBot->isVisible(m_pEnemy.get()) )
-		static_cast<CBotTF2*>(pBot)->detonateStickies(true);
+		if (m_pEnemy && pBot->isVisible(m_pEnemy.get()))
+			static_cast<CBotTF2*>(pBot)->detonateStickies(true);
 
 		complete();
 		pBot->setLastEnemy(nullptr);
@@ -5129,7 +5208,7 @@ void CBotTF2AttackSentryGunTask::execute (CBot *pBot, CBotSchedule *pSchedule)
 				{
 					CWaypoint *pPath = CWaypoints::getWaypoint(pWpt->getPath(i));
 
-					if ( (fDist = pPath->distanceFrom(m_vStart)) < fMinDist )
+					if (pPath != nullptr && (fDist = pPath->distanceFrom(m_vStart)) < fMinDist)
 					{
 						fMinDist = fDist;
 						m_vHide = pPath->getOrigin();
@@ -5796,7 +5875,7 @@ void CBotSynBreakICrateTask::execute(CBot *pBot, CBotSchedule *pSchedule)
 		pBot->setMoveTo(m_vPos);
 		pBot->primaryAttack();
 
-		if (!currentWeapon->isMelee())
+		if (currentWeapon && !currentWeapon->isMelee())
 		{
 			if (currentWeapon->getClip1(pBot) < 1)
 			{

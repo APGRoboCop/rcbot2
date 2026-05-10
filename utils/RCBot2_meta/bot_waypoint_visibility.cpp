@@ -197,20 +197,18 @@ bool CWaypointVisibilityTable::ReadFromFile(const int numwaypoints) const
 	wpt_vis_header_t header;
 
 	CBotGlobals::buildFileName(filename, CBotGlobals::getMapName(), BOT_AUXILERY_FOLDER, BOT_VISIBILITY_EXTENSION, true);
-	
+
 	constexpr std::size_t totalSize = sizeof(wpt_vis_header_t) + sizeof(byte) * g_iMaxVisibilityByte;
 	unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
-	
+
 	if (!pBuf)
 	{
 		logger->Log(LogLevel::ERROR, "Can't allocate buffer for Waypoint Visibility load!");
 		return false;
 	}
 
-	const std::size_t loadedSize = RCBot_CompressedLoad(filename, pBuf, totalSize);
-	if (loadedSize < sizeof(wpt_vis_header_t))
+	if (!RCBot_CompressedLoad(filename, pBuf, totalSize))
 	{
-		logger->Log(LogLevel::ERROR, "Insufficient data loaded for Waypoint Visibility header!");
 		std::free(pBuf);
 		return false;
 	}
@@ -225,16 +223,8 @@ bool CWaypointVisibilityTable::ReadFromFile(const int numwaypoints) const
 		return false;
 	}
 
-	const std::size_t visibilityTableSize = loadedSize - sizeof(wpt_vis_header_t);
-	if (visibilityTableSize < sizeof(byte) * g_iMaxVisibilityByte)
-	{
-		logger->Log(LogLevel::ERROR, "Insufficient data loaded for Waypoint Visibility table!");
-		std::free(pBuf);
-		return false;
-	}
-
 	std::memcpy(m_VisTable, pBuf + sizeof(wpt_vis_header_t), sizeof(byte) * g_iMaxVisibilityByte);
-	
+
 	std::free(pBuf);
 	return true;
 }
