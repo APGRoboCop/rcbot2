@@ -973,6 +973,8 @@ void CDODBot :: touchedWpt ( CWaypoint *pWaypoint, const int iNextWaypoint, cons
 
 				CWaypoint* pPath = CWaypoints::getWaypoint(iPath);
 
+				if ( pPath == nullptr )
+					continue;
 				if ( pPath == pWaypoint )
 					continue;
 
@@ -1000,9 +1002,13 @@ void CDODBot :: touchedWpt ( CWaypoint *pWaypoint, const int iNextWaypoint, cons
 #ifndef __linux__
 					if ( CClients::clientsDebugging(BOT_DEBUG_TASK) )
 					{
-						extern IVDebugOverlay *debugoverlay;
-						debugoverlay->AddLineOverlay(CWaypoints::getWaypoint(iNextWaypoint)->getOrigin(),pPath->getOrigin(),255,120,120,false,7.0f);
-						debugoverlay->AddLineOverlay(pWaypoint->getOrigin(),pPath->getOrigin(),255,255,255,false,7.0f);
+						CWaypoint* pNextWaypoint = CWaypoints::getWaypoint(iNextWaypoint);
+						if (pNextWaypoint != nullptr)
+						{
+							extern IVDebugOverlay *debugoverlay;
+							debugoverlay->AddLineOverlay(pNextWaypoint->getOrigin(), pPath->getOrigin(), 255, 120, 120, false, 7.0f);
+							debugoverlay->AddLineOverlay(pWaypoint->getOrigin(), pPath->getOrigin(), 255, 255, 255, false, 7.0f);
+						}
 					}
 
 #endif
@@ -1294,7 +1300,10 @@ void CDODBot :: modThink ()
 
 	if ( !m_bProne && m_bStatsCanUse )
 	{
-		if ( m_pSchedules->isEmpty() || (!m_pSchedules->getCurrentSchedule()->isID(SCHED_FOLLOW) && !m_pSchedules->getCurrentSchedule()->isID(SCHED_SNIPE)) )
+		if ( m_pSchedules->isEmpty() ||
+			(m_pSchedules->getCurrentSchedule() == nullptr ||
+				(!m_pSchedules->getCurrentSchedule()->isID(SCHED_FOLLOW) &&
+					!m_pSchedules->getCurrentSchedule()->isID(SCHED_SNIPE))) )
 		{
 			if ( m_fNextCheckAlone < engine->Time() )
 			{
@@ -1878,18 +1887,24 @@ void CDODBot::hearVoiceCommand(edict_t* pPlayer, byte voiceCmd)
 
 				if ( CDODMod::isBombMap() )
 				{
-					CWaypoint *pWpt = CWaypoints::getWaypoint(CWaypointLocations::NearestBlastWaypoint(vPoint,vPlayer,1000.0f,-1,true,false,true,false,m_iTeam,true));
+					CWaypoint* pWpt = CWaypoints::getWaypoint(CWaypointLocations::NearestBlastWaypoint(vPoint, vPlayer, 1000.0f, -1, true, false, true, false, m_iTeam, true));
+					
+					if ( pWpt != nullptr )
+					{
+						attack->setID(SCHED_DEFENDPOINT);
+						attack->addTask(new CFindPathTask(pWpt->getOrigin()));
+						attack->addTask(new CBotDefendTask(pWpt->getOrigin(), randomFloat(6.0f, 12.0f), 0, true, vPoint, LOOK_SNIPE, pWpt->getFlags()));
+						if (!inSquad() && rcbot_bots_form_squads.GetBool())
+							attack->addTask(new CBotJoinSquad(pPlayer));
 
-					attack->setID(SCHED_DEFENDPOINT);
-					attack->addTask(new CFindPathTask(pWpt->getOrigin()));
-					attack->addTask(new CBotDefendTask(pWpt->getOrigin(),randomFloat(6.0f,12.0f),0,true,vPoint,LOOK_SNIPE,pWpt->getFlags()));
-
-					if ( !inSquad() && rcbot_bots_form_squads.GetBool() )
-						attack->addTask(new CBotJoinSquad(pPlayer));
-
-					// add defend task
-					m_pSchedules->freeMemory();
-					m_pSchedules->add(attack);
+						// add defend task
+						m_pSchedules->freeMemory();
+						m_pSchedules->add(attack);
+					}
+					else
+					{
+						delete attack; // Clean up the allocated memory
+					}
 				}
 				else
 				{
@@ -2099,7 +2114,6 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 				return false;
 			}
 
-
 			Vector vEnemyOrigin = CBotGlobals::entityOrigin(pEnemy);
 
 			int iEnemyWpt = CWaypointLocations::NearestWaypoint(CBotGlobals::entityOrigin(pEnemy), 200.0f, -1, true,
@@ -2121,7 +2135,7 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 			{
 				CWaypoint *pWpt = CWaypoints::getWaypoint(waypoints[i]);
 
-				if ( pWpt->hasFlag(CWaypointTypes::W_FL_SNIPER) )
+				if ( pWpt && pWpt->hasFlag(CWaypointTypes::W_FL_SNIPER) )
 				{
 					// Check the yaw
 					QAngle eyes;
@@ -2134,18 +2148,18 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 
 					Vector vecLOS;
 					float flDot;
-	
+
 					Vector vForward;
-		
+
 					// in fov? Check angle to edict
 					AngleVectors(eyes,&vForward);
-	
+
 					vecLOS = vEnemyOrigin - pWpt->getOrigin();
 					vecLOS = vecLOS/vecLOS.Length();
-	
+
 					flDot = DotProduct (vecLOS , vForward );
-	
-					if ( flDot > 0.0f ) // 90 degrees 
+
+					if ( flDot > 0.0f ) // 90 degrees
 					{
 						fDist = pWpt->distanceFrom(vOrigin);
 
@@ -2676,14 +2690,17 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 
 				if ( (m_fUseRouteTime < engine->Time()) )
 				{
-				// find random route
+					// find random route
 					CWaypoint *pGoalWpt = CWaypoints::getWaypoint(iGoalWaypoint);
-					pRoute = CWaypoints::randomRouteWaypoint(this,getOrigin(),pGoalWpt->getOrigin(),getTeam(),0);
-
-					if ( pRoute )
+					if (pGoalWpt)
 					{
-						attack->addTask(new CFindPathTask(CWaypoints::getWaypointIndex(pRoute)));
-						m_fUseRouteTime = engine->Time() + 30.0f;
+						pRoute = CWaypoints::randomRouteWaypoint(this,getOrigin(),pGoalWpt->getOrigin(),getTeam(),0);
+
+						if ( pRoute )
+						{
+							attack->addTask(new CFindPathTask(CWaypoints::getWaypointIndex(pRoute)));
+							m_fUseRouteTime = engine->Time() + 30.0f;
+						}
 					}
 				}
 
@@ -3258,8 +3275,14 @@ void CDODBot :: getTasks (unsigned iIgnore)
 
 	if ( !rcbot_melee_only.GetBool() && (m_pNearestWeapon.get() != nullptr) && hasSomeConditions(CONDITION_NEED_AMMO) )
 	{
-		const CWeapon *pNearestWeapon = CWeapons::getWeapon(m_pNearestWeapon.get()->GetClassName());
-		const CBotWeapon *pHaveWeapon = (pNearestWeapon== nullptr)? nullptr :(m_pWeapons->getWeapon(pNearestWeapon));
+		// Store the result of m_pNearestWeapon.get() in a local variable
+		edict_t* pNearestWeaponPtr = m_pNearestWeapon.get();
+
+		const CWeapon* pNearestWeapon = (pNearestWeaponPtr != nullptr)
+			? CWeapons::getWeapon(pNearestWeaponPtr->GetClassName()) : nullptr;
+
+		const CBotWeapon* pHaveWeapon = (pNearestWeapon == nullptr)
+			? nullptr : (m_pWeapons->getWeapon(pNearestWeapon));
 
 		if ( pNearestWeapon && (!pHaveWeapon || !pHaveWeapon->hasWeapon() || pHaveWeapon->outOfAmmo(this) ) )
 		{

@@ -80,6 +80,7 @@ class CBasePlayer; // forward declaration required by imovehelper.h (included by
 
 constexpr int MAX_VOICE_CMDS = 32;
 constexpr float MIN_WPT_TOUCH_DIST = 16.0f;
+constexpr float INFINITE_DISTANCE = 1e30f;
 
 // Interfaces from the engine
 extern IVEngineServer *engine;  // helper functions (messaging clients, loading content, making entities, running commands, etc)
@@ -351,8 +352,12 @@ public:
 		return (vOrigin - m_pController->GetLocalOrigin()).Length();
 	}
 
-    float distanceFrom(edict_t *pEntity) const
-    {
+	float distanceFrom(edict_t* pEntity) const
+	{
+		if (!pEntity)
+		{
+			return INFINITE_DISTANCE; // Use the named constant
+		}
 		return (pEntity->GetCollideable()->GetCollisionOrigin() - m_pController->GetLocalOrigin()).Length();
 		//return distanceFrom(CBotGlobals::entityOrigin(pEntity));
 	}

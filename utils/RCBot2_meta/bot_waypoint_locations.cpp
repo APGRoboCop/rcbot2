@@ -104,6 +104,12 @@ void CWaypointLocations :: getMinMaxs (const int iLoc, const int jLoc, const int
 void CWaypointLocations :: AutoPath (edict_t *pPlayer, const int iWpt)
 {
 	CWaypoint *pWpt = CWaypoints::getWaypoint(iWpt);
+
+	if (pWpt == nullptr)
+	{
+		return;
+	}
+
 	const Vector vOrigin = pWpt->getOrigin();
 
 	const int iLoc = READ_LOC(vOrigin.x)
@@ -192,6 +198,9 @@ void CWaypointLocations :: GetAllVisible (const int iFrom, int iOther, const Vec
 					int iWpt = arr[l];
 					const CWaypoint* pWpt = CWaypoints::getWaypoint(iWpt);
 
+					if (pWpt == nullptr)
+						continue;
+
 					//int iWpt = tempStack.ChooseFromStack();
 					
 					// within range only deal with these waypoints
@@ -214,6 +223,12 @@ void CWaypointLocations :: GetAllVisible (const int iFrom, int iOther, const Vec
 void CWaypointLocations :: AutoPathInBucket ( edict_t *pPlayer, const int i, const int j, const int k, const int iWptFrom )
 {
 	CWaypoint *pWpt = CWaypoints::getWaypoint(iWptFrom);
+
+	if (pWpt == nullptr)
+	{
+		return;
+	}
+
 	const Vector vWptOrigin = pWpt->getOrigin();
 
 	//trace_t tr; //tr not used? [APG]RoboCop[CL]
@@ -242,8 +257,8 @@ void CWaypointLocations :: AutoPathInBucket ( edict_t *pPlayer, const int i, con
 		
 		Vector vOtherWptOrigin = pOtherWpt->getOrigin();
 
-	//	if ( fabs(vOtherWptOrigin.z-vWptOrigin.z) > 128 )
-		//	continue;
+		//	if ( fabs(vOtherWptOrigin.z-vWptOrigin.z) > 128 )
+		//		continue;
 
 		if ( (vWptOrigin-vOtherWptOrigin).Length() <= bot_waypointpathdist.GetFloat() )
 		{

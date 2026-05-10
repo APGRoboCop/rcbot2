@@ -1236,7 +1236,7 @@ void CBot :: updateConditions ()
 			{
 				removeCondition(CONDITION_SQUAD_LEADER_DEAD);
 
-				if ( distanceFrom(pLeader) <= 400.0f )
+				if ( pLeader && distanceFrom(pLeader) <= 400.0f )
 					updateCondition(CONDITION_SQUAD_LEADER_INRANGE);
 				else
 					removeCondition(CONDITION_SQUAD_LEADER_INRANGE);
@@ -2230,12 +2230,15 @@ void CBot :: doMove ()
 #ifndef __linux__
 					if ( CClients::clientsDebugging(BOT_DEBUG_THINK) )
 					{
-						const Vector m_vAvoidOrigin = CBotGlobals::entityOrigin(m_pAvoidEntity);
+						if (m_pAvoidEntity)
+						{
+							const Vector m_vAvoidOrigin = CBotGlobals::entityOrigin(m_pAvoidEntity);
 
-						debugoverlay->AddLineOverlay (getOrigin(), m_vAvoidOrigin, 0,0,255, false, 0.05f);
-						debugoverlay->AddLineOverlay (getOrigin(), m_bAvoidRight ? getOrigin()+vLeft*bot_avoid_strength.GetFloat():getOrigin()-vLeft*bot_avoid_strength.GetFloat(), 0,255,0, false, 0.05f);
-						debugoverlay->AddLineOverlay (getOrigin(), getOrigin() + vMove/vMove.Length()*bot_avoid_strength.GetFloat(), 255,0,0, false, 0.05f);
-						debugoverlay->AddTextOverlayRGB(getOrigin()+Vector(0,0,100),0,0.05f,255,255,255,255,"Avoiding: %s",m_pAvoidEntity.get()->GetClassName());
+							debugoverlay->AddLineOverlay(getOrigin(), m_vAvoidOrigin, 0, 0, 255, false, 0.05f);
+							debugoverlay->AddLineOverlay(getOrigin(), m_bAvoidRight ? getOrigin() + vLeft * bot_avoid_strength.GetFloat() : getOrigin() - vLeft * bot_avoid_strength.GetFloat(), 0, 255, 0, false, 0.05f);
+							debugoverlay->AddLineOverlay(getOrigin(), getOrigin() + vMove / vMove.Length() * bot_avoid_strength.GetFloat(), 255, 0, 0, false, 0.05f);
+							debugoverlay->AddTextOverlayRGB(getOrigin() + Vector(0, 0, 100), 0, 0.05f, 255, 255, 255, 255, "Avoiding: %s", m_pAvoidEntity.get()->GetClassName());
+						}
 					}
 #endif
 

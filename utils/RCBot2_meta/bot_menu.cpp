@@ -534,8 +534,14 @@ const char* CPathWaypointDeleteToMenuItem::getCaption(CClient* pClient, WptColor
 
 	const CWaypoint* pWaypoint = CWaypoints::getWaypoint(iWpt);
 
-	snprintf(m_szCaption, sizeof(m_szCaption), "Delete Paths To This Waypoint (%d)", pWaypoint->numPathsToThisWaypoint());
+	if (pWaypoint == nullptr)
+	{
+		std::strcpy(m_szCaption, "Invalid Waypoint");
+		return m_szCaption;
+	}
 
+	snprintf(m_szCaption, sizeof(m_szCaption), "Delete Paths To This Waypoint (%d)", pWaypoint->numPathsToThisWaypoint());
+	
 	return m_szCaption;
 }
 
@@ -558,6 +564,12 @@ const char* CPathWaypointDeleteFromMenuItem::getCaption(CClient* pClient, WptCol
 	}
 
 	const CWaypoint* pWaypoint = CWaypoints::getWaypoint(iWpt);
+
+	if (pWaypoint == nullptr)
+	{
+		std::strcpy(m_szCaption, "Invalid Waypoint");
+		return m_szCaption;
+	}
 
 	snprintf(m_szCaption, sizeof(m_szCaption), "Delete Paths From This Waypoint (%d)", pWaypoint->numPaths());
 

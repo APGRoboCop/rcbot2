@@ -4274,7 +4274,8 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 	static Vector vOrigin;
 	static Vector vForward;
 
-	if (!m_pHeal.get())
+	const edict_t* pHeal = m_pHeal.get();
+	if (!pHeal)
 		return false;
 
 	if (getHealFactor(m_pHeal) == 0.0f)
@@ -4287,7 +4288,8 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 	{
 		if (CBotGlobals::entityIsAlive(m_pHeal) && CBotGlobals::entityIsValid(m_pHeal))
 		{
-			if (std::strcmp(m_pHeal.get()->GetClassName(), "entity_revive_marker") == 0)
+			// Use the local variable to ensure safety - [APG]RoboCop[CL]
+			if (std::strcmp(pHeal->GetClassName(), "entity_revive_marker") == 0)
 				return true;
 		}
 
@@ -4308,7 +4310,7 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 
 		pClient = CClients::get(m_pHeal);
 
-		fSpeed = pClient->getSpeed(); // No need for the null check? [APG]RoboCop[CL]
+		fSpeed = pClient->getSpeed();
 
 		m_fMedicUpdatePosTime = engine->Time() + (fRand * (1.0f - (fSpeed / 320)));
 
@@ -4377,40 +4379,40 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 
 	//const edict_t *pPlayer = nullptr;
 
-		// Find the player I'm currently healing
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			edict_t* pent = INDEXENT(i);
+	// Find the player I'm currently healing
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		edict_t* pent = INDEXENT(i);
 
-			if ( pent && CBotGlobals::entityIsValid(pent) )
+		if ( pent && CBotGlobals::entityIsValid(pent) )
+		{
+			if (CClassInterface::isMedigunTargetting(pWeapon,pent) )
 			{
-				if (CClassInterface::isMedigunTargetting(pWeapon,pent) )
-				{
-					pPlayer = pent;
-					break;
-				}
+				pPlayer = pent;
+				break;
 			}
 		}
+	}
 
-		// found it
-		if ( pPlayer )
+	// found it
+	if ( pPlayer )
+	{
+		// is the person I want to heal different from the player I am healing now?
+		if ( m_pHeal != pPlayer )
 		{
-			// is the person I want to heal different from the player I am healing now?
-			if ( m_pHeal != pPlayer )
+			// yes -- press fire to disconnect from player
+			if ( m_fHealClickTime < engine->Time() )
 			{
-				// yes -- press fire to disconnect from player
-				if ( m_fHealClickTime < engine->Time() )
-				{
-					m_fHealClickTime = engine->Time() + rcbot_tf2_medic_letgotime.GetFloat();
-				}
+				m_fHealClickTime = engine->Time() + rcbot_tf2_medic_letgotime.GetFloat();
+			}
 
 				//m_pButtons->letGo(IN_ATTACK);
-			}
-			else if ( m_fHealClickTime < engine->Time() )
-				primaryAttack();
 		}
-		else if ( (m_fHealClickTime < engine->Time()) && (DotProductFromOrigin(vOrigin) > 0.98f) )	
-				primaryAttack(); // bug fix for now
+		else if ( m_fHealClickTime < engine->Time() )
+			primaryAttack();
+	}
+	else if ( (m_fHealClickTime < engine->Time()) && (DotProductFromOrigin(vOrigin) > 0.98f) )
+		primaryAttack(); // bug fix for now
 	//}
 	//else
 	//	m_pHeal = CClassInterface::getMedigunTarget(INDEXENT(pWeap->getWeaponIndex()));
@@ -4423,7 +4425,7 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 	{
 		// Simple UBER check : healing player not ubered already
 		if ((!CTeamFortress2Mod::TF2_IsPlayerInvuln(m_pHeal) && !CTeamFortress2Mod::isFlagCarrier(m_pHeal) &&
-			(m_pEnemy&&isVisible(m_pEnemy))) || ((static_cast<float>(m_pPlayerInfo->GetHealth()) / 
+			(m_pEnemy && isVisible(m_pEnemy))) || ((static_cast<float>(m_pPlayerInfo->GetHealth()) /
 				static_cast<float>(m_pPlayerInfo->GetMaxHealth()) < 0.33f || getHealthPercent() < 0.33f)))
 		{
 			if (CTeamFortress2Mod::hasRoundStarted())
@@ -5853,7 +5855,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 				else			
 					pWaypoint = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_CAPPOINT,0,m_iCurrentDefendArea,true,this);
 
-				if ( !pWaypoint->checkReachable() || (randomFloat(0.0f,1.0f) > fprob) )
+				if ( pWaypoint && (!pWaypoint->checkReachable() || (randomFloat(0.0f, 1.0f) > fprob)) )
 				{
 					pWaypoint = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_DEFEND,getTeam(),m_iCurrentDefendArea,true,this,false);
 
@@ -6246,28 +6248,40 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 			{
 				CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData());
 
-				m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointResupply->getOrigin()));
+				if (pWaypointResupply)
+				{
+					m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointResupply->getOrigin()));
+				}
 			}
 			return true;
 		case BOT_UTIL_GOTORESUPPLY_FOR_AMMO:
 			{
 				CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData());
 
-				m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointResupply->getOrigin()));
+				if (pWaypointResupply)
+				{
+					m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointResupply->getOrigin()));
+				}
 			}
 			return true;
 		case BOT_UTIL_FIND_NEAREST_HEALTH:
 			{
 				CWaypoint *pWaypointHealth = CWaypoints::getWaypoint(util->getIntData());
 
-				m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointHealth->getOrigin()));
+				if (pWaypointHealth)
+				{
+					m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointHealth->getOrigin()));
+				}
 			}
 			return true;
 		case BOT_UTIL_FIND_NEAREST_AMMO:
 			{
 				CWaypoint *pWaypointAmmo = CWaypoints::getWaypoint(util->getIntData());
 
-				m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointAmmo->getOrigin()));
+				if (pWaypointAmmo)
+				{
+					m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointAmmo->getOrigin()));
+				}
 			}
 			return true;
 		case BOT_UTIL_GOTODISP:
@@ -6482,7 +6496,6 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 		case BOT_UTIL_DEMO_STICKYTRAP_FLAG_LASTKNOWN:
 		case BOT_UTIL_DEMO_STICKYTRAP_POINT:
 		case BOT_UTIL_DEMO_STICKYTRAP_PL:
-		//TODO: Add Demoman Stickybomb Skill?
 			{
 				//Vector vDemoStickyPoint;
 				eDemoTrapType iDemoTrapType = TF_TRAP_TYPE_NONE;
@@ -6532,7 +6545,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 
 					int iWptFrom = CWaypointLocations::NearestWaypoint(vPoint,2048.0f,-1,true,true,true, nullptr,false,0,false);
 
-		//int m_iVisiblePoints[CWaypoints::MAX_WAYPOINTS]; // make searching quicker
+					//int m_iVisiblePoints[CWaypoints::MAX_WAYPOINTS]; // make searching quicker
 
 					CWaypointLocations::GetAllVisible(iWptFrom,iWptFrom,vPoint,vPoint,2048.0f,&m_iVisibles,&m_iInvisibles);
 
@@ -6543,7 +6556,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 
 						pTemp = CWaypoints::getWaypoint(m_iVisible);
 
-						if ( pTemp->distanceFrom(pWaypoint) < 512 )
+						if ( pTemp && pTemp->distanceFrom(pWaypoint) < 512 )
 						{
 							fDist = distanceFrom(pTemp->getOrigin());
 
@@ -8496,8 +8509,14 @@ bool CBotFF::startGame()
 
 			if (m_iSpawnRetries <= 3)
 			{
-				logger->Log(LogLevel::WARN, "CBotFF::startGame - %s still not spawned after 10s, retry %d/3",
-					m_szBotName, m_iSpawnRetries);
+				const int lifeState = CClassInterface::getPlayerLifeState(m_pEdict);
+				logger->Log(LogLevel::WARN,
+					"CBotFF::startGame - %s still not spawned after 10s, retry %d/3 "
+					"(lifeState=%d, m_iButtons=0x%x, IsDead=%d, IsObserver=%d, ctrl=%p)",
+					m_szBotName, m_iSpawnRetries, lifeState, m_iButtons,
+					m_pPlayerInfo->IsDead() ? 1 : 0,
+					m_pPlayerInfo->IsObserver() ? 1 : 0,
+					static_cast<void*>(m_pController));
 
 				// Re-send class command directly (same class, no re-randomization)
 				selectClass();
