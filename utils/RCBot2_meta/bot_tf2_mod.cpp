@@ -265,6 +265,8 @@ void CTeamFortress2Mod :: mapInit ()
 	if (std::strncmp(szmapname, "ctf_", 4) == 0 || std::strncmp(szmapname, "quake_turbine", 13) == 0 ||
 		std::strncmp(szmapname, "pass_", 5) == 0 || std::strncmp(szmapname, "pd_", 3) == 0 ||
 		std::strncmp(szmapname, "od_", 3) == 0 ||
+		std::strncmp(szmapname, "cr_", 3) == 0 ||
+		std::strncmp(szmapname, "workshop/cr_", 12) == 0 ||
 		std::strncmp(szmapname, "workshop/ctf_", 13) == 0 ||
 		std::strncmp(szmapname, "workshop/pass_", 14) == 0 ||
 		std::strncmp(szmapname, "workshop/pd_", 12) == 0 ||
