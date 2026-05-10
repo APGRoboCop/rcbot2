@@ -1436,7 +1436,7 @@ void CWaypoint::drawPaths(edict_t* pEdict, const unsigned short int iDrawType) c
 	const int iNumIn = numPathsToThisWaypoint();
 	for (int i = 0; i < iNumIn; i++)
 	{
-		if (CWaypoint* pFrom = CWaypoints::getWaypoint(getPathToThisWaypoint(i)))
+		if (const CWaypoint* pFrom = CWaypoints::getWaypoint(getPathToThisWaypoint(i)))
 		{
 			pFrom->drawPathBeam(const_cast<CWaypoint*>(this), iDrawType, true);
 		}
@@ -2142,7 +2142,7 @@ void CWaypoints :: deleteWaypoint (const int iIndex)
 	// iIndex and the incoming-beam visualisation (and checkReachable())
 	// would see a stale entry. Notify peers, then clear.
 	{
-		CWaypoint* pWpt = &m_theWaypoints[iIndex];
+		const CWaypoint* pWpt = &m_theWaypoints[iIndex];
 		for (const int iDest : *pWpt)
 		{
 			if (CWaypoint* pOther = getWaypoint(iDest))

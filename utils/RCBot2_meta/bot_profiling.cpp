@@ -36,6 +36,7 @@
 #include "bot_strings.h"
 #include "bot_client.h"
 
+#include <algorithm>
 #include <chrono>
 #include <string>
 #include <algorithm>
@@ -110,8 +111,8 @@ void CProfileTimer::Stop()
     end_cycle = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     m_last = end_cycle - start_cycle;
 
-    if (m_last > m_max)
-        m_max = m_last;
+    m_max = std::max(m_last, m_max);
+
     if (m_iInvoked == 0 || m_last < m_min)
         m_min = m_last;
 

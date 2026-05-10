@@ -158,9 +158,8 @@ CBotCommandInline WaypointSaveCommand("save", CMD_ACCESS_WAYPOINT, [](CClient *p
 CBotCommandInline WaypointLoadCommand("load", CMD_ACCESS_WAYPOINT, [](CClient* pClient, const BotCommandArgs& args)
 {
 	const char* mapNameToLoad = (args[0] && *args[0]) ? args[0] : CBotGlobals::getMapName();
-	const bool bLoadOK = CWaypoints::load(mapNameToLoad);
 
-	if (bLoadOK)
+	if (const bool bLoadOK = CWaypoints::load(mapNameToLoad))
 		CBotGlobals::botMessage(nullptr, 0, "waypoints %s loaded", mapNameToLoad);
 	else
 		CBotGlobals::botMessage(nullptr, 0, "error: could not load %s waypoints", mapNameToLoad);

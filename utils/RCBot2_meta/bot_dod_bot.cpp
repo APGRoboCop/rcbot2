@@ -3276,7 +3276,7 @@ void CDODBot :: getTasks (unsigned iIgnore)
 	if ( !rcbot_melee_only.GetBool() && (m_pNearestWeapon.get() != nullptr) && hasSomeConditions(CONDITION_NEED_AMMO) )
 	{
 		// Store the result of m_pNearestWeapon.get() in a local variable
-		edict_t* pNearestWeaponPtr = m_pNearestWeapon.get();
+		const edict_t* pNearestWeaponPtr = m_pNearestWeapon.get();
 
 		const CWeapon* pNearestWeapon = (pNearestWeaponPtr != nullptr)
 			? CWeapons::getWeapon(pNearestWeaponPtr->GetClassName()) : nullptr;
