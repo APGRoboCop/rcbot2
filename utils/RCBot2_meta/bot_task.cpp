@@ -3861,8 +3861,10 @@ void CBotInvestigateHidePoint:: execute (CBot *pBot,CBotSchedule *pSchedule)
 	else if ( m_fTime < engine->Time() )
 	{
 		if ( m_iInvState == 2 )
+		{
 			complete();
-		else if ( m_iInvState != 2 ) // go back to origin
+		}
+		else // go back to origin
 		{
 			m_fTime = engine->Time() + randomFloat(1.0f,2.0f);
 			m_iInvState = 2;
