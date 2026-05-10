@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "logging.h"
+
 typedef struct
 {
 	int version;
@@ -24,19 +26,20 @@ void CWaypointDistances::load()
 {
 	wpt_dist_hdr_t hdr;
 	const char* szMapName = CBotGlobals::getMapName();
-
+	
 	if (szMapName && *szMapName)
 	{
 		char filename[1024];
 		CBotGlobals::buildFileName(filename, szMapName, BOT_AUXILERY_FOLDER, BOT_WAYPOINT_DST_EXTENSION, true);
-
+		
 		constexpr std::size_t totalSize = sizeof(wpt_dist_hdr_t) + sizeof(m_Distances);
 		unsigned char* pBuf = static_cast<unsigned char*>(std::malloc(totalSize));
-
+		
 		if (!pBuf)
 			return;
 
-		if (!RCBot_CompressedLoad(filename, pBuf, totalSize))
+		const std::size_t loadedSize = RCBot_CompressedLoad(filename, pBuf, totalSize);
+		if (loadedSize < sizeof(wpt_dist_hdr_t))
 		{
 			std::free(pBuf);
 			return;
@@ -44,11 +47,20 @@ void CWaypointDistances::load()
 
 		std::memcpy(&hdr, pBuf, sizeof(wpt_dist_hdr_t));
 
-		if ((hdr.maxwaypoints == CWaypoints::MAX_WAYPOINTS) && (hdr.numwaypoints == CWaypoints::numWaypoints()) && (hdr.version == WPT_DIST_VER))
+		if ((hdr.maxwaypoints == CWaypoints::MAX_WAYPOINTS) &&
+			(hdr.numwaypoints == CWaypoints::numWaypoints()) &&
+			(hdr.version == WPT_DIST_VER))
 		{
-			std::memcpy(m_Distances, pBuf + sizeof(wpt_dist_hdr_t), sizeof(m_Distances));
+			const std::size_t distancesSize = loadedSize - sizeof(wpt_dist_hdr_t);
+			if (distancesSize >= sizeof(m_Distances))
+			{
+				std::memcpy(m_Distances, pBuf + sizeof(wpt_dist_hdr_t), sizeof(m_Distances));
+			}
+			else
+			{
+				logger->Log(LogLevel::ERROR, "Insufficient data loaded for Waypoint Distances!");
+			}
 		}
-
 		std::free(pBuf);
 		m_fSaveTime = engine->Time() + 100.0f;
 	}

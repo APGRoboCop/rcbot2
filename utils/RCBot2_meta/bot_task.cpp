@@ -71,6 +71,11 @@ void getGrenadeAngle(double v, double g, double desx, double desy, float* fa1, f
 {
 	// Normalize
 	const float fmax = static_cast<float>(std::max({ v, g, desx, desy }));
+	
+	if (fmax == 0.0) {
+		*fa1 = *fa2 = 0.0f; // Handle edge case
+		return;
+	}
 
 	v /= fmax;
 	g /= fmax;
@@ -83,9 +88,23 @@ void getGrenadeAngle(double v, double g, double desx, double desy, float* fa1, f
 	const double gx2 = g * x2;
 	const double twoyv2 = 2 * desy * vsquared;
 	const double fourabplusa = vfourth - g * (gx2 + twoyv2);
-	const double topplus = vsquared + std::sqrt(fourabplusa);
-	const double topminus = vsquared - std::sqrt(fourabplusa);
+
+	// Validate square root argument
+	if (fourabplusa < 0.0) {
+		*fa1 = *fa2 = 0.0f; // Handle invalid case
+		return;
+	}
+
+	const double sqrt_fourabplusa = std::sqrt(fourabplusa);
+	const double topplus = vsquared + sqrt_fourabplusa;
+	const double topminus = vsquared - sqrt_fourabplusa;
 	const double bottom = g * desx;
+
+	// Check for division by zero
+	if (bottom == 0.0) {
+		*fa1 = *fa2 = 0.0f; // Handle edge case
+		return;
+	}
 
 	*fa1 = static_cast<float>(std::atan2(topplus, bottom));
 	*fa2 = static_cast<float>(std::atan2(topminus, bottom));

@@ -187,21 +187,12 @@ CBotCommandInline WaypointGiveTypeCommand("givetype", CMD_ACCESS_WAYPOINT, [](CC
 			CBotGlobals::botMessage(pEntity,0,"No waypoint nearby to give types (move closer to the waypoint you want to give types)");
 		else
 		{
-			char *type = nullptr;
 			constexpr int NUM_ARGS = 4;
 
 			for (int i = 0; i < NUM_ARGS; i++)
 			{
-				if ( i == 0 )
-					type = const_cast<char*>(args[0]);
-				else if ( i == 1 )
-					type = const_cast<char*>(args[1]);
-				else if ( i == 2 )
-					type = const_cast<char*>(args[2]);
-				else if ( i == 3 )
-					type = const_cast<char*>(args[3]);
-
-				if ( !type || !*type )
+				char* type = const_cast<char*>(args[i]);
+				if (!type || !*type)
 					break;
 
 				if ( const CWaypointType *pType = CWaypointTypes::getType(type) )
@@ -211,29 +202,27 @@ CBotCommandInline WaypointGiveTypeCommand("givetype", CMD_ACCESS_WAYPOINT, [](CC
 						if ( pWaypoint->hasFlag(pType->getBits()) )
 						{
 							pWaypoint->removeFlag(pType->getBits());
-							CBotGlobals::botMessage(pEntity,0,"type %s removed from waypoint %d",type,CWaypoints::getWaypointIndex(pWaypoint));
+							CBotGlobals::botMessage(pEntity, 0, "type %s removed from waypoint %d", type, CWaypoints::getWaypointIndex(pWaypoint));
 							pClient->playSound("UI/buttonrollover");
 						}
 						else
 						{
 							pWaypoint->addFlag(pType->getBits());
-							
+
 							if ( pType->getBits() & CWaypointTypes::W_FL_UNREACHABLE )
 							{
 								CWaypoints::deletePathsTo(CWaypoints::getWaypointIndex(pWaypoint));
 								CWaypoints::deletePathsFrom(CWaypoints::getWaypointIndex(pWaypoint));
 							}
-
-							CBotGlobals::botMessage(pEntity,0,"type %s added to waypoint %d",type,CWaypoints::getWaypointIndex(pWaypoint));
-
+							CBotGlobals::botMessage(pEntity, 0, "type %s added to waypoint %d", type, CWaypoints::getWaypointIndex(pWaypoint));
 							pClient->playSound("UI/buttonclickrelease");
 						}
-						
+
 					}
 				}
 				else
 				{
-					CBotGlobals::botMessage(pEntity,0,"type '%s' not found",type);
+					CBotGlobals::botMessage(pEntity, 0, "type '%s' not found", type);
 					CWaypointTypes::showTypesOnConsole(pEntity);
 				}
 
