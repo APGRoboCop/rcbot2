@@ -2691,8 +2691,7 @@ bool CDODBot :: executeAction ( CBotUtility *util )
 				if ( (m_fUseRouteTime < engine->Time()) )
 				{
 					// find random route
-					CWaypoint *pGoalWpt = CWaypoints::getWaypoint(iGoalWaypoint);
-					if (pGoalWpt)
+					if (CWaypoint *pGoalWpt = CWaypoints::getWaypoint(iGoalWaypoint))
 					{
 						pRoute = CWaypoints::randomRouteWaypoint(this,getOrigin(),pGoalWpt->getOrigin(),getTeam(),0);
 

@@ -633,6 +633,8 @@ void CWaypointNavigator :: belief (const Vector& vOrigin, const Vector& vOther, 
 	for (const int m_iVisible : m_iVisibles)
 	{
 		pWpt = CWaypoints::getWaypoint(m_iVisible);
+		if (pWpt == nullptr)
+			continue;
 		iWptIndex = CWaypoints::getWaypointIndex(pWpt);
 
 		if ( iType == BELIEF_SAFETY )
@@ -656,6 +658,8 @@ void CWaypointNavigator :: belief (const Vector& vOrigin, const Vector& vOther, 
 	for (const int m_iInvisible : m_iInvisibles)
 	{
 		pWpt = CWaypoints::getWaypoint(m_iInvisible);
+		if (pWpt == nullptr)
+			continue;
 		iWptIndex = CWaypoints::getWaypointIndex(pWpt);
 
 		// this waypoint is safer from this danger
@@ -865,13 +869,13 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 
 		}
 
-		if ( m_iGoalWaypoint == -1 )
+		if ( m_iGoalWaypoint == -1 || pGoalWaypoint == nullptr )
 		{
 			*bFail = true;
 			m_bWorkingRoute = false;
 			return true;
 		}
-			
+
 		m_vPreviousPoint = vFrom;
 		// get closest waypoint -- ignore previous failed waypoint
 		Vector vIgnore;
@@ -969,6 +973,9 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 
 		CWaypoint* currWpt = CWaypoints::getWaypoint(iCurrentNode);
 
+		if (currWpt == nullptr)
+			continue;
+
 		const Vector vOrigin = currWpt->getOrigin();
 
 		const int iMaxPaths = currWpt->numPaths();
@@ -998,6 +1005,9 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 
 			succ = &paths[iSucc];
 			CWaypoint* succWpt = CWaypoints::getWaypoint(iSucc);
+
+			if (succWpt == nullptr)
+				continue;
 #ifndef __linux__
 			if ( rcbot_debug_show_route.GetBool() )
 			{
@@ -2241,6 +2251,9 @@ void CWaypoints :: deletePathsTo (const int iWpt)
 {
 	const CWaypoint *pWaypoint = CWaypoints::getWaypoint(iWpt);
 
+	if (pWaypoint == nullptr)
+		return;
+
 	int iNumPathsTo = pWaypoint->numPathsToThisWaypoint();
 	WaypointList pathsTo;
 
@@ -2259,6 +2272,9 @@ void CWaypoints :: deletePathsTo (const int iWpt)
 		const int iOther = pathsTo[i];
 
 		CWaypoint* pOther = getWaypoint(iOther);
+
+		if (pOther == nullptr)
+			continue;
 
 		pOther->removePathTo(iWpt);
 	}
@@ -2639,19 +2655,25 @@ CWaypoint *CWaypoints :: nearestPipeWaypoint (const Vector& vTarget, const Vecto
 
 		CWaypoint* pTempi = CWaypoints::getWaypoint(i);
 
+		if ( pTempi == nullptr )
+			continue;
+
 		if ( (fidist=pTarget->distanceFrom(pTempi->getOrigin())) > finearestdist )
 			continue;
 
 		if ( pTable->GetVisibilityFromTo(iTarget,i) )
 		{
 			for (short int j = 0; j < numwaypoints; j ++ )
-			{				
+			{
 				if ( j == i )
 					continue;
 				if ( j == iTarget )
 					continue;
 
 				const CWaypoint* pTempj = CWaypoints::getWaypoint(j);
+
+				if ( pTempj == nullptr )
+					continue;
 
 				if ( (fjdist=pTempj->distanceFrom(vOrigin)) > fjnearestdist )
 					continue;
@@ -3374,7 +3396,10 @@ void CWaypointTest :: go ( edict_t *pPlayer )
 		for ( int i = 0; i < CWaypoints::MAX_WAYPOINTS; i ++ )
 		{
 			CWaypoint* pWpt1 = CWaypoints::getWaypoint(i);
-			
+
+			if ( pWpt1 == nullptr )
+				continue;
+
 			int iCheck = 0;
 
 			if ( !pWpt1->forTeam(iBot+2) )

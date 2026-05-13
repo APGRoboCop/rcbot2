@@ -575,12 +575,12 @@ void CClient :: think ()
 
 							if ( iNewWpt != -1 )
 							{
-								Vector v_floor;
 								CWaypoint *pWpt = CWaypoints::getWaypoint(iNewWpt);
 								CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex);
 
 								if ( pWpt && pJumpWpt )
 								{
+									Vector v_floor;
 									pJumpWpt->addPathTo(iNewWpt);
 
 									pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);
@@ -615,9 +615,7 @@ void CClient :: think ()
 						}
 						else if ( iNearestWpt != m_iLastJumpWaypointIndex )
 						{
-							CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex);
-
-							if ( pJumpWpt )
+							if (CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex))
 							{
 								pJumpWpt->addPathTo(iNearestWpt);
 								pJumpWpt->addFlag(CWaypointTypes::W_FL_JUMP);

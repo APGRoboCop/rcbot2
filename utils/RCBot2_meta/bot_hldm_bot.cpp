@@ -214,8 +214,6 @@ bool CHLDMBot :: executeAction (const eBotAction iAction)
 	case BOT_UTIL_HL2DM_USE_CRATE:
 		// check if it is worth it first
 		{
-			const CBotWeapon *pWeapon = nullptr;
-
 			/*
 			possible models
 			0000000000111111111122222222223333
@@ -226,10 +224,12 @@ bool CHLDMBot :: executeAction (const eBotAction iAction)
 			models/items/ammocrate_smg1.mdl
 			*/
 
-			// Ensure m_pAmmoCrate is not null before dereferencing - [APG]RoboCop[CL]
-			if (m_pAmmoCrate)
+			edict_t *pAmmoCrate = m_pAmmoCrate.get();
+			IServerEntity *pAmmoServerEnt = pAmmoCrate != nullptr ? pAmmoCrate->GetIServerEntity() : nullptr;
+			if (pAmmoServerEnt != nullptr)
 			{
-				const char* szModel = m_pAmmoCrate.get()->GetIServerEntity()->GetModelName().ToCStr();
+				const CBotWeapon *pWeapon = nullptr;
+				const char* szModel = pAmmoServerEnt->GetModelName().ToCStr();
 				const char type = szModel[23];
 
 				if (type == 'a') // ar2

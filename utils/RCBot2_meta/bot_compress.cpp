@@ -41,7 +41,7 @@
 
 bool RCBot_CompressedSave(const char* filename, const void* pData, const std::size_t dataSize)
 {
-	mz_ulong compBound = mz_compressBound(static_cast<mz_ulong>(dataSize));
+	mz_ulong compBound = mz_compressBound(dataSize);
 	unsigned char* pCompressed = static_cast<unsigned char*>(std::malloc(compBound));
 
 	if (!pCompressed)
@@ -155,10 +155,10 @@ bool RCBot_CompressedLoad(const char* filename, void* pOutData, const std::size_
 		}
 		std::fclose(fp);
 
-		mz_ulong destLen = static_cast<mz_ulong>(expectedSize);
+		mz_ulong destLen = expectedSize;
 		const int status = mz_uncompress(
 			static_cast<unsigned char*>(pOutData), &destLen,
-			pCompressed, static_cast<mz_ulong>(compressedSize));
+			pCompressed, compressedSize);
 
 		std::free(pCompressed);
 

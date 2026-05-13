@@ -246,6 +246,9 @@ void CWaypointLocations :: AutoPathInBucket ( edict_t *pPlayer, const int i, con
 
 		CWaypoint* pOtherWpt = CWaypoints::getWaypoint(iWpt);
 
+		if ( pOtherWpt == nullptr )
+			continue;
+
 		if ( !pOtherWpt->isUsed() )
 			continue;
 
@@ -385,8 +388,11 @@ void CWaypointLocations :: FindNearestCoverWaypointInBucket (const int i, const 
 
 		CWaypoint* curr_wpt = CWaypoints::getWaypoint(iSelectedIndex);
 
+		if ( curr_wpt == nullptr )
+			continue;
+
 		if ( !curr_wpt->isUsed() )
-			continue; 
+			continue;
 		if ( curr_wpt->hasFlag(CWaypointTypes::W_FL_UNREACHABLE) )
 			continue;
 		if ( !curr_wpt->forTeam(iTeam) )
@@ -483,6 +489,9 @@ void CWaypointLocations :: FindNearestBlastInBucket (const int i, const int j, c
 
 		CWaypoint* curr_wpt = CWaypoints::getWaypoint(iSelectedIndex);
 
+		if ( curr_wpt == nullptr )
+			continue;
+
 		if ( !bGetUnReachable && curr_wpt->hasFlag(CWaypointTypes::W_FL_UNREACHABLE) )
 			continue;
 
@@ -576,6 +585,9 @@ void CWaypointLocations :: FindNearestInBucket (const int i, const int j, const 
 		}
 
 		CWaypoint* curr_wpt = CWaypoints::getWaypoint(iSelectedIndex);
+
+		if ( curr_wpt == nullptr )
+			continue;
 
 		if ( !bGetUnreachable && curr_wpt->hasFlag(CWaypointTypes::W_FL_UNREACHABLE) )
 			continue;
@@ -764,6 +776,9 @@ void CWaypointLocations :: DrawWaypoints (const CClient *pClient, float fDist)
 					iWpt = l;
 
 					pWpt = CWaypoints::getWaypoint(iWpt);//tempStack.ChooseFromStack());
+
+					if ( pWpt == nullptr )
+						continue;
 
 					if ( !pWpt->isUsed() ) // deleted
 						continue;

@@ -60,6 +60,9 @@ void CWaypointVisibilityTable::workVisibility()
 			CWaypoint* pWaypoint1 = CWaypoints::getWaypoint(iCurFrom);
 			CWaypoint* pWaypoint2 = CWaypoints::getWaypoint(iCurTo);
 
+			if (pWaypoint1 == nullptr || pWaypoint2 == nullptr)
+				continue;
+
 			SetVisibilityFromTo(iCurFrom, iCurTo,
 				CBotGlobals::isVisible(pWaypoint1->getOrigin(), pWaypoint2->getOrigin()));
 
@@ -117,7 +120,7 @@ void CWaypointVisibilityTable::workVisibilityForWaypoint(const int i, const int 
 
 	Waypoint1 = CWaypoints::getWaypoint(i);
 
-	if (!Waypoint1->isUsed())
+	if (Waypoint1 == nullptr || !Waypoint1->isUsed())
 		return;
 
 	for (int j = 0; j < iNumWaypoints; j++)
@@ -130,7 +133,7 @@ void CWaypointVisibilityTable::workVisibilityForWaypoint(const int i, const int 
 
 		Waypoint2 = CWaypoints::getWaypoint(j);
 
-		if (!Waypoint2->isUsed())
+		if (Waypoint2 == nullptr || !Waypoint2->isUsed())
 			continue;
 
 		bVisible = CBotGlobals::isVisible(Waypoint1->getOrigin(), Waypoint2->getOrigin());

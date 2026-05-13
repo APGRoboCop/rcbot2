@@ -170,9 +170,20 @@ public:
 	static float quickTraceline ( edict_t *pIgnore, const Vector& vSrc, const Vector& vDest ); // return fFraction
 	static bool traceVisible (edict_t *pEnt);
 	////////
-	static Vector entityOrigin ( edict_t *pEntity ) 
-	{ 
-		return pEntity->GetIServerEntity()->GetCollideable()->GetCollisionOrigin(); 
+	static Vector entityOrigin ( edict_t *pEntity )
+	{
+		if (pEntity == nullptr)
+			return Vector();
+
+		IServerEntity *pServerEnt = pEntity->GetIServerEntity();
+		if (pServerEnt == nullptr)
+			return Vector();
+
+		const ICollideable *pCollide = pServerEnt->GetCollideable();
+		if (pCollide == nullptr)
+			return Vector();
+
+		return pCollide->GetCollisionOrigin();
 	}
 	static int getTeam ( edict_t *pEntity );
 	static bool entityIsAlive ( edict_t *pEntity );

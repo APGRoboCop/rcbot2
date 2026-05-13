@@ -2456,7 +2456,15 @@ void CTF2_TauntTask::execute(CBot* pBot, CBotSchedule* pSchedule)
 	}
 
 	const bool bIsTaunting = CClassInterface::getTF2Conditions(pBot->getEdict()) & (1 << 7);
-	Vector vPlayerOrigin = m_pPlayer.get()->GetCollideable()->GetCollisionOrigin();
+
+	edict_t *pPlayerEdict = m_pPlayer.get();
+	if (pPlayerEdict == nullptr)
+	{
+		fail();
+		return;
+	}
+
+	Vector vPlayerOrigin = pPlayerEdict->GetCollideable()->GetCollisionOrigin();
 
 	// Don't do anything but follow target player as long as they are still taunting and bot isn't wandering off
 	if (bIsTaunting && (CClassInterface::getTF2Conditions(m_pPlayer.get()) & (1 << 7)) && vPlayerOrigin.IsValid()
@@ -3091,8 +3099,7 @@ void CBotTF2SnipeCrossBow::execute(CBot *pBot, CBotSchedule *pSchedule)
 					// isn't visible to the target
 					if (!pTable->GetVisibilityFromTo(iAimWpt, iPathId))
 					{
-						CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId);
-						if (pHideWaypoint)
+						if (CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId))
 						{
 							m_iHideWaypoint = iPathId;
 							m_vHideOrigin = pHideWaypoint->getOrigin();
@@ -3395,8 +3402,7 @@ void CBotTF2Snipe :: execute (CBot *pBot, CBotSchedule *pSchedule)
 					// isn't visible to the target
 					if (!pTable->GetVisibilityFromTo(iAimWpt, iPathId))
 					{
-						CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId);
-						if (pHideWaypoint)
+						if (CWaypoint* pHideWaypoint = CWaypoints::getWaypoint(iPathId))
 						{
 							m_iHideWaypoint = iPathId;
 							m_vHideOrigin = pHideWaypoint->getOrigin();
@@ -4766,7 +4772,9 @@ void CBotTF2DemomanPipeEnemy :: execute (CBot *pBot, CBotSchedule *pSchedule)
 	if ( m_fTime == 0.0f )
 	{
 
-		m_vStand = CWaypoints::getWaypoint(pSchedule->passedInt())->getOrigin();
+		CWaypoint *pStandWpt = CWaypoints::getWaypoint(pSchedule->passedInt());
+		if (pStandWpt != nullptr)
+			m_vStand = pStandWpt->getOrigin();
 		const Vector vOtherWaypoint = pSchedule->passedVector();
 		static_cast<CBotTF2*>(pBot)->setStickyTrapType(m_vEnemy,TF_TRAP_TYPE_ENEMY);
 

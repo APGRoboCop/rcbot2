@@ -6246,9 +6246,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 			}
 		case BOT_UTIL_GOTORESUPPLY_FOR_HEALTH:
 			{
-				CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData());
-
-				if (pWaypointResupply)
+				if (CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData()))
 				{
 					m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointResupply->getOrigin()));
 				}
@@ -6256,9 +6254,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 			return true;
 		case BOT_UTIL_GOTORESUPPLY_FOR_AMMO:
 			{
-				CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData());
-
-				if (pWaypointResupply)
+				if (CWaypoint *pWaypointResupply = CWaypoints::getWaypoint(util->getIntData()))
 				{
 					m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointResupply->getOrigin()));
 				}
@@ -6266,9 +6262,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 			return true;
 		case BOT_UTIL_FIND_NEAREST_HEALTH:
 			{
-				CWaypoint *pWaypointHealth = CWaypoints::getWaypoint(util->getIntData());
-
-				if (pWaypointHealth)
+				if (CWaypoint *pWaypointHealth = CWaypoints::getWaypoint(util->getIntData()))
 				{
 					m_pSchedules->add(new CBotTF2GetHealthSched(pWaypointHealth->getOrigin()));
 				}
@@ -6276,9 +6270,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 			return true;
 		case BOT_UTIL_FIND_NEAREST_AMMO:
 			{
-				CWaypoint *pWaypointAmmo = CWaypoints::getWaypoint(util->getIntData());
-
-				if (pWaypointAmmo)
+				if (CWaypoint *pWaypointAmmo = CWaypoints::getWaypoint(util->getIntData()))
 				{
 					m_pSchedules->add(new CBotTF2GetAmmoSched(pWaypointAmmo->getOrigin()));
 				}
@@ -6524,7 +6516,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 
 					iDemoTrapType = TF_TRAP_TYPE_POINT;
 				}
-				else if ( id == BOT_UTIL_DEMO_STICKYTRAP_PL )
+				else // BOT_UTIL_DEMO_STICKYTRAP_PL (last switch case)
 				{
 					pWaypoint =  CWaypoints::getWaypoint(CWaypointLocations::NearestWaypoint( CBotGlobals::entityOrigin(m_pDefendPayloadBomb),400.0f,-1,true,false,true,nullptr,false,getTeam(),true));
 					iDemoTrapType = TF_TRAP_TYPE_PL;
@@ -7129,11 +7121,10 @@ void CBotTF2::modAim(edict_t* pEntity, Vector& v_origin, Vector* v_desired_offse
 			//{
 			if (CClassInterface::getVelocity(pEntity, &vVelocity))
 			{
-				assert(pClient != nullptr);
 				if (vVelocity == Vector(0, 0, 0))
 					vVelocity = pClient->getVelocity();
 			}
-			else if (pClient)
+			else
 				vVelocity = pClient->getVelocity();
 
 			// speed = distance/time
@@ -8599,9 +8590,7 @@ void CBotFF::getTasks(const unsigned iIgnore)
 	// If we have the flag, try to find a capture point / flag waypoint
 	if (hasFlag())
 	{
-		CWaypoint *pWaypoint = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_FLAG, getTeam());
-
-		if (pWaypoint)
+		if (CWaypoint *pWaypoint = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_FLAG, getTeam()))
 		{
 			m_pSchedules->add(new CBotGotoOriginSched(pWaypoint->getOrigin()));
 			return;
@@ -8727,9 +8716,7 @@ void CBotTF2 :: enemyAtIntel ( Vector vPos, const int type, const int iArea )
 
 	const char* szmapname = mapname.ToCStr();
 
-	CBotSchedule* currentSchedule = m_pSchedules->getCurrentSchedule();
-
-	if (currentSchedule)
+	if (const CBotSchedule* currentSchedule = m_pSchedules->getCurrentSchedule())
 	{
 		if (currentSchedule->isID(SCHED_RETURN_TO_INTEL))
 		{
@@ -8898,6 +8885,9 @@ CBotTF2::CBotTF2() : m_nextVoicecmd()
 	//CBotFortress();
 	//m_nextVoicecmd();
 	m_iMvMUpdateTime = 0;
+	m_bMvMUpgradesDone = false;
+	m_fMvMNextUpgradeTime = 0.0f;
+
 	m_iDesiredResistType = 0;
 	m_pVTable = nullptr;
 	m_fDispenserPlaceTime = 0.0f;

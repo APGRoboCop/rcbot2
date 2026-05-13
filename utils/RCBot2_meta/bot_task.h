@@ -1253,7 +1253,8 @@ public:
 	CCSSEngageEnemyTask(const edict_t* pEnemy)
 	{
 		isBrush = false;
-		m_hEnemy.Init(engine->IndexOfEdict(pEnemy), pEnemy->m_NetworkSerialNumber);
+		if (pEnemy != nullptr)
+			m_hEnemy.Init(engine->IndexOfEdict(pEnemy), pEnemy->m_NetworkSerialNumber);
 	}
 	void init() override
 	{
