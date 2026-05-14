@@ -121,7 +121,7 @@ public:
 
 	static edict_t *findPlayerByTruncName ( const char *name );
 
-// linux fix
+	// linux fix
 	static CBotMod *getCurrentMod ()
 	{
 		return m_pCurrentMod;
@@ -176,10 +176,12 @@ public:
 			return Vector();
 
 		IServerEntity *pServerEnt = pEntity->GetIServerEntity();
+
 		if (pServerEnt == nullptr)
 			return Vector();
 
 		const ICollideable *pCollide = pServerEnt->GetCollideable();
+
 		if (pCollide == nullptr)
 			return Vector();
 
@@ -210,15 +212,15 @@ public:
 
 	static edict_t *playerByUserId(int iUserId);
 
-	static bool isCurrentMod ( eModId modid ); //TODO: not implemented? [APG]RoboCop[CL]
+	static bool isCurrentMod (eModId modid); //TODO: not implemented? [APG]RoboCop[CL]
 
-	static bool checkOpensLater (const Vector& vSrc, const Vector& vDest );
+	static bool checkOpensLater (const Vector& vSrc, const Vector& vDest);
 
 	static bool setupMapTime ( ) { return m_fMapStartTime == 0.0f; }
 
-	static bool isBreakableOpen ( edict_t *pBreakable );
+	static bool isBreakableOpen (edict_t *pBreakable);
 
-	static Vector getVelocity (const edict_t *pPlayer );
+	static Vector getVelocity (const edict_t *pPlayer);
 
 	static bool isBoundsDefinedInEntitySpace(edict_t* pEntity)
 	{

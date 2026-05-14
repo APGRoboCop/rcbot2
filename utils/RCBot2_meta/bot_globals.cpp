@@ -376,10 +376,7 @@ public:
 	CTraceFilterSimple( const IHandleEntity *passentity1, const IHandleEntity *passentity2, const int collisionGroup )
 	{
 		m_pPassEnt1 = passentity1;
-		
-		if ( passentity2 )
-			m_pPassEnt2 = passentity2;
-
+		m_pPassEnt2 = passentity2;
 		m_collisionGroup = collisionGroup;
 	}
 

@@ -855,10 +855,11 @@ bool CCSSBot::executeAction(const eBotAction iAction)
 		{
 			CBotSchedule* pSched = new CBotSchedule();
 			pSched->setID(SCHED_DEFENDPOINT);
-			edict_t *pBomb = CCounterStrikeSourceMod::getBomb();
-			const Vector vBomb = CBotGlobals::entityOrigin(pBomb);
-			if(pBomb)
+
+			if(edict_t *pBomb = CCounterStrikeSourceMod::getBomb())
 			{
+				const Vector vBomb = CBotGlobals::entityOrigin(pBomb);
+
 				// Find the nearest bomb waypoint to retreive the area from
 				if(CWaypoint *pBombWpt = CWaypoints::getWaypoint(CWaypoints::nearestWaypointGoal(CWaypointTypes::W_FL_GOAL, vBomb, 256.0f, 0)))
 				{
@@ -867,6 +868,7 @@ bool CCSSBot::executeAction(const eBotAction iAction)
 						pSched->addTask(new CFindPathTask(CWaypoints::getWaypointIndex(pDefend)));
 						pSched->addTask(new CCSSGuardTask(getPrimaryWeapon(), pDefend->getOrigin(), pDefend->getAimYaw(), false, 0.0f, pDefend->getFlags()));
 						m_pSchedules->add(pSched);
+
 						CClients::clientDebugMsg(this, BOT_DEBUG_UTIL, "[BOT_UTIL_DEFEND_NEAREST_BOMB] Bomb Waypoint (%i) Defend Waypoint (%i)", 
 						CWaypoints::getWaypointIndex(pBombWpt), CWaypoints::getWaypointIndex(pDefend));
 						return true;
@@ -879,12 +881,14 @@ bool CCSSBot::executeAction(const eBotAction iAction)
 		{
 			CBotSchedule* pSched = new CBotSchedule();
 			pSched->setID(SCHED_DEFENDPOINT);
+				
 			if(const CWaypoint *pGoal = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_GOAL, getTeam()))
 			{
 				if(CWaypoint *pDefend = CWaypoints::randomWaypointGoal(CWaypointTypes::W_FL_DEFEND, getTeam(), pGoal->getArea(), true, this))
 				{
 					pSched->addTask(new CFindPathTask(CWaypoints::getWaypointIndex(pDefend)));
 					pSched->addTask(new CCSSGuardTask(getPrimaryWeapon(), pDefend->getOrigin(), pDefend->getAimYaw(), false, 0.0f, pDefend->getFlags()));
+					
 					m_pSchedules->add(pSched);
 					return true;
 				}
@@ -898,11 +902,14 @@ bool CCSSBot::executeAction(const eBotAction iAction)
 				CBotSchedule *pSched = new CBotSchedule();
 				CBotTask *pFindPath = new CFindPathTask(pBomb);
 				CBotTask *pMoveTask = new CMoveToTask(pBomb);
+
 				pFindPath->setFailInterrupt(CONDITION_SEE_CUR_ENEMY);
 				pMoveTask->setFailInterrupt(CONDITION_SEE_CUR_ENEMY);
+
 				pSched->setID(SCHED_BOMB);
 				pSched->addTask(pFindPath);
 				pSched->addTask(pMoveTask);
+
 				pSched->addTask(new CCSSDefuseTheBombTask(CBotGlobals::entityOrigin(pBomb)));
 				m_pSchedules->add(pSched);
 				return true;

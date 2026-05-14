@@ -237,6 +237,11 @@ public:
 		{
 			i = -1;
 		}
+
+		for (float& f : m_fBombPlantedTime)
+		{
+			f = 0.0f;
+		}
 	}
 
 	int getNumFlags () const { return m_iNumControlPoints; }

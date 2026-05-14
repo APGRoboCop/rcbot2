@@ -242,7 +242,7 @@ private:
 	eCombatType m_CombatType;
 
 	QAngle m_vLeaderAngle;
-	eTacticType m_Tactics;
+	eTacticType m_Tactics = TACTIC_IDLE;
 	bool m_bIsWaitingForOther;
 };
 

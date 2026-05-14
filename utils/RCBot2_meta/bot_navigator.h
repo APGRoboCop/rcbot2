@@ -520,7 +520,7 @@ class CNavMeshNavigator : public IBotNavigator
 {
 public:
 	//TODO: Add Nav Mesh support [APG]RoboCop[CL]
-	CNavMesh* m_theNavMesh; // Add a member variable for the NavMesh instance
+	CNavMesh* m_theNavMesh = nullptr; // Add a member variable for the NavMesh instance
 
 	CNavMeshNavigator();
 	~CNavMeshNavigator() override;
@@ -552,7 +552,7 @@ public:
 
 	//Vector getEnemyPositionPinchPoint ( Vector vOrigin );
 private:
-	CNavMesh * m_pNavMesh;
+	CNavMesh * m_pNavMesh = nullptr;
 };
 
 #endif

@@ -358,7 +358,12 @@ public:
 		{
 			return INFINITE_DISTANCE; // Use the named constant
 		}
-		return (pEntity->GetCollideable()->GetCollisionOrigin() - m_pController->GetLocalOrigin()).Length();
+
+		const ICollideable *pCollide = pEntity->GetCollideable();
+		if (pCollide == nullptr)
+			return INFINITE_DISTANCE;
+
+		return (pCollide->GetCollisionOrigin() - m_pController->GetLocalOrigin()).Length();
 		//return distanceFrom(CBotGlobals::entityOrigin(pEntity));
 	}
 	float distanceFrom2D(const Vector& vOrigin) const
@@ -368,7 +373,14 @@ public:
 
     float distanceFrom2D(edict_t *pEntity) const
     {
-		return (pEntity->GetCollideable()->GetCollisionOrigin() - m_pController->GetLocalOrigin()).Length2D();
+		if (pEntity == nullptr)
+			return 0.0f;
+
+		const ICollideable *pCollide = pEntity->GetCollideable();
+		if (pCollide == nullptr)
+			return 0.0f;
+
+		return (pCollide->GetCollisionOrigin() - m_pController->GetLocalOrigin()).Length2D();
 		//return distanceFrom(CBotGlobals::entityOrigin(pEntity));
 	}
 
@@ -453,7 +465,7 @@ public:
 	 bool FInViewCone ( edict_t *pEntity ) const;	
 
 	/*
-	 * make bot start the gmae, e.g join a team first
+	 * make bot start the game, e.g join a team first
 	 */
 	virtual bool startGame ();
 	virtual bool checkStuck ();
