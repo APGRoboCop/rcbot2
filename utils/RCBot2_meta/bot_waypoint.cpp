@@ -2099,7 +2099,7 @@ void CWaypoints :: init (const char *pszAuthor, const char *pszModifiedBy)
 	for (CWaypoint& m_theWaypoint : m_theWaypoints)
 		m_theWaypoint.init();
 
-	Q_memset(m_theWaypoints, 0, sizeof(CWaypoint) * MAX_WAYPOINTS);
+	Q_memset(m_theWaypoints, 0, static_cast<int>(sizeof(CWaypoint) * MAX_WAYPOINTS));
 
 	CWaypointLocations::Init();
 	CWaypointDistances::reset();
@@ -2316,7 +2316,7 @@ int CWaypoints :: addWaypoint ( CClient *pClient, const char *type1, const char 
 		iArea = pClient->getWptCopyArea();
 	else
 		iArea = pClient->getWptArea();
-// override types and area here
+	// override types and area here
 	if ( type1 && *type1 )
 	{
 		const CWaypointType *t = CWaypointTypes::getType(type1);
@@ -2435,13 +2435,13 @@ int CWaypoints :: addWaypoint (edict_t *pPlayer, const Vector& vOrigin, const in
 {
 	const int iIndex = freeWaypointIndex();
 
-	if ( iIndex == -1 )	
+	if (iIndex == -1)	
 	{
 		logger->Log(LogLevel::ERROR, "Waypoints full!");
 		return -1;
 	}
 
-	if ( fRadius == 0.0f && rcbot_wpt_autoradius.GetFloat() > 0 )
+	if (fRadius <= 0.0f && rcbot_wpt_autoradius.GetFloat() > 0)
 		fRadius = rcbot_wpt_autoradius.GetFloat();
 
 	///////////////////////////////////////////////////
@@ -2450,7 +2450,7 @@ int CWaypoints :: addWaypoint (edict_t *pPlayer, const Vector& vOrigin, const in
 	m_theWaypoints[iIndex].setArea(iArea);
 	m_theWaypoints[iIndex].setRadius(fRadius);
 	// increase max waypoints used
-	if ( iIndex == m_iNumWaypoints )
+	if (iIndex == m_iNumWaypoints)
 		m_iNumWaypoints++;	
 	///////////////////////////////////////////////////
 
@@ -2459,7 +2459,7 @@ int CWaypoints :: addWaypoint (edict_t *pPlayer, const Vector& vOrigin, const in
 	CWaypointLocations::AddWptLocation(iIndex,fOrigin);
 	m_pVisibilityTable->workVisibilityForWaypoint(iIndex,1);
 
-	if ( bAutoPath && !(iFlags & CWaypointTypes::W_FL_UNREACHABLE) )
+	if (bAutoPath && !(iFlags & CWaypointTypes::W_FL_UNREACHABLE))
 	{
 		CWaypointLocations::AutoPath(pPlayer,iIndex);
 	}
@@ -2469,7 +2469,7 @@ int CWaypoints :: addWaypoint (edict_t *pPlayer, const Vector& vOrigin, const in
 
 void CWaypoints :: removeWaypoint (const int iIndex)
 {
-	if ( iIndex >= 0 )
+	if (iIndex >= 0)
 		m_theWaypoints[iIndex].setUsed(false);
 }
 
@@ -2790,7 +2790,7 @@ CWaypoint* CWaypoints::randomWaypointGoalNearestArea(const int iFlags, const int
 					fDist = pWpt->distanceFrom(*origin);
 				}
 				
-				if ( fDist == 0.0f )
+				if ( fDist <= 0.0f )
 					fDist = 0.1f;
 
 				node->setWaypoint(i);
@@ -3387,62 +3387,63 @@ void CWaypointTest :: go ( edict_t *pPlayer )
 	pBots[0] = new CTestBot(pPlayer,2,9);
 	pBots[1] = new CTestBot(pPlayer,3,9);
 
-	for ( int iBot = 0; iBot < 2; iBot ++ )
+	for (int iBot = 0; iBot < 2; iBot++)
 	{
 		CBot* pBot = pBots[iBot];
 
 		IBotNavigator* pNav = pBot->getNavigator();
 
-		for ( int i = 0; i < CWaypoints::MAX_WAYPOINTS; i ++ )
+		for (int i = 0; i < CWaypoints::MAX_WAYPOINTS; i++)
 		{
 			CWaypoint* pWpt1 = CWaypoints::getWaypoint(i);
 
-			if ( pWpt1 == nullptr )
+			if (pWpt1 == nullptr)
 				continue;
 
 			int iCheck = 0;
 
-			if ( !pWpt1->forTeam(iBot+2) )
+			if (!pWpt1->forTeam(iBot+2))
 				continue;
 
-			if ( !pBot->canGotoWaypoint(Vector(0,0,0),pWpt1) )
+			if (!pBot->canGotoWaypoint(Vector(0,0,0),pWpt1))
 				continue;
 		
 			// simulate bot situations on the map
 			// e.g. bot is at sentry point A wanting more ammo at resupply X
-			if ( pWpt1->hasFlag(CWaypointTypes::W_FL_SENTRY) )
+			if (pWpt1->hasFlag(CWaypointTypes::W_FL_SENTRY))
 				iCheck = CWaypointTypes::W_FL_RESUPPLY|CWaypointTypes::W_FL_AMMO;
-			if ( pWpt1->hasSomeFlags(CWaypointTypes::W_FL_RESUPPLY|CWaypointTypes::W_FL_AMMO) )
+			if (pWpt1->hasSomeFlags(CWaypointTypes::W_FL_RESUPPLY|CWaypointTypes::W_FL_AMMO))
 				iCheck = CWaypointTypes::W_FL_SENTRY|CWaypointTypes::W_FL_TELE_ENTRANCE|CWaypointTypes::W_FL_TELE_EXIT;
 			
-			if ( iCheck != 0 )
+			if (iCheck != 0)
 			{
-				for ( int j = 0; j < CWaypoints::MAX_WAYPOINTS; j ++ )
+				for (int j = 0; j < CWaypoints::MAX_WAYPOINTS; j++)
 				{
 
-					if ( i == j )
+					if (i == j)
 						continue;
 
 					CWaypoint* pWpt2 = CWaypoints::getWaypoint(j);
 
-					if ( !pWpt2->forTeam(iBot+2) )
+					if (pWpt2 == nullptr)
 						continue;
 
-					pWpt2 = CWaypoints::getWaypoint(j);
-
-					if ( !pBot->canGotoWaypoint(Vector(0,0,0),pWpt2) )
+					if (!pWpt2->forTeam(iBot+2))
 						continue;
 
-					if ( pWpt2->getArea() != 0 && pWpt2->getArea() != pWpt1->getArea() )
+					if (!pBot->canGotoWaypoint(Vector(0,0,0),pWpt2))
 						continue;
 
-					if ( pWpt2->hasSomeFlags(iCheck) )
+					if (pWpt2->getArea() != 0 && pWpt2->getArea() != pWpt1->getArea())
+						continue;
+
+					if (pWpt2->hasSomeFlags(iCheck))
 					{
 						bool bfail = false;
 						constexpr bool brestart = true;
 						constexpr bool bnointerruptions = true;
 
-						while ( pNav->workRoute(
+						while (pNav->workRoute(
 								pWpt1->getOrigin(),
 								pWpt2->getOrigin(),
 								&bfail,
@@ -3452,7 +3453,7 @@ void CWaypointTest :: go ( edict_t *pPlayer )
 							false 
 							) {}
 
-						if ( bfail )
+						if (bfail)
 						{
 							// log this one
 							CBotGlobals::botMessage(pPlayer,0,"Waypoint Test: Route fail from '%d' to '%d'",i,j);

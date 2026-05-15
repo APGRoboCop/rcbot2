@@ -506,29 +506,29 @@ bool CBot :: checkStuck ()
 {
 	static float fTime;
 
-	if ( !moveToIsValid() )
+	if (!moveToIsValid())
 		return false;
-	if ( rcbot_dont_move.GetBool() ) // bots not moving
+	if (rcbot_dont_move.GetBool()) // bots not moving
 		return false;
-	if ( hasEnemy() )
+	if (hasEnemy())
 		return false;
 
 	fTime = engine->Time();
 
-	if ( m_fLastWaypointVisible == 0.0f )
+	if (m_fLastWaypointVisible <= 0.0f)
 	{
 		m_bFailNextMove = false;
 
-		if ( !hasSomeConditions(CONDITION_SEE_WAYPOINT) )
+		if (!hasSomeConditions(CONDITION_SEE_WAYPOINT))
 			m_fLastWaypointVisible = fTime;
 	}
 	else
 	{
-		if ( hasSomeConditions(CONDITION_SEE_WAYPOINT) )
+		if (hasSomeConditions(CONDITION_SEE_WAYPOINT))
 			m_fLastWaypointVisible = 0.0f;
 		else
 		{
-			if ( m_fLastWaypointVisible + 2.0f < fTime )
+			if (m_fLastWaypointVisible + 2.0f < fTime)
 			{
 				m_fLastWaypointVisible = 0.0f;
 				m_bFailNextMove = true;
@@ -544,22 +544,22 @@ bool CBot :: checkStuck ()
 		m_fWaypointStuckTime = engine->Time() + randomFloat(15.0f, 20.0f);
 	}
 
-	if ( m_fCheckStuckTime > fTime )
+	if (m_fCheckStuckTime > fTime)
 		return m_bThinkStuck;
 
-	if ( hasSomeConditions(CONDITION_LIFT) || onLadder())//fabs(m_vMoveTo.z - getOrigin().z) > 48 )
+	if (hasSomeConditions(CONDITION_LIFT) || onLadder())//fabs(m_vMoveTo.z - getOrigin().z) > 48 )
 	{
-		if ( m_vVelocity.z != 0.0f )
+		if (std::fabs(m_vVelocity.z) > 0.0001f)
 			return false;
 	}
 
 	const float fSpeed = m_vVelocity.Length();
 	float fIdealSpeed = m_fIdealMoveSpeed;
 
-	if ( m_pButtons->holdingButton(IN_DUCK) )
+	if (m_pButtons->holdingButton(IN_DUCK))
 		fIdealSpeed /= 2;
 
-	if ( fIdealSpeed == 0.0f )
+	if (fIdealSpeed <= 0.0f)
 	{
 		m_bThinkStuck = false; // not stuck
 		m_fPercentMoved = 1.0f;
@@ -569,7 +569,7 @@ bool CBot :: checkStuck ()
 		// alpha percentage check
 		m_fPercentMoved = m_fPercentMoved/2 + fSpeed/fIdealSpeed/2;
 
-		if ( m_fPercentMoved < 0.1f )
+		if (m_fPercentMoved < 0.1f)
 		{
 			m_bThinkStuck = true;
 			m_fPercentMoved = 0.1f;
@@ -1072,7 +1072,7 @@ void CBot :: think ()
 		constexpr float fMaxDifference = 600.0f;
 		const float fMaxDifferenceAdjusted = fMaxDifference * fLerpTimeDelta;
 
-		m_fEnemyAimLerp = !vEnemyAimLerpVelocity.IsValid() || vEnemyAimLerpVelocity.Length() == 0.0f
+		m_fEnemyAimLerp = !vEnemyAimLerpVelocity.IsValid() || vEnemyAimLerpVelocity.Length() <= 0.0f
 			|| (std::fabs(vEnemyAimLerpVelocity.x - m_vEnemyAimLerpVelocity.x)
 				+ std::fabs(vEnemyAimLerpVelocity.y - m_vEnemyAimLerpVelocity.y)
 				+ std::fabs(vEnemyAimLerpVelocity.z - m_vEnemyAimLerpVelocity.z))
@@ -2059,7 +2059,7 @@ void CBot :: listenForPlayers ()
 				fFactor += vVelocity.Length();
 		}
 
-		if ( fFactor == 0.0f )
+		if ( fFactor <= 0.0f )
 			continue;
 
 		// add inverted distance to the factor (i.e. closer = better)
@@ -2556,7 +2556,7 @@ void CBot :: checkCanPickup ( edict_t *pPickup )
 
 Vector CBot::snipe (const Vector& vAiming)
 {
-		if ( m_fLookAroundTime < engine->Time() )
+		if (m_fLookAroundTime < engine->Time())
 		{
 			CTraceFilterWorldAndPropsOnly filter; //Unused? [APG]RoboCop[CL]
 			float fTime;
@@ -2568,14 +2568,14 @@ Vector CBot::snipe (const Vector& vAiming)
 			// forward
 			//CBotGlobals::traceLine(vOrigin,m_vWaypointAim+m_vLookAroundOffset,MASK_SOLID_BRUSHONLY|CONTENTS_OPAQUE,&filter);	
 
-			if ( m_fLookAroundTime == 0.0f )
+			if (m_fLookAroundTime <= 0.0f)
 				fTime = 0.1f;
 			else
 				fTime = randomFloat(3.0f,7.0f);
 
 			m_fLookAroundTime = engine->Time() + fTime;
 #ifndef __linux__
-			if ( CClients::clientsDebugging(BOT_DEBUG_NAV) )
+			if (CClients::clientsDebugging(BOT_DEBUG_NAV))
 			{
 				debugoverlay->AddLineOverlay (getOrigin(), m_vWaypointAim, 255,100,100, false, fTime);
 				debugoverlay->AddLineOverlay (getOrigin(), m_vWaypointAim+m_vLookAroundOffset, 255,40,40, false, fTime);
@@ -2920,7 +2920,7 @@ void CBot :: doLook ()
 
 		m_vViewAngles = command.viewangles;
 
-		if (m_vViewAngles.x == 0.0f && m_vViewAngles.y == 0.0f) {
+		if (std::fabs(m_vViewAngles.x) < 0.0001f && std::fabs(m_vViewAngles.y) < 0.0001f) {
 			CClients::clientDebugMsg(BOT_DEBUG_AIM, "view angle invalid", this);
 		}
 
@@ -2959,7 +2959,7 @@ void CBot :: secondaryAttack (const bool bHold, const float fTime) const
 	{
 		fLetGoTime = 0.0f;
 
-		if ( fTime )
+		if ( fTime > 0.0f )
 			fHoldTime = fTime;
 		else
 			fHoldTime = 1.0f;
@@ -2987,7 +2987,7 @@ void CBot :: primaryAttack (const bool bHold, const float fTime) const
 	{
 		fLetGoTime = 0.0f;
 
-		if ( fTime )
+		if ( fTime > 0.0f )
 			fHoldTime = fTime;
 		else
 			fHoldTime = 2.0f;

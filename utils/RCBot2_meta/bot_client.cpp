@@ -541,15 +541,15 @@ void CClient :: think ()
 			}
 			//g_pBotManager->GetBotController(m_pPlayer)->IsEFlagSet();
 
-			if ( /*(pev->waterlevel < 3) &&*/ m_fCanPlaceJump < engine->Time() )
+			if (/*(pev->waterlevel < 3) &&*/ m_fCanPlaceJump < engine->Time())
 			{
-				if ( m_fCanPlaceJump != -1 && m_iLastButtons & IN_JUMP && !(iPlayerFlags & FL_ONGROUND) )
+				if (m_fCanPlaceJump >= 0.0f && m_iLastButtons & IN_JUMP && !(iPlayerFlags & FL_ONGROUND))
 				{
 					int iNearestWpt = CWaypointLocations::NearestWaypoint(vPlayerOrigin, 80.0f, -1, true, false, false, nullptr);
 
 					m_iLastJumpWaypointIndex = -1;
 					
-					if ( iNearestWpt == -1 )
+					if (iNearestWpt == -1)
 					{
 						m_iLastJumpWaypointIndex = CWaypoints::addWaypoint(m_pPlayer,vPlayerOrigin,CWaypointTypes::W_FL_JUMP,true);
 					}
@@ -563,22 +563,22 @@ void CClient :: think ()
 				// ****************************************************
 				// Join jump waypoint to the landed waypoint
 				// ****************************************************
-				else if ( m_fCanPlaceJump == -1 && iPlayerFlags & FL_ONGROUND )
+				else if (m_fCanPlaceJump < 0.0f && iPlayerFlags & FL_ONGROUND)
 				{
-					if ( m_iLastJumpWaypointIndex != -1 )
+					if (m_iLastJumpWaypointIndex != -1)
 					{
 						int iNearestWpt = CWaypointLocations::NearestWaypoint(vPlayerOrigin, 80.0f, -1, true, false, false, nullptr);
 						
-						if ( iNearestWpt == -1 )
+						if (iNearestWpt == -1)
 						{
 							int iNewWpt = CWaypoints::addWaypoint(m_pPlayer,vPlayerOrigin,0,true);
 
-							if ( iNewWpt != -1 )
+							if (iNewWpt != -1)
 							{
 								CWaypoint *pWpt = CWaypoints::getWaypoint(iNewWpt);
 								CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex);
 
-								if ( pWpt && pJumpWpt )
+								if (pWpt && pJumpWpt)
 								{
 									Vector v_floor;
 									pJumpWpt->addPathTo(iNewWpt);
@@ -613,7 +613,7 @@ void CClient :: think ()
 								}
 							}
 						}
-						else if ( iNearestWpt != m_iLastJumpWaypointIndex )
+						else if (iNearestWpt != m_iLastJumpWaypointIndex)
 						{
 							if (CWaypoint *pJumpWpt = CWaypoints::getWaypoint(m_iLastJumpWaypointIndex))
 							{
@@ -630,7 +630,7 @@ void CClient :: think ()
 				}				
 			}
 
-			bool bCheckDistance = iMoveType != MOVETYPE_FLY && m_fCanPlaceLadder == 0.0f; // always check distance unless ladder climbing
+			bool bCheckDistance = iMoveType != MOVETYPE_FLY && m_fCanPlaceLadder <= 0.0f; // always check distance unless ladder climbing
 
 			// ****************************************************
 			// Ladder waypoint

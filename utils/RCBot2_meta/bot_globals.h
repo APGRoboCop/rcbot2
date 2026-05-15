@@ -216,7 +216,7 @@ public:
 
 	static bool checkOpensLater (const Vector& vSrc, const Vector& vDest);
 
-	static bool setupMapTime ( ) { return m_fMapStartTime == 0.0f; }
+	static bool setupMapTime() { return m_fMapStartTime <= 0.0f; }
 
 	static bool isBreakableOpen (edict_t *pBreakable);
 

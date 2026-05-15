@@ -533,7 +533,7 @@ float CTeamFortress2Mod :: TF2_GetPlayerSpeed(edict_t *pPlayer, const TF_Class i
 
 	fSpeed = CClassInterface::getMaxSpeed(pPlayer);// * CClassInterface::getSpeedFactor(pPlayer);
 
-	if ( fSpeed == 0.0f )
+	if (fSpeed <= 0.0f)
 	{
 		if (TF2_IsPlayerSlowed(pPlayer)) 
 			return 30.0f;
@@ -1024,7 +1024,7 @@ void CTeamFortress2Mod::checkMVMTankBoss(edict_t *pEntity)
 		}
 	}
 
-	if (CBotGlobals::entityIsAlive(pEntity) && (m_pNearestTankBoss.get() == nullptr || (m_fNearestTankDistance == 0.0f || fTankDistance < m_fNearestTankDistance)))
+	if (CBotGlobals::entityIsAlive(pEntity) && (m_pNearestTankBoss.get() == nullptr || (m_fNearestTankDistance <= 0.0f || fTankDistance < m_fNearestTankDistance)))
 	{
 		m_fNearestTankDistance = fTankDistance;
 		m_pNearestTankBoss = pEntity;

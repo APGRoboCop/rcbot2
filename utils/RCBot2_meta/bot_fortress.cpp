@@ -432,7 +432,7 @@ void CBotFortress :: checkHealingValid ()
 		if (!CBotGlobals::entityIsValid(m_pHeal) ||
 			!CBotGlobals::entityIsAlive(m_pHeal) ||
 			!isVisible(m_pHeal) ||
-			getHealFactor(m_pHeal) == 0.0f)
+			getHealFactor(m_pHeal) <= 0.0f)
 		{
 			m_pHeal = nullptr;
 			removeCondition(CONDITION_SEE_HEAL);
@@ -980,7 +980,7 @@ void CBotFortress :: detectedAsSpy( edict_t *pDetector, const bool bDisguiseComp
 		if ( (m_fDisguiseTime < 1) || (fTime < 3.0f) )
 			return;
 
-		if ( m_fClassDisguiseTime[m_iDisguiseClass] == 0.0f )
+		if ( m_fClassDisguiseTime[m_iDisguiseClass] <= 0.0f )
 			m_fClassDisguiseTime [m_iDisguiseClass] = fTime;
 		else
 			m_fClassDisguiseTime [m_iDisguiseClass] = (m_fClassDisguiseTime [m_iDisguiseClass] * 0.5f) + (fTime * 0.5f);
@@ -1504,7 +1504,7 @@ void CBotFortress :: modThink ()
 	}
 
 
-	if ((m_fLastSeeEnemy == 0.0f) || ((m_fLastSeeEnemy + 5.0f)<engine->Time()))
+	if ((m_fLastSeeEnemy <= 0.0f) || ((m_fLastSeeEnemy + 5.0f)<engine->Time()))
 	{
 		m_fLastSeeEnemy = 0.0f;
 
@@ -3387,7 +3387,7 @@ void CBotTF2::modThink()
 		if (bRevMiniGun)
 		{
 			// record time when bot started revving up
-			if (m_fRevMiniGunTime == 0.0f)
+			if (m_fRevMiniGunTime <= 0.0f)
 			{
 				const float fMinTime = (m_fCurrentDanger / 200) * 10;
 
@@ -3451,7 +3451,7 @@ void CBotTF2::modThink()
 			if (rcbot_tf2_debug_spies_cloakdisguise.GetBool() && (m_fSpyDisguiseTime < engine->Time()))
 			{
 				// if previously detected or isn't disguised
-				if ((m_fDisguiseTime == 0.0f) || !isDisguised())
+				if ((m_fDisguiseTime <= 0.0f) || !isDisguised())
 				{
 					const int iTeam = CTeamFortress2Mod::getEnemyTeam(getTeam());
 
@@ -4276,7 +4276,7 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 	if (!pHeal)
 		return false;
 
-	if (getHealFactor(m_pHeal) == 0.0f)
+	if (getHealFactor(m_pHeal) <= 0.0f)
 		return false;
 
 	vOrigin = CBotGlobals::entityOrigin(m_pHeal);
@@ -4325,7 +4325,7 @@ bool CBotTF2::healPlayer(edict_t* pPlayer, edict_t* pPrevPlayer)
 		else if (fSpeed > 100.0f)
 			m_fHealingMoveTime = engine->Time();
 
-		if (m_fHealingMoveTime == 0.0f)
+		if (m_fHealingMoveTime <= 0.0f)
 			m_fHealingMoveTime = engine->Time();
 
 		m_vMedicPosition = vOrigin;
@@ -5807,7 +5807,7 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 						{
 							float fDistance = pCapturePoint->distanceFrom(vPayloadBomb);
 
-							if ( fDistance == 0.0f )
+							if ( fDistance <= 0.0f )
 								fprob = 1.0f;
 							else
 								fprob = 1.0f - (fDistance/fSearchDist);
@@ -7999,7 +7999,7 @@ bool CBotTF2::isEnemy(edict_t* pEdict, const bool bCheckWeapons)
 					if (CTeamFortress2Mod::TF2_IsPlayerCloaked(pEdict)) // if he is cloaked -- can't see him
 					{
 						const int iConds = CClassInterface::getTF2Conditions(pEdict);
-						const bool bExposedCloaked = CClassInterface::getTF2SpyCloakMeter(pEdict) == 0.0f
+						const bool bExposedCloaked = CClassInterface::getTF2SpyCloakMeter(pEdict) <= 0.0f
 							|| ((CTeamFortress2Mod::isMapType(TF_MAP_ZI) || CTeamFortress2Mod::isMapType(TF_MAP_SAXTON))
 								&& (CTF2Conditions::TF2_IsPlayerInCondition(edictIndex, TFCond_Kritzkrieged) ||
 									CTF2Conditions::TF2_IsPlayerInCondition(edictIndex, TFCond_Buffed))) /*Buff exposes invisibility - RussiaTails*/

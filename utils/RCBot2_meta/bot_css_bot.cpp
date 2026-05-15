@@ -300,7 +300,7 @@ void CCSSBot::listenForPlayers()
 				fFactor += vVelocity.Length();
 		}
 
-		if(fFactor == 0.0f)
+		if(fFactor <= 0.0f)
 			continue;
 
 		// add inverted distance to the factor (i.e. closer = better)

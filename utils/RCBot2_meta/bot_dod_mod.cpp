@@ -360,7 +360,7 @@ bool CDODFlags::getRandomEnemyControlledFlag (const CBot *pBot, Vector *position
 		}
 	}
 
-	if ( fTotal == 0.0f )
+	if ( fTotal <= 0.0f )
 		return false;
 
 	const float fRand = randomFloat(0, fTotal);
@@ -577,7 +577,7 @@ bool CDODFlags::getRandomTeamControlledFlag (const CBot *pBot, Vector *position,
 		}
 	}
 
-	if ( fTotal == 0.0f )
+	if ( fTotal <= 0.0f )
 		return false;
 
 	const float fRand = randomFloat(0, fTotal);
