@@ -263,7 +263,7 @@ void CBotNeuralNet :: batch_train (const CTrainingSet *tset, const unsigned shor
 
 	ga_nn_value* outs = new ga_nn_value [m_numOutputs];
 
-	for ( unsigned short e = 0; e < epochs; e ++ )
+	for (unsigned short e = 0; e < epochs; e++)
 	{
 		/*if ( !(e%RCPP_VERB_EPOCHS) )
 		{
@@ -282,7 +282,7 @@ void CBotNeuralNet :: batch_train (const CTrainingSet *tset, const unsigned shor
 			CLogisticalNeuron* pNode = m_pOutputs;
 
 			// work out error for output layer
-			for ( j = 0; j < m_numOutputs; j ++ )
+			for (j = 0; j < m_numOutputs; j++)
 			{
 				const ga_nn_value act_out = pNode->getOutput();
 				const ga_nn_value exp_out = batches[bi].out[j];
@@ -299,12 +299,12 @@ void CBotNeuralNet :: batch_train (const CTrainingSet *tset, const unsigned shor
 			pNode = m_pHidden[m_numHiddenLayers-1];
 
 			//Send Error back to Hidden Layer before output
-			for ( i = 0; i < m_numHidden; i ++ )
+			for (i = 0; i < m_numHidden; i++)
 			{	
 				ga_nn_value err = 0;
 				pOutputNode = m_pOutputs;
 
-				for ( j = 0; j < m_numOutputs; j ++ )
+				for (j = 0; j < m_numOutputs; j++)
 				{
 					err += pOutputNode->getError(i);
 					pOutputNode++;
@@ -316,17 +316,17 @@ void CBotNeuralNet :: batch_train (const CTrainingSet *tset, const unsigned shor
 				pNode++;
 			}
 
-			for ( signed short l = m_numHiddenLayers - 2; l >= 0; l -- ) //l should be int only? [APG]RoboCop[CL]
+			for (signed short l = m_numHiddenLayers - 2; l >= 0; l--) //l should be int only? [APG]RoboCop[CL]
 			{
 				pOutputNode = m_pHidden[l];
 				//Send Error back to Input Layer
-				for ( i = 0; i < m_numHidden; i ++ )
+				for (i = 0; i < m_numHidden; i++)
 				{	
 					ga_nn_value err = 0;
 
 					pNode = m_pHidden[l+1];
 
-					for ( j = 0; j < m_numHidden; j ++ )
+					for (j = 0; j < m_numHidden; j++)
 					{
 						// check the error from the next layer
 						err += pNode->getError(i);
@@ -338,11 +338,11 @@ void CBotNeuralNet :: batch_train (const CTrainingSet *tset, const unsigned shor
 				}
 			}
 
-			for ( j = 0; j < m_numHiddenLayers; j ++ )
+			for (j = 0; j < m_numHiddenLayers; j++)
 			{
 				pNode = m_pHidden[j];
 				// update weights for hidden layer (each neuron)
-				for ( i = 0; i < m_numHidden; i ++ )
+				for (i = 0; i < m_numHidden; i++)
 				{	
 					pNode->train(); // update weights for this node
 					pNode++;

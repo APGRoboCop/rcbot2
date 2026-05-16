@@ -400,12 +400,12 @@ void CDODBot :: died ( edict_t *pKiller, const char *pszWeapon )
 	// check if I want to change class
 	m_bCheckClass = true;
 
-	if ( randomInt(0,1) )
+	if (randomInt(0,1))
 		m_pButtons->attack();
 
-	if ( pKiller )
+	if (pKiller)
 	{
-		if ( CBotGlobals::entityIsValid(pKiller) )
+		if (CBotGlobals::entityIsValid(pKiller))
 			m_pNavigator->belief(CBotGlobals::entityOrigin(pKiller),getEyePosition(),bot_beliefmulti.GetFloat(),distanceFrom(pKiller),BELIEF_DANGER);
 
 		if ( (m_pEnemy==pKiller) )
@@ -429,19 +429,19 @@ void CDODBot :: seeFriendlyDie ( edict_t *pDied, edict_t *pKiller, CWeapon *pWea
 
 	utils.freeMemory();
 
-	if ( (pKiller != m_pEdict) && pKiller && !m_pEnemy && !hasSomeConditions(CONDITION_SEE_CUR_ENEMY) && isEnemy(pKiller,false) )
+	if (pKiller != m_pEdict && pKiller && !m_pEnemy && !hasSomeConditions(CONDITION_SEE_CUR_ENEMY) && isEnemy(pKiller,false) )
 	{
 		static CWaypoint *pWpt;
 		//bool bInvestigate = true;
 		//bool bFollow = true;
 
-		if ( pWeapon )
+		if (pWeapon)
 		{
 			const DOD_Class pclass = static_cast<DOD_Class>(CClassInterface::getPlayerClassDOD(pKiller));
 			if ( (pclass == DOD_CLASS_SNIPER) && pWeapon->isZoomable() )
 			{
 				const Vector vecEnemy = CBotGlobals::entityOrigin(pKiller);
-				if ( (m_LastHearVoiceCommand == DOD_VC_SNIPER) && m_pWeapons->hasWeapon(DOD_WEAPON_FRAG_US) && !m_pWeapons->hasWeapon(DOD_WEAPON_FRAG_GER) )
+				if (m_LastHearVoiceCommand == DOD_VC_SNIPER && m_pWeapons->hasWeapon(DOD_WEAPON_FRAG_US) && !m_pWeapons->hasWeapon(DOD_WEAPON_FRAG_GER))
 					addVoiceCommand(DOD_VC_USE_GRENADE);
 				else
 					addVoiceCommand(DOD_VC_SNIPER);
@@ -654,11 +654,11 @@ void CDODBot :: seeFriendlyKill ( edict_t *pTeamMate, edict_t *pDied, CWeapon *p
 {
 	static CWaypoint *pWpt; //Unused? [APG]RoboCop[CL]
 
-	if ( (pDied != m_pEdict) && pTeamMate && !hasSomeConditions(CONDITION_SEE_CUR_ENEMY) && (CClassInterface::getTeam(pDied)!=m_iTeam) )
+	if (pDied != m_pEdict && pTeamMate && !hasSomeConditions(CONDITION_SEE_CUR_ENEMY) && (CClassInterface::getTeam(pDied)!=m_iTeam))
 	{
 		m_fLastSeeEnemy = engine->Time();
 
-		if ( pWeapon )
+		if (pWeapon)
 		{
 			static CBotWeapon *pCurrentWeapon;
 			const DOD_Class pclass = static_cast<DOD_Class>(CClassInterface::getPlayerClassDOD(pTeamMate));
@@ -673,7 +673,7 @@ void CDODBot :: seeFriendlyKill ( edict_t *pTeamMate, edict_t *pDied, CWeapon *p
 
 			m_fCurrentDanger = std::max<float>(m_fCurrentDanger, 0);
 
-			if ( (pclass == DOD_CLASS_MACHINEGUNNER) && pWeapon->isDeployable() )
+			if (pclass == DOD_CLASS_MACHINEGUNNER && pWeapon->isDeployable())
 			{
 				removeCondition(CONDITION_COVERT);
 				m_pNavigator->belief(CBotGlobals::entityOrigin(pTeamMate),CBotGlobals::entityOrigin(pDied),MAX_BELIEF,512.0f,BELIEF_SAFETY);
@@ -682,9 +682,9 @@ void CDODBot :: seeFriendlyKill ( edict_t *pTeamMate, edict_t *pDied, CWeapon *p
 			}
 		}
 
-		if ( pDied == m_pEnemy )
+		if (pDied == m_pEnemy)
 		{
-			if ( ( getHealthPercent() < 0.2f ) && ( randomFloat(0.0f,1.0f) > 0.75f ) )
+			if (getHealthPercent() < 0.2f && randomFloat(0.0f,1.0f) > 0.75f)
 				addVoiceCommand(DOD_VC_NICE_SHOT);
 
 			ga_nn_value inputs[3] = {distanceFrom(m_pEnemy)/1000.0f,getHealthPercent(),m_fCurrentDanger/MAX_BELIEF};
@@ -697,12 +697,12 @@ void CDODBot :: seeFriendlyKill ( edict_t *pTeamMate, edict_t *pDied, CWeapon *p
 				m_pWantToProne->train(0.0f);		
 		}
 
-		if ( m_pLastEnemy == pDied )
+		if (m_pLastEnemy == pDied)
 		{
 			m_pLastEnemy = nullptr;
 			m_fLastSeeEnemy = 0.0f;
 
-			if ( inSquad() && isSquadLeader() )
+			if (inSquad() && isSquadLeader())
 			{
 				addVoiceCommand(DOD_VC_ENEMY_DOWN);
 				//addVoiceCommand(DOD_VC_GOGOGO);
@@ -722,13 +722,13 @@ bool CDODBot :: wantToListenToPlayerAttack ( edict_t *pPlayer, int iWeaponID )
 {
 	const edict_t *pentWeapon = CClassInterface::getCurrentWeapon(pPlayer);
 
-	if ( pentWeapon != nullptr)
+	if (pentWeapon != nullptr)
 	{
-		if ( const CWeapon *pWeapon = CWeapons::getWeapon(pentWeapon->GetClassName()) )
+		if (const CWeapon *pWeapon = CWeapons::getWeapon(pentWeapon->GetClassName())) 
 		{
-			if ( pWeapon->isMelee() )
+			if (pWeapon->isMelee())
 				return false;
-			if ( pWeapon->isGrenade() )
+			if (pWeapon->isGrenade())
 				return false;
 
 			// otherwise just random
@@ -1245,7 +1245,7 @@ void CDODBot :: modThink ()
 			else
 				bZoomed = CClassInterface::isGarandZoomed(m_pCurrentWeapon);
 
-			if ( !bZoomed && (m_fZoomOrDeployTime < engine->Time()) )
+			if (!bZoomed && m_fZoomOrDeployTime < engine->Time())
 			{
 				secondaryAttack(); // deploy / zoom
 				m_fZoomOrDeployTime = engine->Time() + randomFloat(0.1f,0.2f);
@@ -1253,7 +1253,7 @@ void CDODBot :: modThink ()
 		}
 		// prone only if has enemy or last seen one a second ago
 		// if rcbot_prone_enemy_only is true
-		if ( (hasSomeConditions(CONDITION_PRONE) || !rcbot_prone_enemy_only.GetBool() || ((m_pEnemy.get()!= nullptr) || (m_fLastSeeEnemy + 5.0f > engine->Time()))) && (m_fCurrentDanger >= 80.0f) && !m_bProne && ( m_fProneTime < engine->Time() ))
+		if ((hasSomeConditions(CONDITION_PRONE) || !rcbot_prone_enemy_only.GetBool() || m_pEnemy.get() != nullptr || m_fLastSeeEnemy + 5.0f > engine->Time()) && m_fCurrentDanger >= 80.0f && !m_bProne && m_fProneTime < engine->Time())
 		{
 			bool bProne = true;
 
@@ -1286,30 +1286,30 @@ void CDODBot :: modThink ()
 		m_pButtons->holdButton(IN_SPEED,0,1,0);
 		m_pButtons->holdButton(IN_FORWARD,0,1,0);
 	}
-	else if (( m_fCurrentDanger < 1 ) || (m_flStamina < 10.0f ))
+	else if (m_fCurrentDanger < 1 || m_flStamina < 10.0f)
 	{
 		m_flSprintTime = engine->Time() + randomFloat(2.0f,6.0f);
 	}
 
-	if ( (pWeapon && pWeapon->needToReload(this)) ||
-		(m_fLastSeeEnemy && ((m_fLastSeeEnemy + 5.0f)<engine->Time())) )
+	if ((pWeapon && pWeapon->needToReload(this)) ||
+		(m_fLastSeeEnemy && m_fLastSeeEnemy + 5.0f < engine->Time()))
 	{
 		m_fLastSeeEnemy = 0;
 		m_pButtons->tap(IN_RELOAD);
 	}
 
-	if ( !m_bProne && m_bStatsCanUse )
+	if (!m_bProne && m_bStatsCanUse)
 	{
-		if ( m_pSchedules->isEmpty() ||
+		if (m_pSchedules->isEmpty() ||
 			(m_pSchedules->getCurrentSchedule() == nullptr ||
 				(!m_pSchedules->getCurrentSchedule()->isID(SCHED_FOLLOW) &&
-					!m_pSchedules->getCurrentSchedule()->isID(SCHED_SNIPE))) )
+					!m_pSchedules->getCurrentSchedule()->isID(SCHED_SNIPE))))
 		{
-			if ( m_fNextCheckAlone < engine->Time() )
+			if (m_fNextCheckAlone < engine->Time())
 			{
 				m_fNextCheckAlone = engine->Time() + 2.5f;
 
-				if ( !inSquad() && (m_Stats.stats.m_iTeamMatesInRange < 1) && (m_Stats.stats.m_iTeamMatesVisible > 1) )
+				if ( !inSquad() && m_Stats.stats.m_iTeamMatesInRange < 1 && m_Stats.stats.m_iTeamMatesVisible > 1 )
 					addVoiceCommand(DOD_VC_STICK_TOGETHER);
 			}
 		}

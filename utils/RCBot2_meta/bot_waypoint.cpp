@@ -1160,7 +1160,7 @@ bool CWaypointNavigator :: workRoute (const Vector& vFrom,
 		{
 			edict_t *pListenEdict; //Unused? [APG]RoboCop[CL]
 
-			if ( !engine->IsDedicatedServer() && (pListenEdict = CClients::getListenServerClient())!= nullptr)
+			if (!engine->IsDedicatedServer() && (pListenEdict = CClients::getListenServerClient())!= nullptr)
 			{
 				debugoverlay->AddLineOverlayAlpha(CWaypoints::getWaypoint(iCurrentNode)->getOrigin()+Vector(0,0,8.0f),CWaypoints::getWaypoint(iParent)->getOrigin()+Vector(0,0,8.0f),255,255,255,255,false,5.0f);
 			}
@@ -1592,30 +1592,28 @@ void CWaypoint :: draw ( edict_t *pEdict, const bool bDrawPaths, const unsigned 
 	// top + bottom heights = fHeight
 	fHeight /= 2;
 
-	if ( m_iFlags & CWaypointTypes::W_FL_CROUCH )
+	if (m_iFlags & CWaypointTypes::W_FL_CROUCH)
 		fHeight /= 2; // smaller again
 
-	switch ( iDrawType )
+	switch (iDrawType)
 	{
 	case DRAWTYPE_BELIEF:
 		{
-			if ( CClients::clientsDebugging(BOT_DEBUG_NAV) )
+			if (CClients::clientsDebugging(BOT_DEBUG_NAV))
 			{
-				if ( CClient *pClient = CClients::get(pEdict) )
+				CClient *pClient = CClients::get(pEdict);
+				pEdict = pClient->getDebugBot();
+
+				if (const CBot *pBot = CBots::getBotPointer(pEdict))
 				{
-					pEdict = pClient->getDebugBot();
+					const char belief = static_cast<char>(pBot->getNavigator()->getBelief(
+						CWaypoints::getWaypointIndex(this)));
 
-					if ( const CBot *pBot = CBots::getBotPointer(pEdict) )
-					{
-						const char belief = static_cast<char>(pBot->getNavigator()->getBelief(
-							CWaypoints::getWaypointIndex(this)));
-
-						// show danger - red = dangerous / blue = safe
-						r = belief;
-						b = MAX_BELIEF - static_cast<float>(belief);
-						g = 0;
-						a = 255;
-					}
+					// show danger - red = dangerous / blue = safe
+					r = belief;
+					b = MAX_BELIEF - static_cast<float>(belief);
+					g = 0;
+					a = 255;
 				}
 			}
 		}
@@ -1625,34 +1623,31 @@ void CWaypoint :: draw ( edict_t *pEdict, const bool bDrawPaths, const unsigned 
 		[[fallthrough]];
 	case DRAWTYPE_DEBUGENGINE2:
 		// draw area
-		if ( pEdict )
+		if (pEdict)
 		{
-			if ( distanceFrom(CBotGlobals::entityOrigin(pEdict)) < fDistance )
+			if (distanceFrom(CBotGlobals::entityOrigin(pEdict)) < fDistance)
 			{
 				CWaypointTypes::printInfo(this,pEdict,1.0f);
 
 #ifndef __linux__
-				if ( m_iFlags )
+				if (m_iFlags)
 				{
-					if ( pCurrentMod->isWaypointAreaValid(m_iArea,m_iFlags) )
+					if (pCurrentMod->isWaypointAreaValid(m_iArea,m_iFlags))
 						debugoverlay->AddTextOverlayRGB(m_vOrigin + Vector(0,0,fHeight+4.0f),0,1,255,255,255,255,"%d",m_iArea);	
 					else
 						debugoverlay->AddTextOverlayRGB(m_vOrigin + Vector(0,0,fHeight+4.0f),0,1,255,0,0,255,"%d",m_iArea);
 				}
 
-				if ( CClients::clientsDebugging() )
+				if (CClients::clientsDebugging())
 				{
-					if ( CClient *pClient = CClients::get(pEdict) )
+					CClient *pClient = CClients::get(pEdict);
+					pEdict = pClient->getDebugBot();
+
+					if (const CBot *pBot = CBots::getBotPointer(pEdict))
 					{
-						pEdict = pClient->getDebugBot();
-
-						if ( const CBot *pBot = CBots::getBotPointer(pEdict) )
-						{
-							debugoverlay->AddTextOverlayRGB(m_vOrigin + Vector(0, 0, fHeight + 8.0f), 0, 1,
-											0, 0, 255, 255, "%0.4f", pBot->getNavigator()->getBelief(
-											CWaypoints::getWaypointIndex(this)));
-						}
-
+						debugoverlay->AddTextOverlayRGB(m_vOrigin + Vector(0, 0, fHeight + 8.0f), 0, 1,
+										0, 0, 255, 255, "%0.4f", pBot->getNavigator()->getBelief(
+										CWaypoints::getWaypointIndex(this)));
 					}
 				}
 
@@ -1700,8 +1695,8 @@ void CWaypoint :: draw ( edict_t *pEdict, const bool bDrawPaths, const unsigned 
 		unsigned char blue, unsigned char brightness, unsigned char speed) = 0;
 */
 
-	if ( bDrawPaths )
-		drawPaths ( pEdict,iDrawType );
+	if (bDrawPaths)
+		drawPaths(pEdict,iDrawType);
 }
 // clear the waypoints possible paths
 void CWaypoint :: clearPaths ()
@@ -1757,7 +1752,7 @@ bool CWaypoints :: save (const bool bVisiblityMade, const edict_t* pPlayer, cons
 
 	std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::out | std::fstream::binary);
 
-	if ( !bfp )
+	if (!bfp)
 	{
 		return false; // give up
 	}
@@ -1795,24 +1790,24 @@ bool CWaypoints :: save (const bool bVisiblityMade, const edict_t* pPlayer, cons
 	}
 	authorinfo.szModifiedBy[sizeof(authorinfo.szModifiedBy) - 1] = '\0';
 
-	if ( !bVisiblityMade && pszAuthor== nullptr && pszModifier== nullptr)
+	if (!bVisiblityMade && pszAuthor== nullptr && pszModifier== nullptr)
 	{
 		char szAuthorName[32];
 		std::strcpy(szAuthorName,"(unknown)");
 
-		if ( pPlayer != nullptr)
+		if (pPlayer != nullptr)
 		{
 			std::strcpy(szAuthorName,CClients::get(pPlayer)->getName());
 		}
 
-		if ( authorinfo.szAuthor[0] == 0 ) // no author
+		if (authorinfo.szAuthor[0] == 0) // no author
 		{
 			std::strncpy(authorinfo.szAuthor,szAuthorName,31);
 			authorinfo.szAuthor[31] = 0;
 
 			std::memset(authorinfo.szModifiedBy,0,32);
 		}
-		else if ( std::strcmp(szAuthorName,authorinfo.szAuthor) != 0 )
+		else if (std::strcmp(szAuthorName,authorinfo.szAuthor) != 0)
 		{
 			// modified
 			std::strncpy(authorinfo.szModifiedBy,szAuthorName,31);
@@ -1827,7 +1822,7 @@ bool CWaypoints :: save (const bool bVisiblityMade, const edict_t* pPlayer, cons
 	bfp.write(reinterpret_cast<char*>(&header), sizeof(CWaypointHeader));
 	bfp.write(reinterpret_cast<char*>(&authorinfo), sizeof(CWaypointAuthorInfo));
 
-	for ( int i = 0; i < iSize; i ++ )
+	for (int i = 0; i < iSize; i++)
 	{
 		CWaypoint *pWpt = &m_theWaypoints[i];
 
@@ -1852,14 +1847,14 @@ bool CWaypoints :: load (const char *szMapName)
 	std::strcpy(m_szWelcomeMessage,"No waypoints for this map");
 
 	// open explicit map name waypoints
-	if ( szMapName == nullptr)
+	if (szMapName == nullptr)
 		CBotGlobals::buildFileName(filename,CBotGlobals::getMapName(),BOT_WAYPOINT_FOLDER,BOT_WAYPOINT_EXTENSION,true);
 	else
 		CBotGlobals::buildFileName(filename,szMapName,BOT_WAYPOINT_FOLDER,BOT_WAYPOINT_EXTENSION,true);
 
 	std::fstream bfp = CBotGlobals::openFile(filename, std::fstream::in | std::fstream::binary);
 
-	if ( !bfp )
+	if (!bfp)
 	{
 		return false; // give up
 	}
@@ -1875,39 +1870,39 @@ bool CWaypoints :: load (const char *szMapName)
 
 	bfp.read(reinterpret_cast<char*>(&header), sizeof(CWaypointHeader));
 
-	if ( !FStrEq(header.szFileType,BOT_WAYPOINT_FILE_TYPE) )
+	if (!FStrEq(header.szFileType,BOT_WAYPOINT_FILE_TYPE))
 	{
 		logger->Log(LogLevel::ERROR, "Error loading waypoints: File type mismatch");
 		return false;
 	}
-	if ( header.iVersion > WAYPOINT_VERSION )
+	if (header.iVersion > WAYPOINT_VERSION)
 	{
 		logger->Log(LogLevel::ERROR, "Error loading waypoints: Waypoint version too new");
 		return false;
 	}
 
-	if ( szMapName )
+	if (szMapName)
 	{
-		if ( !FStrEq(header.szMapName,szMapName) )
+		if (!FStrEq(header.szMapName,szMapName))
 		{
 			logger->Log(LogLevel::ERROR, "Error loading waypoints: Map name mismatch");
 			return false;
 		}
 	}
-	else if ( !FStrEq(header.szMapName,CBotGlobals::getMapName()) )
+	else if (!FStrEq(header.szMapName,CBotGlobals::getMapName()))
 	{
 		logger->Log(LogLevel::ERROR, "Error loading waypoints: Map name mismatch");
 		return false;
 	}
 
-	if ( header.iVersion > 3 )
+	if (header.iVersion > 3)
 	{
 		// load author information
 		bfp.read(reinterpret_cast<char*>(&authorinfo), sizeof(CWaypointAuthorInfo));
 
 		snprintf(m_szWelcomeMessage, sizeof(m_szWelcomeMessage), "Waypoints by %s", authorinfo.szAuthor);
 
-		if ( authorinfo.szModifiedBy[0] != 0 )
+		if (authorinfo.szModifiedBy[0] != 0)
 		{
 			std::strcat(m_szWelcomeMessage," modified by ");
 			std::strcat(m_szWelcomeMessage,authorinfo.szModifiedBy);
@@ -1928,16 +1923,16 @@ bool CWaypoints :: load (const char *szMapName)
 	bool bWorkVisibility = true;
 
 	// if we're loading from another map, just load visibility, save effort!
-	if ( szMapName == nullptr && header.iFlags & W_FILE_FL_VISIBILITY )
+	if (szMapName == nullptr && header.iFlags & W_FILE_FL_VISIBILITY)
 		bWorkVisibility = !m_pVisibilityTable->ReadFromFile(iSize);
 
-	for ( int i = 0; i < iSize; i ++ )
+	for (int i = 0; i < iSize; i++)
 	{
 		CWaypoint *pWpt = &m_theWaypoints[i];		
 
 		pWpt->load(bfp, header.iVersion);
 
-		if ( pWpt->isUsed() ) // not a deleted waypoint
+		if (pWpt->isUsed()) // not a deleted waypoint
 		{
 			// add to waypoint locations for fast searching and drawing
 			CWaypointLocations::AddWptLocation(pWpt,i);
@@ -1948,11 +1943,11 @@ bool CWaypoints :: load (const char *szMapName)
 
 	m_pVisibilityTable->setWorkVisiblity(bWorkVisibility);
 
-	if ( bWorkVisibility ) // say a message
+	if (bWorkVisibility) // say a message
 		logger->Log(LogLevel::INFO, "No waypoint visibility file -- working out waypoint visibility information...");
 
 	// if we're loading from another map just do this again!
-	if ( szMapName == nullptr)
+	if (szMapName == nullptr)
 		CWaypointDistances::load();
 
 	// script coupled to waypoints too
@@ -1979,7 +1974,7 @@ void CWaypoint :: init ()
 	m_fCheckReachableTime = 0.0f;
 }
 
-void CWaypoint :: save (std::fstream &bfp )
+void CWaypoint :: save (std::fstream &bfp)
 {
 	bfp.write(reinterpret_cast<char*>(&m_vOrigin), sizeof(Vector));
 	// aim of vector (used with certain waypoint types)
@@ -1991,18 +1986,18 @@ void CWaypoint :: save (std::fstream &bfp )
 	int iPaths = numPaths();
 	bfp.write(reinterpret_cast<char*>(&iPaths), sizeof(int));
 
-	for ( int n = 0; n < iPaths; n ++ )
+	for (int n = 0; n < iPaths; n++)
 	{			
 		int iPath = getPath(n);
 		bfp.write(reinterpret_cast<char*>(&iPath), sizeof(int));
 	}
 
-	if ( CWaypoints::WAYPOINT_VERSION >= 2 )
+	if (CWaypoints::WAYPOINT_VERSION >= 2)
 	{
 		bfp.write(reinterpret_cast<char*>(&m_iArea), sizeof(int));
 	}
 
-	if ( CWaypoints::WAYPOINT_VERSION >= 3 ) 
+	if (CWaypoints::WAYPOINT_VERSION >= 3) 
 	{
 		bfp.write(reinterpret_cast<char*>(&m_fRadius), sizeof(float));
 	}
@@ -2020,19 +2015,19 @@ void CWaypoint :: load (std::fstream &bfp, const int iVersion )
 	bfp.read(reinterpret_cast<char*>(&m_bUsed), sizeof(bool));
 	bfp.read(reinterpret_cast<char*>(&iPaths), sizeof(int));
 
-	for ( int n = 0; n < iPaths; n ++ )
+	for (int n = 0; n < iPaths; n++)
 	{		
 		int iPath;
 		bfp.read(reinterpret_cast<char*>(&iPath), sizeof(int));
 		addPathTo(iPath);
 	}
 
-	if ( iVersion >= 2 )
+	if (iVersion >= 2)
 	{
 		bfp.read(reinterpret_cast<char*>(&m_iArea), sizeof(int));
 	}
 
-	if ( iVersion >= 3 ) 
+	if (iVersion >= 3) 
 	{
 		bfp.read(reinterpret_cast<char*>(&m_fRadius),sizeof(float));
 	}
@@ -2040,7 +2035,7 @@ void CWaypoint :: load (std::fstream &bfp, const int iVersion )
 
 bool CWaypoint :: checkGround ()
 {
-	if ( m_fNextCheckGroundTime < engine->Time() )
+	if (m_fNextCheckGroundTime < engine->Time())
 	{
 		CBotGlobals::quickTraceline(nullptr,m_vOrigin,m_vOrigin-Vector(0,0,80.0f));
 		m_bHasGround = CBotGlobals::getTraceResult()->fraction < 1.0f;
@@ -2058,7 +2053,7 @@ void CWaypoints :: drawWaypoints( CClient *pClient )
 	// draw time currently part of CWaypoints
 	// once we can send sprites to individual players
 	// make draw waypoints time part of CClient
-	if ( m_fNextDrawWaypoints > fTime )
+	if (m_fNextDrawWaypoints > fTime)
 		return;
 
 	m_fNextDrawWaypoints = engine->Time() + 1.0f;
@@ -2067,17 +2062,17 @@ void CWaypoints :: drawWaypoints( CClient *pClient )
 
 	CWaypointLocations::DrawWaypoints(pClient,CWaypointLocations::REACHABLE_RANGE);
 
-	if ( pClient->isPathWaypointOn() )
+	if (pClient->isPathWaypointOn())
 	{
 		// valid waypoint
-		if ( const CWaypoint* pWpt = getWaypoint(pClient->currentWaypoint()) )
+		if (const CWaypoint* pWpt = getWaypoint(pClient->currentWaypoint()))
 			pWpt->drawPaths(pClient->getPlayer(),pClient->getDrawType());
 	}
 }
 
 void CWaypoints :: init (const char *pszAuthor, const char *pszModifiedBy)
 {
-	if ( pszAuthor != nullptr)
+	if (pszAuthor != nullptr)
 	{
 		std::strncpy(m_szAuthor,pszAuthor,31);
 		m_szAuthor[31] = 0;
@@ -2085,7 +2080,7 @@ void CWaypoints :: init (const char *pszAuthor, const char *pszModifiedBy)
 	else
 		m_szAuthor[0] = 0;
 
-	if ( pszModifiedBy != nullptr)
+	if (pszModifiedBy != nullptr)
 	{
 		std::strncpy(m_szModifiedBy,pszModifiedBy,31);
 		m_szModifiedBy[31] = 0;
@@ -2099,7 +2094,7 @@ void CWaypoints :: init (const char *pszAuthor, const char *pszModifiedBy)
 	for (CWaypoint& m_theWaypoint : m_theWaypoints)
 		m_theWaypoint.init();
 
-	Q_memset(m_theWaypoints, 0, static_cast<int>(sizeof(CWaypoint) * MAX_WAYPOINTS));
+	Q_memset(m_theWaypoints, 0, sizeof(CWaypoint) * MAX_WAYPOINTS);
 
 	CWaypointLocations::Init();
 	CWaypointDistances::reset();
@@ -2114,7 +2109,7 @@ void CWaypoints :: setupVisibility ()
 
 void CWaypoints :: freeMemory ()
 {
-	if ( m_pVisibilityTable )
+	if (m_pVisibilityTable)
 	{
 		m_pVisibilityTable->FreeVisibilityTable();
 
@@ -2172,18 +2167,18 @@ void CWaypoints :: deleteWaypoint (const int iIndex)
 
 void CWaypoints :: shiftVisibleAreas ( edict_t *pPlayer, const int from, const int to )
 {
-	for ( int i = 0; i < m_iNumWaypoints; i ++ )
+	for (int i = 0; i < m_iNumWaypoints; i++)
 	{
 		CWaypoint *pWpt = &m_theWaypoints[i];
 
-		if ( !pWpt->isUsed() )
+		if (!pWpt->isUsed())
 			continue;
 
-		if ( pWpt->getArea() == from )
+		if (pWpt->getArea() == from)
 		{
 			CBotGlobals::quickTraceline(pPlayer,CBotGlobals::entityOrigin(pPlayer),pWpt->getOrigin());
 
-			if ( CBotGlobals::getTraceResult()->fraction >= 1.0f  )
+			if (CBotGlobals::getTraceResult()->fraction >= 1.0f)
 				pWpt->setArea(to);	
 		}
 	}
@@ -2191,11 +2186,11 @@ void CWaypoints :: shiftVisibleAreas ( edict_t *pPlayer, const int from, const i
 
 void CWaypoints :: shiftAreas (const int val)
 {
-	for ( int i = 0; i < m_iNumWaypoints; i ++ )
+	for (int i = 0; i < m_iNumWaypoints; i++)
 	{
 		CWaypoint *pWpt = &m_theWaypoints[i];
 
-		if ( pWpt->getFlags() > 0 )
+		if (pWpt->getFlags() > 0)
 		{
 		   pWpt->setArea(pWpt->getArea()+val);
 		}
@@ -2241,7 +2236,7 @@ int CWaypoints::getClosestFlagged(const int iFlags, const Vector& vOrigin, const
 		}
 	}
 
-	if ( fReturnDist )
+	if (fReturnDist)
 		*fReturnDist = fDist;
 
 	return iwpt;
