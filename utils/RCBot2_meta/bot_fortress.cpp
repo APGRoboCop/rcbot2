@@ -3207,6 +3207,11 @@ void CBotTF2::modThink()
 
 		m_pHuntTarget = pBest;
 	}
+	else if (m_pHuntTarget.get() != nullptr && !CBotGlobals::isAlivePlayer(m_pHuntTarget))
+	{
+		m_pHuntTarget = nullptr;
+	}
+
 	/*else if (CTeamFortress2Mod::isMapType(TF_MAP_MVM))
 	{
 		m_iMvMUpdateTime--; // update timer
