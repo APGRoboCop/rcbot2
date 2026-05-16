@@ -95,7 +95,7 @@ Additionally, `rcbot/logging.{h,cpp}` is released separately under the
 - To allow bots to menuselect to buy upgrades for MVM
 - To prevent the MVM red bots from being kicked for Blu Machine bots
 - To improve game detection for non-listed Source gamemods
-- To add proper support for the new Zombie Infection TF2 maps since Scream Fortress XV update
+- To add proper support for the new Zombie Infection TF2 maps since Scream Fortress XV update - Testing in progress! (zombie/Hale hunt-target logic added; class tactics below still pending)
 - To add proper support for Robot Destruction gameplay by destroying bots when not ubered
 - To prevent EngiBots from facing their SG Turrets the wrong way - Testing in progress!
 - To improve on how Medic and Spy bots behave smarter and adequately when interacting with SG Turrets and Healing/Ubering
