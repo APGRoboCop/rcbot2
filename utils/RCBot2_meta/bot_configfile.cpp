@@ -121,7 +121,7 @@ void CBotConfigFile::executeCommands()
 
 void CRCBotTF2UtilFile::init()
 {
-    for (bot_util_t (&m_fUtil)[112][9] : m_fUtils)
+	for (bot_util_t(&m_fUtil)[BOT_UTIL_MAX][9] : m_fUtils)//Added [BOT_UTIL_MAX] to match the declaration of m_fUtils - [APG]RoboCop[CL]
     {
         for (bot_util_t (&j)[9] : m_fUtil)
         {

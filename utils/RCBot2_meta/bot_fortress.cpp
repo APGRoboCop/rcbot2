@@ -3172,6 +3172,41 @@ void CBotTF2::modThink()
 			m_pPushPayloadBomb = m_pBluePayloadBomb;
 		}
 	}
+
+	// Zombie Infection (zi_) maps: blue team are zombies and need to actively
+	// hunt the red team (humans). Without this they fall through to BOT_UTIL_ROAM
+	// and just wander. [APG]RoboCop[CL]
+	if (CTeamFortress2Mod::isMapType(TF_MAP_ZI) && m_iTeam == TF2_TEAM_BLUE
+		&& m_fHuntTargetUpdateTime < engine->Time())
+	{
+		m_fHuntTargetUpdateTime = engine->Time() + 1.0f;
+
+		edict_t* pBest = nullptr;
+		float fBestDist = 0.0f;
+		const Vector vOrigin = getOrigin();
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			edict_t* pPlayer = INDEXENT(i);
+
+			if (pPlayer == m_pEdict)
+				continue;
+			if (!CBotGlobals::isAlivePlayer(pPlayer))
+				continue;
+			if (CBotGlobals::getTeam(pPlayer) != TF2_TEAM_RED)
+				continue;
+
+			const float fDist = (CBotGlobals::entityOrigin(pPlayer) - vOrigin).Length();
+
+			if (pBest == nullptr || fDist < fBestDist)
+			{
+				pBest = pPlayer;
+				fBestDist = fDist;
+			}
+		}
+
+		m_pHuntTarget = pBest;
+	}
 	/*else if (CTeamFortress2Mod::isMapType(TF_MAP_MVM))
 	{
 		m_iMvMUpdateTime--; // update timer
@@ -5685,6 +5720,23 @@ bool CBotTF2 :: executeAction ( CBotUtility *util )//eBotAction id, CWaypoint *p
 					}
 					m_pSchedules->add(new CBotTF2PushPayloadBombSched(m_pPushPayloadBomb));
 					removeCondition(CONDITION_PUSH);
+					return true;
+				}
+			}
+			break;
+		case BOT_UTIL_HUNT_HUMAN:
+			{
+				// Zombie Infection: path toward the cached red player. Once the
+				// bot is in line-of-sight, the existing handleAttack ZI branch
+				// (CBotTF2::handleAttack near "TF_MAP_ZI && m_iTeam == TF2_TEAM_BLUE")
+				// takes over for the actual swipe-and-chase. [APG]RoboCop[CL]
+				if (m_pHuntTarget.get() != nullptr)
+				{
+					CFindPathTask* pPath = new CFindPathTask(m_pHuntTarget.get());
+					pPath->failIfTaskEdictDead();
+					pPath->completeInRangeFromEdict();
+					pPath->setRange(80.0f);
+					m_pSchedules->add(new CBotSchedule(pPath));
 					return true;
 				}
 			}
@@ -8906,6 +8958,9 @@ CBotTF2::CBotTF2() : m_nextVoicecmd()
 	m_pPushPayloadBomb = nullptr;
 	m_pRedPayloadBomb = nullptr;
 	m_pBluePayloadBomb = nullptr;
+
+	m_pHuntTarget = nullptr;
+	m_fHuntTargetUpdateTime = 0.0f;
 
 	m_iTrapType = TF_TRAP_TYPE_NONE;
 	m_pLastEnemySentry = MyEHandle(nullptr);

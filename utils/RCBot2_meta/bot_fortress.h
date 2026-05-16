@@ -994,6 +994,11 @@ private:
 	MyEHandle m_pRedPayloadBomb;
 	MyEHandle m_pBluePayloadBomb;
 
+	// Zombie Infection (zi_) maps: blue (zombie) bots cache the nearest red player
+	// to actively hunt instead of wandering. [APG]RoboCop[CL]
+	MyEHandle m_pHuntTarget;
+	float m_fHuntTargetUpdateTime;
+
 	// if demoman has already deployed stickies this is true
 	// once the demoman explodes them then this becomes false
 	// and it can deploy stickies again
