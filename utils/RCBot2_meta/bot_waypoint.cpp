@@ -3275,7 +3275,7 @@ std::size_t CWaypointTypes::getNumTypes()
 
 void CWaypointTypes :: setup ()
 {	
-	addType(new CWaypointType(W_FL_NOBLU,"noblueteam","TF2 blue team can't use this waypoint",WptColor(255,0,0),(1<<MOD_TF2)));
+	addType(new CWaypointType(W_FL_NOBLU,"noblueteam","TF2/FF blue team can't use this waypoint",WptColor(255,0,0),(1<<MOD_TF2)|(1<<MOD_FF)));
 	addType(new CWaypointType(W_FL_NOALLIES,"noallies","DOD:S allies team can't use this waypoint",WptColor(255,0,0),(1<<MOD_DOD)));
 
 	addType(new CWaypointType(W_FL_FLAG,"flag","bot will find a flag here",WptColor(255,255,0),(1<<MOD_TF2)));
@@ -3293,7 +3293,7 @@ void CWaypointTypes :: setup ()
 	addType(new CWaypointType(W_FL_COVER_RELOAD,"cover_reload","DOD:S bots can take cover here while shooting an enemy and reload. They can also stand up and shoot the enemy after reloading",WptColor(200,100,50),(1<<MOD_DOD)));
 	addType(new CWaypointType(W_FL_FLAGONLY,"flagonly","TF2 bot needs the flag to go through here",WptColor(180,50,80),(1<<MOD_TF2)));
 
-	addType(new CWaypointType(W_FL_NORED,"noredteam","TF2 red team can't use this waypoint",WptColor(0,0,128),(1<<MOD_TF2)));
+	addType(new CWaypointType(W_FL_NORED,"noredteam","TF2/FF red team can't use this waypoint",WptColor(0,0,128),(1<<MOD_TF2)|(1<<MOD_FF)));
 	addType(new CWaypointType(W_FL_NOAXIS,"noaxis","DOD:S axis team can't use this waypoint",WptColor(255,0,0),(1<<MOD_DOD)));
 	addType(new CWaypointType(W_FL_DEFEND,"defend","bot will defend at this position",WptColor(160,50,50)));	
 	addType(new CWaypointType(W_FL_SNIPER,"sniper","a bot can snipe here",WptColor(0,255,0)));
@@ -3305,7 +3305,7 @@ void CWaypointTypes :: setup ()
 	addType(new CWaypointType(W_FL_UNREACHABLE,"unreachable","bot can't go here (used for visibility purposes only)",WptColor(200,200,200)));
 	addType(new CWaypointType(W_FL_LADDER,"ladder","bot will climb a ladder here",WptColor(255,255,0)));
 	addType(new CWaypointType(W_FL_FALL,"fall","Bots might kill themselves if they fall down here with low health",WptColor(128,128,128)));
-	addType(new CWaypointType(W_FL_CAPPOINT,"capture","TF2/DOD:S bot will find a capture point here",WptColor(255,255,0),(1<<MOD_TF2)|(1<<MOD_DOD)));
+	addType(new CWaypointType(W_FL_CAPPOINT,"capture","TF2/DOD:S/FF bot will find a capture point here",WptColor(255,255,0),(1<<MOD_TF2)|(1<<MOD_DOD)|(1<<MOD_FF)));
 	addType(new CWaypointType(W_FL_BOMBS_HERE,"bombs","DOD:S bots can pickup bombs here",WptColor(255,100,255),(1<<MOD_DOD)));
 	addType(new CWaypointType(W_FL_BOMB_TO_OPEN,"bombtoopen","DOD:S bot needs to blow up this point to move on",WptColor(50,200,30),(1<<MOD_DOD)));
 	addType(new CWaypointType(W_FL_BREAKABLE,"breakable","Bots need to break something with a rocket to get through here",WptColor(100,255,50)));

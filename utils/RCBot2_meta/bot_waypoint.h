@@ -251,10 +251,10 @@ public:
 		//m_iId = -1;
 	}
 
-	CWaypoint(const Vector& vOrigin, const int iFlags = 0, const int iYaw = 0)
+	CWaypoint(const Vector& vOrigin, const int iFlags = 0, const int iYaw = 0) //-V818
 	{
 		m_thePaths.clear();
-		init(); // this function resets a bunch of variables that are manually set again below - caxanga334
+		init(); // this function resets a bunch of variables that are manually set again below -caxanga334
 		m_bUsed = true;
 		setAim(iYaw);
 		m_fNextCheckGroundTime = 0.0f;
@@ -263,7 +263,7 @@ public:
 		m_OpensLaterInfo.clear();
 		m_bIsReachable = true;
 		m_fCheckReachableTime = 0.0f;
-		m_vOrigin = vOrigin;
+		m_vOrigin = vOrigin; //-V818 init() above resets m_vOrigin
 		m_iFlags = iFlags;
 		//m_iId = iId;
 	}
