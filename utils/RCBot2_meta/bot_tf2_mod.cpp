@@ -524,19 +524,19 @@ TF_Class CTeamFortress2Mod :: getSpyDisguise ( edict_t *pPlayer )
 
 float CTeamFortress2Mod :: TF2_GetClassSpeed(const int iClass) 
 { 
-switch (iClass) 
-{ 
-	case TF_CLASS_SCOUT: return 133.0f; 
-	case TF_CLASS_SOLDIER: return 80.0f; 
-	case TF_CLASS_DEMOMAN: return 93.0f; 
-	case TF_CLASS_MEDIC: return 109.0f; 
-	case TF_CLASS_PYRO: return 100.0f; 
-	case TF_CLASS_SPY: return 109.0f; 
-	case TF_CLASS_ENGINEER: return 100.0f;
-	case TF_CLASS_HWGUY: return 77.0f;
-	case TF_CLASS_SNIPER: return 100.0f; 
-} 
-return 0.0f; 
+	switch (iClass) 
+	{ 
+		case TF_CLASS_SCOUT: return 133.0f; 
+		case TF_CLASS_SOLDIER: return 80.0f; 
+		case TF_CLASS_DEMOMAN: return 93.0f; 
+		case TF_CLASS_MEDIC: return 109.0f; 
+		case TF_CLASS_PYRO: return 100.0f; 
+		case TF_CLASS_SPY: return 109.0f; 
+		case TF_CLASS_ENGINEER: return 100.0f;
+		case TF_CLASS_HWGUY: return 77.0f;
+		case TF_CLASS_SNIPER: return 100.0f; 
+	} 
+	return 0.0f; 
 } 
  
 float CTeamFortress2Mod :: TF2_GetPlayerSpeed(edict_t *pPlayer, const TF_Class iClass) 
@@ -930,7 +930,8 @@ bool CTeamFortress2Mod :: isAmmo (const edict_t* pEntity)
 
 	szClassname = pEntity->GetClassName();
 
-	return std::strcmp(szClassname,"tf_ammo_pack") == 0 || std::strncmp(szClassname,"item_ammopack",13) == 0;
+	return std::strcmp(szClassname,"tf_ammo_pack") == 0 || std::strncmp(szClassname,"item_ammopack",13) == 0
+		|| std::strcmp(szClassname,"ff_item_backpack") == 0; // FF's universal pickup (ammo/health/armour) [APG]RoboCop[CL]
 }
 
 //TODO: Experimental [APG]RoboCop[CL]
