@@ -426,6 +426,9 @@ bool CHLDMBot :: handleAttack ( CBotWeapon *pWeapon, edict_t *pEnemy )
 		if ( pWeapon->isMelee() )
 			setMoveTo(CBotGlobals::entityOrigin(pEnemy));
 
+		// Ranged firefight: strafe to be a harder target (no-op for melee / cvar off). [APG]RoboCop[CL]
+		doRangedStrafe(pWeapon, pEnemy);
+
 		if ( pWeapon->getID() == HL2DM_WEAPON_PHYSCANNON && DotProductFromOrigin(m_vAimVector) < rcbot_enemyshoot_gravgun_fov.GetFloat() ) 
 			return true; // keep enemy / don't shoot : until angle between enemy is less than 20 degrees
 
