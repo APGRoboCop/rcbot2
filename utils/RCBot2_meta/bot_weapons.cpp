@@ -250,36 +250,36 @@ std::vector<WeaponsData_t> FFWeaps = {
 
 	// slot, id, weapon name, flags, min dist, max dist, ammo index, preference, proj speed
 	// Melee weapons
-	{2,FF_WEAPON_CROWBAR,        g_szFFWeapons[0],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,150,-1,1,0},
-	{2,FF_WEAPON_KNIFE,          g_szFFWeapons[1],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,150,-1,1,0},
-	{2,FF_WEAPON_SPANNER,        g_szFFWeapons[2],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,150,-1,1,0},
-	{2,FF_WEAPON_MEDKIT,         g_szFFWeapons[3],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,150,-1,1,0},
+	{2,FF_WEAPON_CROWBAR,        g_szFFWeapons[0],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,100,-1,1,0},
+	{2,FF_WEAPON_KNIFE,          g_szFFWeapons[1],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,100,-1,4,0},
+	{2,FF_WEAPON_SPANNER,        g_szFFWeapons[2],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,100,-1,1,0},
+	{2,FF_WEAPON_MEDKIT,         g_szFFWeapons[3],   WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,100,-1,1,0},
 	// Shotguns
-	{1,FF_WEAPON_SHOTGUN,        g_szFFWeapons[4],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,768,-1,2,0},
-	{1,FF_WEAPON_SUPERSHOTGUN,   g_szFFWeapons[5],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,600,-1,3,0},
+	{1,FF_WEAPON_SHOTGUN,        g_szFFWeapons[4],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,800,-1,2,0},
+	{1,FF_WEAPON_SUPERSHOTGUN,   g_szFFWeapons[5],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,800,-1,3,0},
 	// Nail guns
-	{1,FF_WEAPON_NAILGUN,        g_szFFWeapons[6],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1000,-1,1,0}, // pref lowered: nails are for sentries, not player combat [APG]RoboCop[CL]
-	{0,FF_WEAPON_SUPERNAILGUN,   g_szFFWeapons[7],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1200,-1,1,0}, // pref lowered: anti-sentry weapon
+	{1,FF_WEAPON_NAILGUN,        g_szFFWeapons[6],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,800,-1,0,0},
+	{0,FF_WEAPON_SUPERNAILGUN,   g_szFFWeapons[7],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,800,-1,0,0},
 	// Sniper weapons
-	{1,FF_WEAPON_AUTORIFLE,      g_szFFWeapons[8],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1200,-1,2,0},
-	{0,FF_WEAPON_SNIPERRIFLE,    g_szFFWeapons[9],   WEAP_FL_PRIM_ATTACK | WEAP_FL_SCOPE,0,4000,-1,3,0},
+	{1,FF_WEAPON_AUTORIFLE,      g_szFFWeapons[8],   WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,400,-1,2,0},
+	{0,FF_WEAPON_SNIPERRIFLE,    g_szFFWeapons[9],   WEAP_FL_PRIM_ATTACK | WEAP_FL_SCOPE,400,4000,-1,3,0},
 	// Explosive weapons
-	{0,FF_WEAPON_RPG,            g_szFFWeapons[10],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,BLAST_RADIUS,4096,-1,3,1000.0f},
-	{0,FF_WEAPON_GRENADELAUNCHER,g_szFFWeapons[11],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,100,1200,-1,3,900.0f},
-	{1,FF_WEAPON_PIPELAUNCHER,   g_szFFWeapons[12],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,100,1200,-1,2,800.0f},
+	{0,FF_WEAPON_RPG,            g_szFFWeapons[10],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,BLAST_RADIUS,1600,-1,4,1000.0f},
+	{0,FF_WEAPON_GRENADELAUNCHER,g_szFFWeapons[11],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,100,400,-1,4,900.0f}, 
+	{1,FF_WEAPON_PIPELAUNCHER,   g_szFFWeapons[12],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,100,320,-1,3,800.0f},
 	// Pyro weapons
-	{0,FF_WEAPON_FLAMETHROWER,   g_szFFWeapons[13],  WEAP_FL_PRIM_ATTACK | WEAP_FL_HOLDATTACK | WEAP_FL_SPECIAL,0,400,-1,3,0},
-	{1,FF_WEAPON_IC,             g_szFFWeapons[14],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,200,1200,-1,2,800.0f},
+	{0,FF_WEAPON_FLAMETHROWER,   g_szFFWeapons[13],  WEAP_FL_PRIM_ATTACK | WEAP_FL_HOLDATTACK | WEAP_FL_SPECIAL,0,200,-1,4,0},
+	{1,FF_WEAPON_IC,             g_szFFWeapons[14],  WEAP_FL_PRIM_ATTACK | WEAP_FL_EXPLOSIVE | WEAP_FL_PROJECTILE,200,800,-1,3,800.0f},
 	// Heavy weapons
-	{0,FF_WEAPON_AC,             g_szFFWeapons[15],  WEAP_FL_PRIM_ATTACK | WEAP_FL_HOLDATTACK,120,1800,-1,3,0},
+	{0,FF_WEAPON_AC,             g_szFFWeapons[15],  WEAP_FL_PRIM_ATTACK | WEAP_FL_HOLDATTACK,0,1000,-1,4,0},
 	// Spy weapons
-	{1,FF_WEAPON_TRANQ,          g_szFFWeapons[16],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1000,-1,2,0},
+	{1,FF_WEAPON_TRANQ,          g_szFFWeapons[16],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,150,-1,1,0},
 	// Engineer weapons
-	{0,FF_WEAPON_RAILGUN,        g_szFFWeapons[17],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1400,-1,1,0}, // pref lowered: engineer's anti-sentry weapon, not for player combat
+	{0,FF_WEAPON_RAILGUN,        g_szFFWeapons[17],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1400,-1,0,0},
 	// Detpack (special)
 	{2,FF_WEAPON_DEPLOYDETPACK,  g_szFFWeapons[18],  WEAP_FL_NONE,0,0,-1,0,0},
 	// Civilian weapons
-	{2,FF_WEAPON_UMBRELLA,       g_szFFWeapons[19],  WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,150,-1,1,0},
+	{2,FF_WEAPON_UMBRELLA,       g_szFFWeapons[19],  WEAP_FL_PRIM_ATTACK | WEAP_FL_MELEE | WEAP_FL_UNDERWATER,0,100,-1,1,0},
 	{1,FF_WEAPON_TOMMYGUN,       g_szFFWeapons[21],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,1000,-1,2,0},
 	// Scout weapons
 	{1,FF_WEAPON_JUMPGUN,        g_szFFWeapons[20],  WEAP_FL_PRIM_ATTACK | WEAP_FL_UNDERWATER,0,800,-1,2,0},
@@ -462,16 +462,9 @@ int CBotWeapon::getAmmo(const CBot* pBot, const int type) const
 // Example of using range-based for loop and nullptr
 bool CBotWeapons::hasExplosives() const
 {
-	for (const CBotWeapon& weapon : m_theWeapons)
-	{
-		// find weapon info from weapon id
-		if (weapon.hasWeapon() && weapon.isExplosive() && weapon.getAmmo(m_pBot) > 1)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return std::any_of(std::begin(m_theWeapons), std::end(m_theWeapons), [this](const CBotWeapon& weapon) {
+		return weapon.hasWeapon() && weapon.isExplosive() && weapon.getAmmo(m_pBot) > 1;
+		});
 }
 
 bool CBotWeapons::hasWeapon(int id) const
@@ -707,6 +700,14 @@ CBotWeapon* CBotWeapons::getBestWeapon(edict_t* pEnemy, const bool bAllowMelee, 
 			// FF: Skip empty-clip launchers (can't fire, leaves bot reload-locked) to prefer loaded weapons.
 			// Only FF + explosive launchers (not TF2 one-rocket reload). [APG]RoboCop[CL]
 			if (CBotGlobals::isMod(MOD_FF) && pWeapon->isExplosive() && pWeapon->clipEmptyWithReserve(m_pBot))
+				continue;
+
+			// HWGuy/Heavy: under 50 rounds the minigun is only worth spinning up point-blank -
+			// at range the last belt sprays into nothing. Treat it as out of range there so the
+			// shotgun gets picked instead (FF assault cannon and TF2 minigun). [APG]RoboCop[CL]
+			if (((CBotGlobals::isMod(MOD_FF) && pWeapon->getID() == FF_WEAPON_AC) ||
+				(CBotGlobals::isMod(MOD_TF2) && pWeapon->getID() == TF2_WEAPON_MINIGUN)) &&
+				flDist > 450.0f && pWeapon->getAmmo(m_pBot) < 50)
 				continue;
 		}
 
