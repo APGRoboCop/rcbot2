@@ -106,7 +106,7 @@ class MMSConfig(object):
         '-msse',
         '-msse2',
         '-fPIC',
-        '-std=c17',
+        '-std=c99',
       ]
 
       if (cxx.version >= 'gcc-4.0') or cxx.family == 'clang':
@@ -188,7 +188,7 @@ class MMSConfig(object):
     if builder.options.opt:
       cxx.defines += ['NDEBUG']
       if cxx.behavior == 'gcc':
-        cxx.cflags += ['-O3']
+        cxx.cflags += ['-O2']
       elif cxx.behavior == 'msvc':
         cxx.cflags += ['/Ox', '/Zo']
         cxx.linkflags += ['/OPT:ICF', '/OPT:REF']
