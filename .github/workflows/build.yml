@@ -120,17 +120,27 @@ jobs:
         path: rcbot2
         submodules: recursive
 
+    - name: Verify submodules
+      shell: bash
+      working-directory: rcbot2
+      run: |
+        ls -la alliedmodders/ || { echo "::error::alliedmodders/ missing"; exit 1; }
+        for d in metamod-source sourcemod; do
+          [ -d "alliedmodders/$d" ] || { echo "::error::alliedmodders/$d missing"; exit 1; }
+        done
+
     - name: Build Files
       shell: bash
       working-directory: rcbot2
       run: |
+        REPO_ROOT="$(pwd)"
         mkdir post
         cd post
         python3 ../configure.py \
           --sdks=present \
-          --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" \
-          --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" \
-          --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" \
+          --mms-path="$REPO_ROOT/alliedmodders/metamod-source" \
+          --sm-path="$REPO_ROOT/alliedmodders/sourcemod" \
+          --hl2sdk-root="$REPO_ROOT/alliedmodders" \
           --symbol-files \
           --target ${{ matrix.am_arch }} \
           --enable-optimize
