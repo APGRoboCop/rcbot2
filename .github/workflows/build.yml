@@ -6,6 +6,7 @@ jobs:
   build_main:
     name: Build for ${{ matrix.os_short }}
     runs-on: ${{ matrix.os_version }}
+    container: ${{ matrix.container }}
 
     # skip build on '[ci skip]'
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
@@ -14,24 +15,20 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          #- ubuntu-22.04 # appears to no longer work - especially forcing using GCC instead of Clang
-          - ubuntu-latest
+          - linux
           - windows-x32
           - windows-x64
         include:
-          #- os: ubuntu-22.04
-          #  os_short: linux-legacy
-          #  os_version: ubuntu-22.04
-          #  package_ext: tar.gz
-          #  dbg_ext: dbg
-          #  cc: gcc
-          #  cxx: g++
-          #  vs_arch: unused
-          #  am_arch: x86,x86_64
-            
-          - os: ubuntu-latest
-            os_short: linux-latest
+          # Built inside Debian 12 rather than on the runner image directly.
+          # ubuntu-latest is now 24.04 (glibc 2.39); anything built there will
+          # NOT load on a Debian 12 server. Bookworm gives glibc 2.36, and
+          # binaries built against it also run on Debian 13.
+          # This also sidesteps the ubuntu-22.04 clang/gcc selection problem,
+          # since we install clang explicitly in the container.
+          - os: linux
+            os_short: linux
             os_version: ubuntu-latest
+            container: debian:bookworm
             package_ext: tar.gz
             dbg_ext: dbg
             cc: clang
@@ -42,6 +39,7 @@ jobs:
           - os: windows-x32
             os_short: win32
             os_version: windows-latest
+            container: ''
             package_ext: zip
             dbg_ext: pdb
             cc: not-used
@@ -52,6 +50,7 @@ jobs:
           - os: windows-x64
             os_short: win64
             os_version: windows-latest
+            container: ''
             package_ext: zip
             dbg_ext: pdb
             cc: not-used
@@ -60,12 +59,19 @@ jobs:
             am_arch: x86_64
 
     steps:
+    # Container runs as root, so no sudo. git and ca-certificates are needed
+    # for actions/checkout to do a real clone (and therefore submodules)
+    # instead of falling back to a tarball download.
     - name: Install (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo dpkg --add-architecture i386
-        sudo apt-get update
-        sudo apt-get install -y clang g++-multilib
+        dpkg --add-architecture i386
+        apt-get update
+        apt-get install -y --no-install-recommends \
+          clang lld \
+          gcc-multilib g++-multilib libc6-dev-i386 \
+          python3 python3-pip python3-setuptools python3-wheel \
+          git ca-certificates binutils file
         echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
         echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
 
@@ -81,22 +87,32 @@ jobs:
         for /f "usebackq delims=*" %%i in (`vswhere -latest -property installationPath`) do (
           call "%%i"\Common7\Tools\vsdevcmd.bat -arch=${{ matrix.vs_arch }} -host_arch=x64
         )
-        
+
         :: Loop over all environment variables and make them global.
         for /f "delims== tokens=1,2" %%a in ('set') do (
           echo>>"%GITHUB_ENV%" %%a=%%b
         )
 
-    - name: Setup Python
+    # Only on Windows: the Debian container already has python3, and
+    # setup-python would install a build linked against the runner's newer
+    # glibc, which defeats the point of using the container.
+    - name: Setup Python (Windows)
+      if: runner.os == 'Windows'
       uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
     - name: Setup ambuild
+      shell: bash
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install wheel
-        pip install git+https://github.com/alliedmodders/ambuild
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          python3 -m pip install --break-system-packages --upgrade pip wheel
+          python3 -m pip install --break-system-packages \
+            git+https://github.com/alliedmodders/ambuild
+        else
+          python -m pip install --upgrade pip wheel
+          python -m pip install git+https://github.com/alliedmodders/ambuild
+        fi
 
     - name: Fetch RCBot2
       uses: actions/checkout@v6
@@ -105,15 +121,52 @@ jobs:
         submodules: recursive
 
     - name: Build Files
+      shell: bash
       working-directory: rcbot2
       run: |
         mkdir post
         cd post
-        python3 ../configure.py --sdks=present --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" --symbol-files --target ${{ matrix.am_arch }} --enable-optimize
+        python3 ../configure.py \
+          --sdks=present \
+          --mms-path="${{ github.workspace }}/rcbot2/alliedmodders/metamod-source" \
+          --sm-path="${{ github.workspace }}/rcbot2/alliedmodders/sourcemod" \
+          --hl2sdk-root="${{ github.workspace }}/rcbot2/alliedmodders" \
+          --symbol-files \
+          --target ${{ matrix.am_arch }} \
+          --enable-optimize
         ambuild
 
-    - uses: benjlevesque/short-sha@v3.0
+    # Fails the build if any shared object needs a glibc newer than the
+    # deployment target. This is the check that catches an unloadable plugin
+    # in CI instead of on the server, where the only symptom is silence -
+    # Metamod logs nothing when dlopen() fails.
+    - name: Check glibc ABI (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      working-directory: rcbot2
+      run: |
+        MAXVER="2.36"   # Debian 12. Raise only when the servers move forward.
+        FOUND=0
+        while IFS= read -r so; do
+          FOUND=1
+          need=$(objdump -T "$so" 2>/dev/null | grep -oP 'GLIBC_[0-9.]+' \
+                 | sed 's/GLIBC_//' | sort -uV | tail -1)
+          echo "$so -> glibc ${need:-none}"
+          if [ -n "$need" ] && \
+             [ "$(printf '%s\n%s\n' "$MAXVER" "$need" | sort -V | tail -1)" != "$MAXVER" ]; then
+            echo "::error file=$so::requires glibc $need, target is $MAXVER"
+            exit 1
+          fi
+        done < <(find post -name '*.so' -type f)
+        if [ "$FOUND" != "1" ]; then
+          echo "::error::No .so files found to check - did the build produce anything?"
+          exit 1
+        fi
+
+    - name: Short SHA
       id: short-sha
+      shell: bash
+      run: echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
     - name: Upload Binary
       uses: actions/upload-artifact@v7
@@ -134,21 +187,22 @@ jobs:
     needs: build_main
     runs-on: ubuntu-latest
     steps:
-      - uses: benjlevesque/short-sha@v3.0
+      - name: Short SHA
         id: short-sha
-      
+        run: echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - name: Download Win32 artifact
         uses: actions/download-artifact@v7
         with:
           name: rcbot2-win32-${{ steps.short-sha.outputs.sha }}
           path: combined/win32
-      
+
       - name: Download Win64 artifact
         uses: actions/download-artifact@v7
         with:
           name: rcbot2-win64-${{ steps.short-sha.outputs.sha }}
           path: combined/win64
-      
+
       - name: Upload Combined Windows Artifact
         uses: actions/upload-artifact@v7
         with:
@@ -160,19 +214,23 @@ jobs:
         with:
           name: rcbot2-dbgsym-win32-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/win32
-      
+
       - name: Download Win64 Debug Symbols
         uses: actions/download-artifact@v7
         with:
           name: rcbot2-dbgsym-win64-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/win64
-      
+
       - name: Upload Combined Windows Debug Symbols
         uses: actions/upload-artifact@v7
         with:
           name: rcbot2-dbgsym-windows-${{ steps.short-sha.outputs.sha }}
           path: combined-dbgsym/
 
+      # NOTE: geekyeggo/delete-artifact may also still be a Node.js 20 action.
+      # If the deprecation warning persists after this update, replace this
+      # step with a `gh api` call, or simply drop it and let the individual
+      # artifacts expire on their own.
       - name: Delete Individual Windows Artifacts
         uses: geekyeggo/delete-artifact@v6
         with:
