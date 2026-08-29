@@ -172,7 +172,7 @@ public:
 	static constexpr int W_FL_DOUBLEJUMP     = 1 << 15;
 	static constexpr int W_FL_PRONE          = 1 << 15;
 	static constexpr int W_FL_TELE_ENTRANCE  = 1 << 16;
-	static constexpr int W_FL_ARMOR          = 1 << 16; // FF: armour pickup/resupply spot. FF has no teleporters, so it safely reuses the TF2 tele-entrance bit (per-mod reuse). [APG]RoboCop[CL]
+	static constexpr int W_FL_ARMOR          = 1 << 16; // FF: armour pickup/resupply spot. [APG]RoboCop[CL]
 	static constexpr int W_FL_TELE_EXIT      = 1 << 17;
 	static constexpr int W_FL_DEFEND         = 1 << 18;
 	static constexpr int W_FL_AREAONLY       = 1 << 19;
@@ -319,13 +319,11 @@ public:
 		m_vOrigin = origin;
 	}
 
-	void checkAreas(edict_t *pActivator); // TODO: Needs implemented properly [APG]RoboCop[CL]
+	// reports this waypoint to pActivator if its area index is out of range
+	void checkAreas(edict_t *pActivator);
 
 	// show info to player
 	void info(edict_t *pEdict);
-
-	// methods
-	void touched(); // TODO: Needs implemented properly [APG]RoboCop[CL]
 
 	void draw(edict_t* pEdict, bool bDrawPaths, unsigned short int iDrawType);
 
