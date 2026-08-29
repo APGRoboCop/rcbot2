@@ -1422,6 +1422,25 @@ private:
 	Vector m_vHideFrom;
 };
 
+class CFindCoverSpot : public CBotTask
+{
+public:
+	CFindCoverSpot(edict_t* pEntity);
+
+	CFindCoverSpot(const Vector& vec);
+
+	void init() override;
+
+	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
+
+	void debugString(char* string, const unsigned bufferSize) override
+	{
+		snprintf(string, bufferSize, "CFindCoverSpot");
+	}
+private:
+	Vector m_vCoverFrom;
+};
+
 class CHideTask : public CBotTask
 {
 public:

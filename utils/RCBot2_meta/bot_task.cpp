@@ -460,7 +460,7 @@ void CBotDODBomb :: execute (CBot *pBot,CBotSchedule *pSchedule)
 		fail();
 	}
 
-	if ( m_iType == DOD_BOMB_PLANT) 
+	if ( m_iType == DOD_BOMB_PLANT ) 
 	{
 		bWorking = CClassInterface::isPlayerPlantingBomb_DOD(pBot->getEdict());
 
@@ -474,7 +474,7 @@ void CBotDODBomb :: execute (CBot *pBot,CBotSchedule *pSchedule)
 		//else if ( !CClassInterface::isPlayerPlantingBomb_DOD(pBot->getEdict()) )// it is still planted
 		//	complete(); // bomb is being defused by someone else - give up
 	}
-	else if ( m_iType == DOD_BOMB_DEFUSE)
+	else if ( m_iType == DOD_BOMB_DEFUSE )
 	{
 		bWorking = CClassInterface::isPlayerDefusingBomb_DOD(pBot->getEdict());
 
@@ -2050,6 +2050,32 @@ void CFindGoodHideSpot :: execute ( CBot *pBot, CBotSchedule *pSchedule )
 	}
 }
 
+CFindCoverSpot :: CFindCoverSpot ( edict_t *pEntity )
+{
+	m_vCoverFrom = CBotGlobals::entityOrigin(pEntity);
+}
+
+CFindCoverSpot::CFindCoverSpot(const Vector& vec) : m_vCoverFrom(vec)
+{
+}
+
+void CFindCoverSpot::init()
+{
+}
+
+void CFindCoverSpot :: execute (CBot *pBot, CBotSchedule *pSchedule)
+{
+	Vector vFound;
+
+	if (!pBot->getNavigator()->getCoverPosition(m_vCoverFrom, &vFound))
+		fail();
+	else
+	{
+		pSchedule->passVector(vFound);
+		complete();
+	}
+}
+
 CFindPathTask :: CFindPathTask (const int iWaypointId, const eLookTask looktask)
 {
 	m_iInt = 0;
@@ -2607,6 +2633,7 @@ void CBotTFRocketJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 		fail();
 	}
 	else if (pWeapon->getID() != TF2_WEAPON_ROCKETLAUNCHER )
+	else if ( pWeapon->getID() != TF2_WEAPON_ROCKETLAUNCHER )
 	{
 		if ( !pBot->select_CWeapon(CWeapons::getWeapon(TF2_WEAPON_ROCKETLAUNCHER)) )
 		{
