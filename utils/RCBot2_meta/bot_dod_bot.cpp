@@ -69,7 +69,7 @@ void CBroadcastBombEvent :: execute (CBot *pBot)
 {
 	CDODBot *pDODBot = static_cast<CDODBot*>(pBot);
 
-	pDODBot->bombEvent(DOD_BOMB_PLANT,m_iCP,m_iTeam);
+	pDODBot->bombEvent(m_iEvent,m_iCP,m_iTeam);
 }
 
 // The lower the better
@@ -93,6 +93,23 @@ void CDODBot :: bombEvent ( int iEvent, const int iCP, const int iTeam )
 	if ( iTeam && (iWaypoint != -1) )
 	{
 		m_pNavigator->beliefOne(iWaypoint,(iTeam == m_iTeam) ? BELIEF_SAFETY : BELIEF_DANGER,200.0f);
+	}
+
+	if ( iEvent == DOD_BOMB_PLANT )
+	{
+		edict_t *pBomb = CDODMod::m_Flags.getBombByID(iCP);
+
+		// unlike the visible bomb check in modThink this arrives without line of
+		// sight, so bots behind cover or facing away still clear the blast [APG]RoboCop[CL]
+		if ( pBomb && CBotGlobals::entityIsValid(pBomb) && distanceFrom(pBomb) < (BLAST_RADIUS*2) &&
+			 !CDODMod::m_Flags.canDefuseBomb(m_iTeam,iCP) && // ours to defuse, don't run from it
+			 !m_pSchedules->hasSchedule(SCHED_BOMB) &&
+			 !m_pSchedules->hasSchedule(SCHED_GOOD_HIDE_SPOT) )
+		{
+			updateCondition(CONDITION_RUN);
+
+			m_pSchedules->addFront(new CGotoHideSpotSched(this,pBomb,true));
+		}
 	}
 
 	// this might be called twice within a second, 
@@ -1417,6 +1434,13 @@ void CDODBot :: modThink ()
 						m_pSchedules->freeMemory();
 						m_pSchedules->add(runsched);
 					}
+					else
+					{
+						updateCondition(CONDITION_RUN);
+
+						m_pSchedules->removeSchedule(SCHED_GOOD_HIDE_SPOT);
+						m_pSchedules->addFront(new CGotoHideSpotSched(this,m_pNearestPathBomb,true));
+					}
 				}
 			}
 		}
@@ -1466,6 +1490,13 @@ void CDODBot :: modThink ()
 						m_pSchedules->freeMemory();
 						m_pSchedules->add(runsched);
 					}
+					else
+					{
+						updateCondition(CONDITION_RUN);
+
+						m_pSchedules->removeSchedule(SCHED_GOOD_HIDE_SPOT);
+						m_pSchedules->addFront(new CGotoHideSpotSched(this,m_pNearestBomb,true));
+					}
 				}
 			}
 		}
@@ -1483,10 +1514,7 @@ void CDODBot ::voiceCommand (const byte voiceCmd)
 	extern eDODVoiceCommand_t g_DODVoiceCommands[DOD_VC_INVALID];
 
 	char scmd[64];
-	u_VOICECMD vcmd;
 
-	vcmd.voicecmd = voiceCmd; //not used? [APG]RoboCop[CL]
-	
 	snprintf(scmd, sizeof(scmd), "voice_%s", g_DODVoiceCommands[voiceCmd].pcmd);
 
 	helpers->ClientCommand(m_pEdict,scmd);
@@ -1741,6 +1769,19 @@ void CDODBot::hearVoiceCommand(edict_t* pPlayer, byte voiceCmd)
 			m_fCurrentDanger += 50.0f;
 		}
 		break;
+	case DOD_VC_ENEMY_BEHIND:
+		// team mate is being flanked (bots shout this when falling back to defend):
+		// stop pushing forward and treat the area as dangerous [APG]RoboCop[CL]
+		IF_WANT_TO_LISTEN
+		{
+			removeCondition(CONDITION_PUSH);
+			updateCondition(CONDITION_COVERT);
+			updateCondition(CONDITION_PARANOID);
+			updateCondition(CONDITION_CHANGED);
+
+			m_fCurrentDanger += 25.0f;
+		}
+		break;
 	case DOD_VC_NEED_AMMO:
 		// TODO: go to team mate and drop ammo
 		// should drop ammo to this person?
@@ -1878,6 +1919,28 @@ void CDODBot::hearVoiceCommand(edict_t* pPlayer, byte voiceCmd)
 			}
 			else if (randomFloat(0.0f,1.0f) > 0.75f) 
 					addVoiceCommand(DOD_VC_NO);
+		}
+		break;
+	case DOD_VC_FIRE_IN_THE_HOLE:
+		// a team mate is throwing a grenade (CDODBot::grenadeThrown shouts this):
+		// stop pushing forward into the throw, and take cover as well when friendly
+		// fire is on and we are close enough to the thrower to be caught by it [APG]RoboCop[CL]
+		IF_WANT_TO_LISTEN
+		{
+			removeCondition(CONDITION_PUSH);
+			updateCondition(CONDITION_COVERT);
+			updateCondition(CONDITION_CHANGED);
+
+			if ( mp_friendlyfire.IsValid() && mp_friendlyfire.GetBool() && distanceFrom(pPlayer) < BLAST_RADIUS &&
+				 !m_pSchedules->isCurrentSchedule(SCHED_GOOD_HIDE_SPOT) )
+			{
+				m_fCurrentDanger += 25.0f;
+				updateCondition(CONDITION_RUN);
+
+				// don't interrupt current shedule, just add to front
+				m_pSchedules->removeSchedule(SCHED_GOOD_HIDE_SPOT);
+				m_pSchedules->addFront(new CGotoHideSpotSched(this,pPlayer,false));
+			}
 		}
 		break;
 	case DOD_VC_GRENADE2:

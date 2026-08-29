@@ -941,10 +941,7 @@ void CDODMod ::clientCommand( edict_t *pEntity, const int argc, const char *pcmd
 			{
 				if ( std::strcmp(&pcmd[6],g_DODVoiceCommands[i].pcmd) == 0 )
 				{
-					u_VOICECMD vcmd;
-					vcmd.voicecmd = i;
-
-					CBroadcastVoiceCommand voicecmd = CBroadcastVoiceCommand(pEntity,vcmd.voicecmd); 
+					CBroadcastVoiceCommand voicecmd = CBroadcastVoiceCommand(pEntity,i); 
 
 					CBots::botFunction(&voicecmd);
 
