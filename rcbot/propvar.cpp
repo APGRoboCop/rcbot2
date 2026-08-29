@@ -40,10 +40,6 @@
 #include "helper.h"
 #include "logging.h"
 
-#if defined(_WIN64) || defined(_WIN32)
-#include <stdexcept>
-#endif
-
 CPropertyVarBase::CPropertyVarBase(): m_type()
 {
 	m_initialized = false;
@@ -61,10 +57,7 @@ void CPropertyVarBase::Init(const char *propname, const PropType type, const int
 	if (!baseentity)
 	{
 		logger->Log(LogLevel::ERROR, "Initialization failed for PropertyVar \"%s\"! Entity of index %i is NULL!", propname, entity);
-#if defined(_WIN64) || defined(_WIN32) // TODO: verify of runtime_error works fine under linux
-		throw std::runtime_error("Initialization failed for PropertyVar!");
-#endif
-		//return;
+		return;
 	}
 
 	m_propname = std::string(propname);
