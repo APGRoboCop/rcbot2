@@ -82,10 +82,14 @@ void CBotSynergy::spawnInit()
 	m_pNearbyGrenade = nullptr;
 	m_pNearbyItemCrate = nullptr;
 	m_pCurrentWeapon = nullptr;
-	m_flNextSprintTime = engine->Time();
+	// all three cool-downs start unblocked: they are "next allowed time" gates
+	// compared against engine->Time(), so spawn time means "available now" [APG]RoboCop[CL]
+	const float fSpawnTime = engine->Time();
+
+	m_flNextSprintTime = fSpawnTime;
 	m_flSuitPower = 0.0f;
-	m_flUseCrateTime = engine->Time();
-	m_flPickUpTime = engine->Time();
+	m_flUseCrateTime = fSpawnTime;
+	m_flPickUpTime = fSpawnTime;
 }
 
 void CBotSynergy::died(edict_t* pKiller, const char* pszWeapon)
