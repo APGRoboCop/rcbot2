@@ -441,7 +441,7 @@ public:
 
 	float distanceTo ( CWaypoint *pWaypoint ) override;
 
-	Vector getCoverOrigin ( Vector vCover ); // TODO: Needs implemented properly [APG]RoboCop[CL]
+	//Vector getCoverOrigin ( Vector vCover );
 
 	void clearOpenList ();
 

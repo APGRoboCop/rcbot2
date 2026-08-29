@@ -600,8 +600,10 @@ public:
 class CRunForCover : public CBotSchedule
 {
 public:
-	// run for cover to this spot
-	CRunForCover ( Vector vOrigin );
+	// run to the nearest cover from vOrigin
+	CRunForCover ( CBot *pBot, const Vector& vOrigin );
+	// run to the nearest cover from pThreat, giving up if it dies on the way
+	CRunForCover ( CBot *pBot, edict_t *pThreat );
 
 	void init () override
 	{

@@ -402,12 +402,6 @@ void CBotMenu::activate(CClient* pClient)
 	pClient->setCurrentMenu(this);
 }
 
-//TODO: Experimental [APG]RoboCop[CL]
-Color CBotMenu::getColor(CClient* pClient)
-{
-	return Color();
-}
-
 void CBotMenu::selectedMenu(CClient* pClient, const unsigned iMenu) const
 {
 	if (iMenu < m_MenuItems.size())

@@ -42,6 +42,9 @@
 #include "bot_waypoint_locations.h"
 #include "bot_weapons.h"
 #include "logging.h"
+
+#include <cstring>
+
 ////////////////////////////////////
 // these must match the SCHED IDs
 const char *szSchedules[SCHED_MAX+1] = 
@@ -609,6 +612,42 @@ void CGotoHideSpotSched :: init ()
 {
 	setID(SCHED_GOOD_HIDE_SPOT);
 }
+
+///////////
+CRunForCover :: CRunForCover ( CBot *pBot, const Vector& vOrigin )
+{
+	CFindPathTask *pCoverPoint = new CFindPathTask();
+
+	pBot->setCoverFrom(nullptr);
+	addTask(new CFindCoverSpot(vOrigin));
+	addTask(pCoverPoint);
+
+	// no interrupts, should be a quick waypoint path anyway
+	pCoverPoint->setNoInterruptions();
+
+	// get vector from the cover spot task
+	pCoverPoint->getPassedVector();
+}
+
+CRunForCover :: CRunForCover ( CBot *pBot, edict_t *pThreat )
+{
+	CFindPathTask *pCoverPoint = new CFindPathTask(pThreat);
+
+	pBot->setCoverFrom(pThreat);
+	addTask(new CFindCoverSpot(pThreat));
+	addTask(pCoverPoint);
+
+	// no sense still running for cover if the threat died on the way there
+	pCoverPoint->failIfTaskEdictDead();
+	pCoverPoint->setLookTask(LOOK_WAYPOINT);
+
+	// no interrupts, should be a quick waypoint path anyway
+	pCoverPoint->setNoInterruptions();
+
+	// get vector from the cover spot task
+	pCoverPoint->getPassedVector();
+	pCoverPoint->dontGoToEdict();
+}
 ///////////////
 CGotoNestSched :: CGotoNestSched (int iWaypoint)
 {
@@ -837,11 +876,16 @@ void CBotSchedule :: execute ( CBot *pBot )
 		{			
 			if ( CClients::clientsDebugging(BOT_DEBUG_TASK) )
 			{
+				// Also skip consecutive repeats - the task rarely changes between thinks.
+				// [APG]RoboCop[CL]
 				char dbg[512];
+				static char s_szLastDbg[512];
 
-				pTask->debugString(dbg, {});
+				pTask->debugString(dbg, sizeof(dbg));
 
 				CClients::clientDebugMsg(BOT_DEBUG_TASK,dbg,pBot);
+					s_szLastDbg[sizeof(s_szLastDbg) - 1] = '\0';
+				}
 			}
 
 			pTask->execute(pBot,this); // run

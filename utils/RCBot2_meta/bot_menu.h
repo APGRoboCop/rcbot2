@@ -181,8 +181,6 @@ public:
 
 	void activate ( CClient *pClient ) override;
 
-	static Color getColor ( CClient *pClient ); // gets the colour of the caption - TODO: not implemented yet? [APG]RoboCop[CL]
-
 	virtual void addMenuItem ( CBotMenuItem *item )
 	{
 		m_MenuItems.emplace_back(item);
