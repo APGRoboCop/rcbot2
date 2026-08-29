@@ -1254,7 +1254,7 @@ void CDODBot :: modThink ()
 				if ( !m_pSchedules->isCurrentSchedule(SCHED_RUN_FOR_COVER) )
 				{
 					m_pSchedules->removeSchedule(SCHED_RUN_FOR_COVER);
-					m_pSchedules->addFront(new CGotoHideSpotSched(this,m_pEnemy.get()));
+					m_pSchedules->addFront(new CRunForCover(this,m_pEnemy.get()));
 				}
 			}
 		}

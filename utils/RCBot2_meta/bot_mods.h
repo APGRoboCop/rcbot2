@@ -487,6 +487,15 @@ public:
 		return nullptr;
 	}
 
+	// first bomb at a control point - enough to locate the charge
+	edict_t *getBombByID (const int id) const
+	{
+		if ( id >= 0 && id < m_iNumControlPoints )
+			return m_pBombs[id][0];
+
+		return nullptr;
+	}
+
 	int getFlagID (const edict_t *pent) const
 	{
 		for (int i = 0; i < m_iNumControlPoints; i++)
