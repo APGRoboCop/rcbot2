@@ -1095,9 +1095,10 @@ void CTeamFortress2Mod:: clientCommand ( edict_t *pEntity, const int argc, const
 		if ( std::strcmp(pcmd,"voicemenu") == 0 )
 		{
 			// somebody said a voice command
-			u_VOICECMD vcmd;
+			// zero-initialised so the union's unused bits are clear before the
+			// bit-fields are filled in and voicecmd is read back out
+			u_VOICECMD vcmd{};
 
-			vcmd.voicecmd = 0;
 			vcmd.b1.v1 = std::atoi(arg1);
 			vcmd.b1.v2 = std::atoi(arg2);
 
@@ -1481,7 +1482,7 @@ void CTeamFortress2Mod::updatePointMaster()
 		}
 	}
 
-	if ( m_PointMaster != nullptr)
+	if ( m_PointMaster != nullptr )
 	{
 		m_pCurrentRound =  m_PointMaster->getCurrentRound();
 	}
