@@ -43,6 +43,7 @@
 CPropertyVarBase::CPropertyVarBase(): m_type()
 {
 	m_initialized = false;
+	m_readWarned = false;
 }
 
 CPropertyVarBase::~CPropertyVarBase()
@@ -64,6 +65,7 @@ void CPropertyVarBase::Init(const char *propname, const PropType type, const int
 	m_type = type;
 	m_entity.Set(reinterpret_cast<IHandleEntity*>(baseentity));
 	m_initialized = true;
+	m_readWarned = false;
 }
 
 void CPropertyVarBase::Term()
@@ -71,28 +73,66 @@ void CPropertyVarBase::Term()
 	m_initialized = false;
 }
 
+bool CPropertyVarBase::CanRead() const
+{
+	if (m_initialized && entprops != nullptr && entprops->isAvailable())
+		return true;
+
+	// Warn once per variable. These accessors can run every frame, and an unthrottled
+	// log line here is the sort of console volume that stalls the server log writer.
+	if (!m_readWarned)
+	{
+		m_readWarned = true;
+		logger->Log(LogLevel::WARN, "PropertyVar \"%s\" read while %s! Returning a default value; further warnings for this variable are suppressed.",
+			m_propname.empty() ? "<uninitialized>" : m_propname.c_str(),
+			m_initialized ? "the entity property layer is unavailable" : "not initialized");
+	}
+
+	return false;
+}
+
 int CPropertyVarInt::Get() const
 {
+	if (!CanRead())
+		return 0;
+
 	return entprops->GetEntProp(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
 }
 
 bool CPropertyVarBool::Get() const
 {
+	if (!CanRead())
+		return false;
+
 	return entprops->GetEntPropBool(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
 }
 
 float CPropertyVarFloat::Get() const
 {
+	if (!CanRead())
+		return 0.0f;
+
 	return entprops->GetEntPropFloat(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
 }
 
 Vector CPropertyVarVector::Get() const
 {
-    return entprops->GetEntPropVector(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
+	if (!CanRead())
+		return {0,0,0};
+
+	return entprops->GetEntPropVector(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
 }
 
 void CPropertyVarVector::Get(Vector &dest) const
 {
+	if (!CanRead())
+	{
+		dest.x = 0.0f;
+		dest.y = 0.0f;
+		dest.z = 0.0f;
+		return;
+	}
+
 	const Vector source = entprops->GetEntPropVector(m_entity.GetEntryIndex(), m_type, m_propname.c_str());
 	dest.x = source.x;
 	dest.y = source.y;

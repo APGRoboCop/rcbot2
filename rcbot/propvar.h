@@ -53,11 +53,18 @@ public:
 	/// @brief Marks this as not initialized.
 	virtual void Term();
 protected:
+	/// @brief True when a Get() call is safe: the var was initialized and the entprops
+	/// helpers are live. Get() returns a zero value instead of reading through an
+	/// invalid handle when this is false, warning once via m_readWarned.
+	bool CanRead() const;
 
 	std::string m_propname;
 	PropType m_type;
 	CBaseHandle m_entity;
 	bool m_initialized;
+	// Latches on the first failed CanRead() so these accessors, which may run every
+	// frame, warn once instead of flooding the console. Cleared by a successful Init().
+	mutable bool m_readWarned;
 };
 
 class CPropertyVarInt : public CPropertyVarBase
