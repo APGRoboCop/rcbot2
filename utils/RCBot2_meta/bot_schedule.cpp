@@ -883,7 +883,10 @@ void CBotSchedule :: execute ( CBot *pBot )
 
 				pTask->debugString(dbg, sizeof(dbg));
 
-				CClients::clientDebugMsg(BOT_DEBUG_TASK,dbg,pBot);
+				if ( std::strncmp(dbg, s_szLastDbg, sizeof(dbg)) != 0 )
+				{
+					CClients::clientDebugMsg(BOT_DEBUG_TASK,dbg,pBot);
+					std::strncpy(s_szLastDbg, dbg, sizeof(s_szLastDbg) - 1);
 					s_szLastDbg[sizeof(s_szLastDbg) - 1] = '\0';
 				}
 			}
