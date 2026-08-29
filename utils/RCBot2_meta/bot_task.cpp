@@ -2632,7 +2632,6 @@ void CBotTFRocketJump :: execute (CBot *pBot, CBotSchedule *pSchedule)
 	{
 		fail();
 	}
-	else if (pWeapon->getID() != TF2_WEAPON_ROCKETLAUNCHER )
 	else if ( pWeapon->getID() != TF2_WEAPON_ROCKETLAUNCHER )
 	{
 		if ( !pBot->select_CWeapon(CWeapons::getWeapon(TF2_WEAPON_ROCKETLAUNCHER)) )

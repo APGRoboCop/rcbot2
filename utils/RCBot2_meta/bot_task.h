@@ -1426,11 +1426,9 @@ class CFindCoverSpot : public CBotTask
 {
 public:
 	CFindCoverSpot(edict_t* pEntity);
-
 	CFindCoverSpot(const Vector& vec);
 
 	void init() override;
-
 	void execute(CBot* pBot, CBotSchedule* pSchedule) override;
 
 	void debugString(char* string, const unsigned bufferSize) override
