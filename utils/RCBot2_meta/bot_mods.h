@@ -538,7 +538,9 @@ public:
 private:
 	edict_t *m_pFlags[MAX_DOD_FLAGS];
 	edict_t* m_pBombs[MAX_DOD_FLAGS][8]; // maximum of 8 bombs per capture point increased for stability [APG]RoboCop[CL]
-	int m_iWaypoint[MAX_DOD_FLAGS];
+	// zero-initialised here as well as in init(); the analyser cannot see the
+	// range-based loops there, and this keeps the arrays valid before init() runs
+	int m_iWaypoint[MAX_DOD_FLAGS]{};
 
 	int m_iNumControlPoints;
 	Vector *m_vCPPositions;
@@ -552,7 +554,7 @@ private:
 	// reply on this one
 	bool *m_bBombPlanted_Unreliable;
 	bool m_bBombPlanted[MAX_DOD_FLAGS];
-	float m_fBombPlantedTime[MAX_DOD_FLAGS];
+	float m_fBombPlantedTime[MAX_DOD_FLAGS]{};
 	int *m_iBombsRequired;
 	int *m_iBombsRemaining;
 	bool *m_bBombBeingDefused;
@@ -1300,9 +1302,7 @@ public:
 
 	static void findMediGun ( edict_t *pPlayer );
 
-
 	bool checkWaypointForTeam(CWaypoint *pWpt, int iTeam) override;
-	
 
 	static bool isFlagAtDefaultState () { return bFlagStateDefault; }
 	static void resetFlagStateToDefault() { bFlagStateDefault = true; }
