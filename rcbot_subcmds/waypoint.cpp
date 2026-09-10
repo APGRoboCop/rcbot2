@@ -729,9 +729,6 @@ CBotCommandInline WaypointReachableCommand("reachable", CMD_ACCESS_WAYPOINT, [](
 				visited[static_cast<std::size_t>(i)] ? "REACHABLE" : "NOT reachable");
 	}
 
-	// If anything is unreachable, find the closest reachable<->unreachable node pair -- the
-	// best single bridge to add. Draw a RED line at it and report the two ids + distance so
-	// you can teleport over and connect them. [APG]RoboCop[CL]
 	if (iReached < iNum)
 	{
 		float fBestDist = 1.0e9f;

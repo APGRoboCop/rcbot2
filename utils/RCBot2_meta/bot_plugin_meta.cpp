@@ -433,6 +433,7 @@ bool RCBotPluginMeta::Load(PluginId id, ISmmAPI *ismm, char *error, std::size_t 
 	gpGlobals = ismm->GetCGlobals();
 
 	META_LOG(g_PLAPI, "Starting plugin.");
+	META_LOG(g_PLAPI, "RCBot2 build stamp: " __DATE__ " " __TIME__);
 
 	/* Load the VSP listener.  This is usually needed for IServerPluginHelpers. */
 	ismm->AddListener(this, this);

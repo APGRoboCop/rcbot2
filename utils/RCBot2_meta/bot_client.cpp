@@ -369,11 +369,6 @@ void CClient :: think ()
 	{
 		IPlayerInfo *p = playerinfomanager->GetPlayerInfo(m_pPlayer);
 
-		// Aim-to-select the debug bot: the bot you look at becomes the debug target.
-		// setDebugBot() was never called anywhere, so m_pDebugBot stayed null and
-		// per-bot debug (HUD readout, buttons) never displayed. Pick the bot most
-		// aligned with the player's view within a narrow cone; keep the last pick
-		// when not looking at any bot. [APG]RoboCop[CL]
 		if ( p != nullptr )
 		{
 			Vector vAim;
@@ -1130,9 +1125,6 @@ bool CClient :: isUsed () const
 
 Vector CClient :: getOrigin () const
 {
-	// FF uses GetAbsOrigin() directly (feet position) for accurate waypoint
-	// placement. Other mods keep the +32 offset for backward compatibility
-	// with existing waypoints that were all placed with the offset. [APG]RoboCop[CL]
 	const Vector vOffset = CBotGlobals::isMod(MOD_FF) ? Vector(0,0,0) : Vector(0,0,32);
 
 	if ( IPlayerInfo *playerinfo = playerinfomanager->GetPlayerInfo( m_pPlayer ) )

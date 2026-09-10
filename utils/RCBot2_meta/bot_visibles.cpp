@@ -131,6 +131,9 @@ void CBotVisibles::eachVisible(CVisibleFunc* pFunc) const
 {
     for (edict_t* pEnt : m_VisibleSet)
     {
+        if (pEnt == nullptr || pEnt->IsFree())
+            continue;
+
         pFunc->execute(pEnt);
     }
 }

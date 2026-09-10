@@ -1003,8 +1003,6 @@ private:
 	MyEHandle m_pRedPayloadBomb;
 	MyEHandle m_pBluePayloadBomb;
 
-	// Zombie Infection (zi_) maps: blue (zombie) bots cache the nearest red player
-	// to actively hunt instead of wandering. [APG]RoboCop[CL]
 	MyEHandle m_pHuntTarget;
 	float m_fHuntTargetUpdateTime;
 
