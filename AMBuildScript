@@ -74,7 +74,7 @@ class MMSConfig(object):
   def configure(self):
     for cxx in self.all_targets:
       if cxx.target.arch not in ['x86', 'x86_64']:
-        raise Exception('Unknown target architecture: {0}'.format(arch))
+        raise Exception('Unknown target architecture: {0}'.format(cxx.target.arch))
 
       self.configure_cxx(cxx)
     
@@ -128,9 +128,11 @@ class MMSConfig(object):
       if cxx.family == 'gcc':
         cxx.cflags += ['-mfpmath=sse']
         cxx.cxxflags += ['-Wno-class-memaccess']
-        cxx.cxxflags += ['-Wno-template-id-cdtor']
         cxx.cxxflags += ['-Wno-nonnull-compare']
         cxx.cxxflags += ['-Wno-ignored-attributes']
+        # -Wtemplate-id-cdtor only exists in GCC 14 and newer [APG]RoboCop[CL]
+        if cxx.version >= 'gcc-14':
+          cxx.cxxflags += ['-Wno-template-id-cdtor']
       if cxx.family == 'clang':
         cxx.cxxflags += ['-Wno-implicit-exception-spec-mismatch']
         if cxx.version >= 'clang-3.9' or cxx.version >= 'apple-clang-10.0':
@@ -190,11 +192,11 @@ class MMSConfig(object):
       if cxx.behavior == 'gcc':
         cxx.cflags += ['-O2']
       elif cxx.behavior == 'msvc':
-        cxx.cflags += ['/Ox', '/Zo']
-        cxx.linkflags += ['/OPT:ICF', '/OPT:REF']
+        cxx.cflags += ['/O2', '/Zo']
+        cxx.linkflags += ['/OPT:REF', '/OPT:NOICF']
 
     # Debugging
-    if builder.options.debug:
+    elif builder.options.debug:
       cxx.defines += ['DEBUG']
       if cxx.behavior == 'gcc':
         cxx.defines += ['_DEBUG']
