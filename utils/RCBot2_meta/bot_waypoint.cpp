@@ -1605,7 +1605,7 @@ void CWaypoint::botTouch(CBot* pBot)
 }
 
 // get the colour of this waypoint in WptColor format
-WptColor CWaypointTypes ::getColour (const int iFlags)
+WptColor CWaypointTypes::getColour(const int iFlags)
 {
 	WptColor colour = WptColor(0,0,255); // normal waypoint
 
@@ -3156,7 +3156,7 @@ bool CWaypoint :: addPathTo ( int iWaypointIndex )
 {
 	CWaypoint *pTo = CWaypoints::getWaypoint(iWaypointIndex);
 
-	if ( pTo == nullptr)
+	if ( pTo == nullptr )
 		return false;
 	// already in list
 	if (std::find(m_thePaths.begin(), m_thePaths.end(), iWaypointIndex) != m_thePaths.end())
@@ -3183,7 +3183,7 @@ void CWaypoint :: removePathTo (const int iWaypointIndex)
 {
 	CWaypoint *pOther = CWaypoints::getWaypoint(iWaypointIndex);
 
-	if ( pOther != nullptr)
+	if ( pOther != nullptr )
 	{
 		m_thePaths.erase(std::remove(m_thePaths.begin(), m_thePaths.end(), iWaypointIndex), m_thePaths.end());
 		pOther->removePathFrom(CWaypoints::getWaypointIndex(this));
@@ -3195,7 +3195,7 @@ void CWaypoint :: info ( edict_t *pEdict )
 	CWaypointTypes::printInfo(this,pEdict);
 }
 
-bool CWaypoint ::isAiming() const
+bool CWaypoint::isAiming() const
 {
 	return (m_iFlags & (CWaypointTypes::W_FL_DEFEND | 
 		CWaypointTypes::W_FL_ROCKET_JUMP | 
@@ -3237,7 +3237,7 @@ void CWaypointTypes :: showTypesOnConsole(edict_t *pPrintTo)
 	}
 }
 
-void CWaypointTypes:: addType ( CWaypointType *type )
+void CWaypointTypes::addType(CWaypointType *type)
 {
 	m_Types.emplace_back(type);
 }

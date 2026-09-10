@@ -2863,7 +2863,7 @@ void CBot :: getLookAtVector ()
 					// random
 					m_vLookAroundOffset = getEyePosition();
 				}
-					
+
 				m_fLookAroundTime = engine->Time() + randomFloat(2.0f,3.0f);
 				m_vLookAroundOffset = m_vLookAroundOffset + Vector(randomFloat(-128,128),randomFloat(-128,128),randomFloat(-16,16));
 			}
