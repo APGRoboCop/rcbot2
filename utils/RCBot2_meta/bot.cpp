@@ -1221,9 +1221,9 @@ void CBot :: updateConditions ()
 
 				setLastEnemy(m_pEnemy);
 
-				removeCondition(CONDITION_SEE_CUR_ENEMY);
-				removeCondition(CONDITION_SEE_ENEMY_HEAD);
-				updateCondition(CONDITION_ENEMY_OBSCURED);
+				removeCondition(CONDITION_SEE_CUR_ENEMY); //-V525 distinct condition flags, not copy-paste
+				removeCondition(CONDITION_SEE_ENEMY_HEAD); //-V525
+				updateCondition(CONDITION_ENEMY_OBSCURED); //-V525
 			}
 		}
 	}
@@ -1845,16 +1845,11 @@ void CBot::debugBot(char* msg, const std::size_t msgSize)
 	const int currentWaypointID = hasNextPoint ? m_pNavigator->getCurrentWaypointID() : -1;
 	const int currentGoalID = hasNextPoint ? m_pNavigator->getCurrentGoalID() : -1;
 
-	// The actual nearest waypoint to the bot (independent of whether it's navigating) --
-	// tells us at a glance if a "Waypoint:-1" bot is genuinely off the network or just
-	// not routing. Plus the team, to confirm getTeam() reads correctly. [APG]RoboCop[CL]
 	const int iTeam = getTeam();
 	const int iNearestWpt = CWaypointLocations::NearestWaypoint(getOrigin(), CWaypointLocations::REACHABLE_RANGE, -1, true, false, true, nullptr, false, iTeam);
 
 	const CBotSchedule *pCurrentSchedule = (m_pSchedules && !m_pSchedules->isEmpty()) ? m_pSchedules->getCurrentSchedule() : nullptr;
 
-	// Held buttons + move speeds -- decodes the move-slowing keys so a held USE
-	// (or DUCK/WALK) shows at a glance. [APG]RoboCop[CL]
 	char btn_string[160];
 	snprintf(btn_string, sizeof(btn_string), "0x%x [%s%s%s%s%s%s] fwd=%.0f side=%.0f up=%.0f",
 		m_iButtons,
