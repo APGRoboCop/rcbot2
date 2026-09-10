@@ -218,9 +218,7 @@ bool CSignatureFunction::getLibraryInfo(const void *libPtr, DynLibInfo &lib)
 
 void *CSignatureFunction::findPattern(const void *libPtr, const char *pattern, const std::size_t len)
 {
-	DynLibInfo lib;
-
-	std::memset(&lib, 0, sizeof(DynLibInfo));
+	DynLibInfo lib{};
 
 	if (!getLibraryInfo(libPtr, lib))
 	{

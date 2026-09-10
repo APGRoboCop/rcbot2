@@ -80,7 +80,7 @@ public:
 
 	void debugprint () const;
 	void updatePoints();
-	bool TeamCanCapPoint(const int index, const int team)
+	bool TeamCanCapPoint(const int index, const int team) const
 	{
 		AssertValidIndex(index);
 		return m_bTeamCanCap[ TEAM_ARRAY( index, team ) ];
@@ -186,7 +186,7 @@ public:
 		return *m_iNumControlPoints;
 	}
 
-	int GetPreviousPointForPoint(const int index, const int team, const int iPrevIndex)
+	int GetPreviousPointForPoint(const int index, const int team, const int iPrevIndex) const
 	{
 		AssertValidIndex(index);
 		Assert( iPrevIndex >= 0 && iPrevIndex < MAX_PREVIOUS_POINTS );
@@ -202,7 +202,7 @@ public:
 		return m_iOwner[index];
 	}
 
-	void AssertValidIndex( int index )
+	void AssertValidIndex(const int index) const
 	{
 		Assert( (0 <= index) && (index <= MAX_CONTROL_POINTS) && (index < *m_iNumControlPoints) );
 	}

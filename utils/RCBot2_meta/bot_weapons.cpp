@@ -918,8 +918,7 @@ void CWeapons::loadWeapons(const char* szWeaponListName, const WeaponsData_t* pD
 			if (KeyValues* weaponListKey = kv->FindKey(szWeaponListName)) {
 
 				for (KeyValues* subKey = weaponListKey->GetFirstSubKey(); subKey != nullptr; subKey = subKey->GetNextTrueSubKey()) {
-					WeaponsData_t newWeapon;
-					std::memset(&newWeapon, 0, sizeof(WeaponsData_t));
+					WeaponsData_t newWeapon{};
 
 					if (const char* szKeyName = subKey->GetName()) {
 						std::string lowered(szKeyName);
