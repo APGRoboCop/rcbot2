@@ -1667,7 +1667,8 @@ void CBotFortress :: selectClass ()
 	{
 		szJoinCmd = "joinclass sniper";
 	}
-	if (szJoinCmd != nullptr) {
+	if (szJoinCmd != nullptr)
+	{
 		helpers->ClientCommand(m_pEdict, szJoinCmd);
 	}
 
@@ -1782,7 +1783,7 @@ bool CBotTF2 :: hurt ( edict_t *pAttacker, const int iHealthNow, const bool bDon
 					m_pSchedules->addFront(new CGotoHideSpotSched(this,m_vHurtOrigin,new CBotTF2CoverInterrupt()));
 				}
 
-				if( CBotGlobals::isPlayer(pAttacker) && ( m_iClass == TF_CLASS_SPY ) && (iHealthNow<rcbot_spy_runaway_health.GetInt()) )
+				if( CBotGlobals::isPlayer(pAttacker) && (m_iClass == TF_CLASS_SPY) && (iHealthNow<rcbot_spy_runaway_health.GetInt()) )
 				{
 					// cloak and run
 					if ( !isCloaked() )
@@ -2253,8 +2254,8 @@ void CBotTF2::MvM_Upgrade()
 	static const MvMUpgradeEntry s_SniperUpgrades[]   = { {0,0}, {1,0}, {2,0}, {25,0}, {37,0}, {3,0}, {22,0} };
 	static const MvMUpgradeEntry s_SpyUpgrades[]      = { {25,0}, {22,0}, {37,0}, {38,0}, {0,1}, {39,0}, {1,1} };
 
-	const MvMUpgradeEntry *pUpgradeList = nullptr;
-	int nUpgradeCount = 0;
+	const MvMUpgradeEntry *pUpgradeList;
+	int nUpgradeCount;
 
 	switch (m_iClass)
 	{
@@ -2920,7 +2921,7 @@ bool CBotFortress:: wantToUnCloak ()
 	if ( wantToShoot() && m_pEnemy && hasSomeConditions(CONDITION_SEE_CUR_ENEMY) )
 	{
 		// hopefully the enemy can't see me
-		if ( CBotGlobals::isAlivePlayer(m_pEnemy) && ( std::fabs(CBotGlobals::yawAngleFromEdict(m_pEnemy,getOrigin())) > bot_spyknifefov.GetFloat() ) ) 
+		if ( CBotGlobals::isAlivePlayer(m_pEnemy) && (std::fabs(CBotGlobals::yawAngleFromEdict(m_pEnemy,getOrigin())) > bot_spyknifefov.GetFloat()) ) 
 			return true;
 		if ( !m_pEnemy || !hasSomeConditions(CONDITION_SEE_CUR_ENEMY) )
 			return (m_fCurrentDanger < 1.0f);
@@ -7720,7 +7721,7 @@ bool CBotTF2 :: handleAttack ( CBotWeapon *pWeapon, edict_t *pEnemy )
 				const float fSkill = 1.0f - fRandom;
 				
 				//m_fSnipeAttackTime = engine->Time() + (fSkill*1.0f) + ((4.0f*fDistFactor)*fSkill);
-				m_fSnipeAttackTime = engine->Time() + ((2.0f * fDistFactor));
+				m_fSnipeAttackTime = engine->Time() + (2.0f * fDistFactor);
 				m_pButtons->letGo(IN_ATTACK);
 			}
 		}
