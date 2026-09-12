@@ -876,18 +876,27 @@ void CBotSchedule :: execute ( CBot *pBot )
 		{			
 			if ( CClients::clientsDebugging(BOT_DEBUG_TASK) )
 			{
-				// Also skip consecutive repeats - the task rarely changes between thinks.
-				// [APG]RoboCop[CL]
-				char dbg[512];
-				static char s_szLastDbg[512];
+				// Skip consecutive repeats - the task rarely changes between thinks.
+				// Avoid using magic numbers for debug tasks [APG]RoboCop[CL]
+				static constexpr unsigned DBG_LEN = 256;
+
+				char dbg[DBG_LEN];
+				static char s_szLastDbg[RCBOT_MAXPLAYERS][DBG_LEN];
 
 				pTask->debugString(dbg, sizeof(dbg));
 
-				if ( std::strncmp(dbg, s_szLastDbg, sizeof(dbg)) != 0 )
+				const int iSlot = CClients::slotOfEdict(pBot->getEdict());
+
+				if ( iSlot < 0 || iSlot >= RCBOT_MAXPLAYERS )
+				{
+					// no client slot to track against - print rather than lose the message
+					CClients::clientDebugMsg(BOT_DEBUG_TASK,dbg,pBot);
+				}
+				else if ( std::strncmp(dbg, s_szLastDbg[iSlot], DBG_LEN) != 0 )
 				{
 					CClients::clientDebugMsg(BOT_DEBUG_TASK,dbg,pBot);
-					std::strncpy(s_szLastDbg, dbg, sizeof(s_szLastDbg) - 1);
-					s_szLastDbg[sizeof(s_szLastDbg) - 1] = '\0';
+					std::strncpy(s_szLastDbg[iSlot], dbg, DBG_LEN - 1);
+					s_szLastDbg[iSlot][DBG_LEN - 1] = '\0';
 				}
 			}
 
