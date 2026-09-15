@@ -545,7 +545,7 @@ public:
 		return CBot::hurt(pAttacker,iHealthNow,bDontHide);
 	}
 
-	virtual void chooseClass(); //virtual so CBotFF can pick with FF-correct team/role logic [APG]RoboCop[CL]
+	//virtual void chooseClass(); //virtual so CBotFF can pick with FF-correct team/role logic [APG]RoboCop[CL]
 
 	virtual TF_Class getClass () { return TF_CLASS_UNDEFINED; }
 
