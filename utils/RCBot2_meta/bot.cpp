@@ -323,7 +323,7 @@ void CBot :: setEdict (edict_t *pEdict)
 	spawnInit();
 }
 
-bool CBot :: isUnderWater () const //Needs to be const to prevent losing mobility? [APG]RoboCop[CL]
+bool CBot :: isUnderWater () const
 {
 	return CClassInterface::getWaterLevel(m_pEdict) > 1; //m_pController->IsEFlagSet(EFL_TOUCHING_FLUID);
 }
@@ -2374,6 +2374,8 @@ void CBot :: doMove ()
 
 			m_fForwardSpeed = m_fIdealMoveSpeed; // drive into the ladder to grab it
 		}
+		// Reset upmove every move, else it stays on after swimming or ladders and slows the bot - [APG]RoboCop[CL]
+		m_fUpSpeed = 0.0f;
 
 		if ( isUnderWater() || onLadder() )
 		{
