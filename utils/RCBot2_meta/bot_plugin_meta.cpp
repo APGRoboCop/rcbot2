@@ -682,7 +682,11 @@ bool RCBotPluginMeta::Unload(char *error, std::size_t maxlen)
 	SH_REMOVE_HOOK_MEMFUNC(IVEngineServer, UserMessageBegin, engine, this, &RCBotPluginMeta::Hook_UserMessageBegin, true);
 	SH_REMOVE_HOOK_MEMFUNC(IVEngineServer, MessageEnd, engine, this, &RCBotPluginMeta::Hook_MessageEnd, false);
 
-	//SH_REMOVE_MANUALHOOK(MHook_PlayerRunCmd, player_vtable, SH_STATIC(Hook_Function2), false);
+#ifdef OVERRIDE_RUNCMD
+	// take the per-player PlayerRunCmd hooks off (the class-wide removal that used to be commented out here
+	// referred to a vtable hook that this plugin does not use)
+	RemoveAllRunCmdHooks();
+#endif
 
 	// if another instance is running dont run through this
 	//if ( !bInitialised )
@@ -879,26 +883,66 @@ void RCBotPluginMeta::Hook_ClientPutInServer(edict_t *pEntity, char const* playe
 	// FF bots use m_pController->RunPlayerMove() directly instead.
 	if ( pEnt && !CBotGlobals::isMod(MOD_FF) )
 	{
-		SH_ADD_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEnt, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
+		AddRunCmdHook(IndexOfEdict(pEntity), pEnt);
 	}
 #endif
 }
 
 void RCBotPluginMeta::Hook_ClientDisconnect(edict_t *pEntity)
 {
-	CBaseEntity *pEnt = servergameents->EdictToBaseEntity(pEntity); //`*pEnt` Unused? [APG]RoboCop[CL]
-
 #ifdef OVERRIDE_RUNCMD
-	if ( pEnt && !CBotGlobals::isMod(MOD_FF) )
-	{
-		SH_REMOVE_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEnt, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
-	}
+	RemoveRunCmdHook(IndexOfEdict(pEntity));
 #endif
 
 	CClients::clientDisconnected(pEntity);
 
 	META_LOG(g_PLAPI, "Hook_ClientDisconnect(%d)", IndexOfEdict(pEntity));
 }
+
+#ifdef OVERRIDE_RUNCMD
+void RCBotPluginMeta::AddRunCmdHook(const int clientIndex, CBaseEntity *pEntity)
+{
+	if ( clientIndex < 1 || clientIndex > RCBOT_MAXPLAYERS || !pEntity )
+		return;
+
+	if ( m_pRunCmdHooked[clientIndex] == pEntity )
+		return; // this player already carries the hook
+
+	// A different entity now sits in this slot: the previous one was never reported as disconnected.
+	RemoveRunCmdHook(clientIndex);
+
+	SH_ADD_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEntity, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
+	m_pRunCmdHooked[clientIndex] = pEntity;
+}
+
+void RCBotPluginMeta::RemoveRunCmdHook(const int clientIndex)
+{
+	if ( clientIndex < 1 || clientIndex > RCBOT_MAXPLAYERS )
+		return;
+
+	if ( CBaseEntity *pEntity = m_pRunCmdHooked[clientIndex] )
+	{
+		SH_REMOVE_MANUALHOOK_MEMFUNC(MHook_PlayerRunCmd, pEntity, this, &RCBotPluginMeta::Hook_PlayerRunCmd, false);
+		m_pRunCmdHooked[clientIndex] = nullptr;
+	}
+}
+
+int RCBotPluginMeta::RemoveAllRunCmdHooks()
+{
+	int removed = 0;
+
+	for ( int i = 1; i <= RCBOT_MAXPLAYERS; i++ )
+	{
+		if ( m_pRunCmdHooked[i] )
+		{
+			RemoveRunCmdHook(i);
+			removed++;
+		}
+	}
+
+	return removed;
+}
+#endif
 
 void RCBotPluginMeta::Hook_GameFrame(const bool simulating)
 {
@@ -1102,6 +1146,14 @@ bool RCBotPluginMeta::Hook_LevelInit(const char *pMapName,
 void RCBotPluginMeta::Hook_LevelShutdown()
 {
 	META_LOG(g_PLAPI, "Hook_LevelShutdown()");
+
+#ifdef OVERRIDE_RUNCMD
+	// The engine removes the bots at a map change without calling ClientDisconnect, so their PlayerRunCmd hooks
+	// would stay behind and pile up. This hook runs before the game DLL's own LevelShutdown, so the player entities
+	// still exist and SourceHook can find the hooks to remove.
+	if ( const int removed = RemoveAllRunCmdHooks() )
+		META_LOG(g_PLAPI, "Hook_LevelShutdown(): removed %d PlayerRunCmd hook(s)", removed);
+#endif
 
 	CClients::initall();
 	CWaypointDistances::save();
