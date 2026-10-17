@@ -1,14 +1,17 @@
 [submodule "alliedmodders/hl2sdk-bms"]
 	path = alliedmodders/hl2sdk-bms
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = bms
 
 [submodule "alliedmodders/hl2sdk-css"]
 	path = alliedmodders/hl2sdk-css
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = css
 
 [submodule "alliedmodders/hl2sdk-dods"]
 	path = alliedmodders/hl2sdk-dods
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = dods
 
 [submodule "alliedmodders/hl2sdk-episode1"]
 	path = alliedmodders/hl2sdk-episode1
@@ -17,6 +20,7 @@
 [submodule "alliedmodders/hl2sdk-hl2dm"]
 	path = alliedmodders/hl2sdk-hl2dm
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = hl2dm
 
 [submodule "alliedmodders/hl2sdk-orangebox"]
 	path = alliedmodders/hl2sdk-orangebox
@@ -25,10 +29,12 @@
 [submodule "alliedmodders/hl2sdk-sdk2013"]
 	path = alliedmodders/hl2sdk-sdk2013
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = sdk2013
 
 [submodule "alliedmodders/hl2sdk-tf2"]
 	path = alliedmodders/hl2sdk-tf2
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = tf2
 
 [submodule "alliedmodders/metamod-source"]
 	path = alliedmodders/metamod-source
@@ -37,9 +43,11 @@
 [submodule "alliedmodders/sourcemod"]
 	path = alliedmodders/sourcemod
 	url = https://github.com/alliedmodders/sourcemod
+	branch = 1.12-dev
 [submodule "hl2sdk-manifests"]
 	path = hl2sdk-manifests
 	url = https://github.com/alliedmodders/hl2sdk-manifests
 [submodule "alliedmodders/hl2sdk-proxy-repo"]
 	path = alliedmodders/hl2sdk-proxy-repo
 	url = https://github.com/alliedmodders/hl2sdk
+	branch = sdk2013
