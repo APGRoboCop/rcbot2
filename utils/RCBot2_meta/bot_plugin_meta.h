@@ -58,6 +58,7 @@
 
 class CUserCmd;
 class IMoveHelper;
+class CBaseEntity;
 class bf_write;
 class IRecipientFilter;
 
@@ -144,6 +145,18 @@ private:
 	int m_iTargetBots[RCBOT_MAXPLAYERS] = {};
 
 	void BotQuotaCheck();
+
+#ifdef OVERRIDE_RUNCMD
+	// The player entities that currently carry our PlayerRunCmd hook, by client index.
+	// SourceHook keeps one entry per hooked object and walks that list on every hooked call, so every entry that is
+	// not removed makes every PlayerRunCommand of every player slower for as long as the server stays up.
+	// The engine removes bots at a map change without calling ClientDisconnect, so the hooks are tracked here and
+	// removed explicitly on disconnect, at level shutdown and on unload.
+	CBaseEntity *m_pRunCmdHooked[RCBOT_MAXPLAYERS + 1] = {};
+	void AddRunCmdHook(int clientIndex, CBaseEntity *pEntity);
+	void RemoveRunCmdHook(int clientIndex);
+	int RemoveAllRunCmdHooks();   // returns how many hooks were removed
+#endif
 };
 
 extern RCBotPluginMeta g_RCBotPluginMeta;
