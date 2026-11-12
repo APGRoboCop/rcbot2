@@ -110,6 +110,9 @@ public:
 	int m_iPendingLocationRecipient = -1; // entindex of an in-flight SetPlayerLocation message
 	bf_write *m_pPendingLocationBuf = nullptr; // its buffer, read at MessageEnd
 
+	int m_iFFHudLuaMsg = -1;              // cached "FF_HudLua" usermessage index (-1 = unknown, -2 = absent)
+	bf_write* m_pPendingHudLuaBuf = nullptr; // its buffer, read at MessageEnd
+
 #if SOURCE_ENGINE >= SE_ORANGEBOX
 	void Hook_ClientCommand(edict_t *pEntity, const CCommand &args);
 #else
